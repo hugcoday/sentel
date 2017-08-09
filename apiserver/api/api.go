@@ -30,39 +30,51 @@ var (
 	apiManagers map[string]*ApiManager = make(map[string]*ApiManager)
 )
 
-type ApiDescriptor struct {
-	Action  string
-	Url     string
-	Handler echo.HandlerFunc
+type apiDescriptor struct {
+	action  string
+	url     string
+	handler echo.HandlerFunc
 }
 
 type ApiManager struct {
-	Name         string
-	Config       *ApiConfig
-	Handlers     []ApiDescriptor
-	EchoInstance *echo.Echo
+	Name     string
+	Config   *ApiConfig
+	handlers []apiDescriptor
+	ech      *echo.Echo
+}
+
+func NewApiManager(name string, c *ApiConfig) *ApiManager {
+	m := &ApiManager{
+		Name:     name,
+		Config:   c,
+		handlers: []apiDescriptor{},
+		ech:      echo.New(),
+	}
+	//	m.ech.Use(middleware.Logger())
+	//	m.ech.Use(middleware.Recover())
+	return m
 }
 
 func (m *ApiManager) RegisterApi(action string, url string, handler echo.HandlerFunc) {
-	m.Handlers = append(m.Handlers,
-		ApiDescriptor{Action: action, Url: url, Handler: handler})
+	m.handlers = append(m.handlers,
+		apiDescriptor{action: action, url: url, handler: handler})
 
 	// add to echo
 	action = strings.ToUpper(action)
 	if action == "GET" {
-		m.EchoInstance.GET(url, handler)
+		m.ech.GET(url, handler)
 	} else if action == "POST" {
-		m.EchoInstance.POST(url, handler)
+		m.ech.POST(url, handler)
 	} else if action == "PUT" {
-		m.EchoInstance.PUT(url, handler)
+		m.ech.PUT(url, handler)
 	} else if action == "DELETE" {
-		m.EchoInstance.DELETE(url, handler)
+		m.ech.DELETE(url, handler)
 	}
 }
 
 func (m *ApiManager) Start(c *ApiConfig) error {
 	address := m.Config.Host + ":" + m.Config.Port
-	return m.EchoInstance.Start(address)
+	return m.ech.Start(address)
 }
 
 func RegisterApiManager(api *ApiManager) {

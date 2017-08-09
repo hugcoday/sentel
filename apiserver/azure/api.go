@@ -19,14 +19,12 @@ import (
 )
 
 func NewApi() *api.ApiManager {
-	m := &api.ApiManager{
-		Name:         "azure",
-		Config:       nil,
-		EchoInstance: echo.New(),
-		Handlers:     []api.ApiDescriptor{},
-	}
-
-	m.RegisterApi("post", "/devices/{id}/api-version", deleteDevice)
-
+	m := api.NewApiManager("azure", nil)
+	m.RegisterApi("post", "/devices/id:", deleteDevices)
 	return m
+}
+
+func deleteDevices(c echo.Context) error {
+	return nil
+
 }
