@@ -3,6 +3,30 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "Pc2ORQp+VY3Un/dkh4QwLC7R6lE=",
+			"path": "github.com/BurntSushi/toml",
+			"revision": "a368813c5e648fee92e5f6c30e3944ff9d5e8895",
+			"revisionTime": "2017-06-26T11:06:00Z"
+		},
+		{
+			"checksumSHA1": "kR64D1QzAOSM9LHOnTPdbigC8q0=",
+			"path": "github.com/fatih/camelcase",
+			"revision": "f6a740d52f961c60348ebb109adde9f4635d7540",
+			"revisionTime": "2016-03-18T18:15:35Z"
+		},
+		{
+			"checksumSHA1": "40Ns85VYa4smQPcewZ7SOdfLnKU=",
+			"path": "github.com/fatih/structs",
+			"revision": "7e5a8eef611ee84dd359503f3969f80df4c50723",
+			"revisionTime": "2017-06-12T12:55:44Z"
+		},
+		{
+			"checksumSHA1": "35LVOh0jmZMo5Sf7JLGCkKtBTBI=",
+			"path": "github.com/koding/multiconfig",
+			"revision": "7ab5923ac43fc173d0c21e5e91da559469fa04f8",
+			"revisionTime": "2017-07-01T12:15:58Z"
+		},
+		{
 			"checksumSHA1": "NVP3w8D0NxMVAI2w/qpA/rQjEgM=",
 			"path": "github.com/labstack/echo",
 			"revision": "2b6ea65ccde7286f0cdcb92dfddb2e9dc90878f9",
@@ -61,6 +85,12 @@
 			"checksumSHA1": "Mk0HzIHe8LoPSTkLvGLAvwUtUcQ=",
 			"path": "golang.org/x/sys/unix",
 			"revision": ""
+		},
+		{
+			"checksumSHA1": "o20lmjzBQyKD5LfLZ3OhUoMkLds=",
+			"path": "gopkg.in/yaml.v2",
+			"revision": "25c4ec802a7d637f88d584ab26798e94ad14c13b",
+			"revisionTime": "2017-07-21T12:20:51Z"
 		}
 	],
 	"rootPath": "sentel"
