@@ -13,20 +13,10 @@
 package azure
 
 import (
-	"sentel/apiserver/api"
-
 	"github.com/labstack/echo"
 )
 
-func NewApi() *api.ApiManager {
-	m := &api.ApiManager{
-		Name:         "azure",
-		Config:       nil,
-		EchoInstance: echo.New(),
-		Handlers:     []api.ApiDescriptor{},
-	}
+func deleteDevice(c echo.Context) error {
+	return nil
 
-	m.RegisterApi("post", "/devices/{id}/api-version", deleteDevice)
-
-	return m
 }

@@ -13,7 +13,7 @@
 package api
 
 import (
-	"net/http"
+	"strings"
 
 	echo "github.com/labstack/echo"
 )
@@ -31,9 +31,9 @@ var (
 )
 
 type ApiDescriptor struct {
-	Method  string
+	Action  string
 	Url     string
-	Handler http.HandlerFunc
+	Handler echo.HandlerFunc
 }
 
 type ApiManager struct {
@@ -41,6 +41,23 @@ type ApiManager struct {
 	Config       *ApiConfig
 	Handlers     []ApiDescriptor
 	EchoInstance *echo.Echo
+}
+
+func (m *ApiManager) RegisterApi(action string, url string, handler echo.HandlerFunc) {
+	m.Handlers = append(m.Handlers,
+		ApiDescriptor{Action: action, Url: url, Handler: handler})
+
+	// add to echo
+	action = strings.ToUpper(action)
+	if action == "GET" {
+		m.EchoInstance.GET(url, handler)
+	} else if action == "POST" {
+		m.EchoInstance.POST(url, handler)
+	} else if action == "PUT" {
+		m.EchoInstance.PUT(url, handler)
+	} else if action == "DELETE" {
+		m.EchoInstance.DELETE(url, handler)
+	}
 }
 
 func (m *ApiManager) Start(c *ApiConfig) error {
