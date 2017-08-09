@@ -12,19 +12,116 @@
 
 package azure
 
-import (
-	"sentel/apiserver/api"
-
-	"github.com/labstack/echo"
-)
+import "sentel/apiserver/api"
 
 func NewApi() *api.ApiManager {
 	m := api.NewApiManager("azure", nil)
-	m.RegisterApi("post", "/devices/id:", deleteDevices)
+
+	// Device APIs
+	m.RegisterApi("GET", "/devices/:id", getDevices)
+	m.RegisterApi("GET", "/devices/", getMultiplyDevices)
+	m.RegisterApi("DELETE", "/devices/id:", deleteDevices)
+	m.RegisterApi("GET", "/statistics/devices", getRegistryStatistics)
+	m.RegisterApi("GET", "/statistics/service", getServiceStatistics)
+	m.RegisterApi("DELETE", "/devices/:id/commands", purgeCommandQueue)
+	m.RegisterApi("PUT", "/devices/:id", putDevices)
+	m.RegisterApi("POST", "/devices/query", queryDevices)
+
+	// Device Twin Api
+	m.RegisterApi("GET", "/twins/:id", getDeviceTwin)
+	m.RegisterApi("POST", "/twins/:id/methods", invokeDeviceMethod)
+	m.RegisterApi("PATCH", "/twins/:id", updateDeviceTwin)
+
+	// Http Runtime Api
+	m.RegisterApi("POST", "/devices/:id/messages/deviceBound/:etag/abandon",
+		abandonDeviceBoundNotification)
+	m.RegisterApi("DELETE", "/devices/:id/messages/devicesBound/:etag",
+		completeDeviceBoundNotification)
+	m.RegisterApi("POST", "/devices/:ideviceId/files",
+		createFileUploadSasUri)
+	m.RegisterApi("GET", "/devices/:id/message/deviceBound",
+		receiveDeviceBoundNotification)
+	m.RegisterApi("POST", "/devices/:deviceId/files/notifications",
+		updateFileUploadStatus)
+	m.RegisterApi("POST", "/devices/:id/messages/event", sendDeviceEvent)
+
+	// Resource Api
+	m.RegisterApi("POST",
+		"/subscriptions/:subscriptionId/providers/Microsoft.Devices/checkNameAvailibility",
+		checkNameAvailability)
+	m.RegisterApi("PUT",
+		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
+		/providers/Microsoft.Devices/IotHubs/:resourceName/eventHubEndPoints
+		/:eventHubEndpointName/ConsumerGroups/:name`,
+		createEventHubConsumerGroup)
+	m.RegisterApi("PUT",
+		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
+		/providers/Microsoft.Devices/IotHubs/:resourceName`,
+		createOrUpudateMetadata)
+	m.RegisterApi("DELETE",
+		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
+		/providers/Microsoft.Devices/IotHubs/:resourceName`,
+		deleteIoTHub)
+	m.RegisterApi("GET",
+		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
+		/providers/Microsoft.Devices/IotHubs/:resourceName`,
+		getNonsecurityMetadata)
+
+	m.RegisterApi("DELETE",
+		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
+		/providers/Microsoft.Devices/IotHubs/:resourceName
+		/eventHubEndpoints/:eventHubEndpointName/ConsumerGroups/:name`,
+		deleteEventHubConsumerGroup)
+
+	m.RegisterApi("GET",
+		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
+		/providers/Microsoft.Devices/IotHubs/:resourceName
+		/eventHubEndpoints/:eventHubEndpointName/ConsumerGroups/:name`,
+		getEventHubConsumerGroup)
+	m.RegisterApi("GET",
+		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
+		/providers/Microsoft.Devices/IotHubs/:resourceName/jobs/:jobId`,
+		getJob)
+
+	m.RegisterApi("GET",
+		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
+		/providers/Microsoft.Devices/IotHubs/:resourceName/jobs`,
+		getAllJobsInIotHub)
+	m.RegisterApi("GET",
+		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
+		/providers/Microsoft.Devices/IotHubs/:resourceName/IotHubKyes/:keyName/listkyes`,
+		getKeyForKeyName)
+
+	m.RegisterApi("GET",
+		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
+		/providers/Microsoft.Devices/IotHubs/:resourceName/quatoMetrics`,
+		getQuotaMetrics)
+	m.RegisterApi("GET",
+		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
+		/providers/Microsoft.Devices/IotHubs/:resourceName/IotHubStats`,
+		getStatics)
+	m.RegisterApi("GET",
+		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
+		/providers/Microsoft.Devices/IotHubs/:resourceName/skus`,
+		getValidSkus)
+	m.RegisterApi("GET",
+		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
+		/providers/Microsoft.Devices/IotHubs`,
+		getAllHubsInGroup)
+	m.RegisterApi("GET",
+		`/subscriptions/:subscriptionId/providers/Microsoft.Devices/IotHubs`,
+		getAllHubs)
+
+	m.RegisterApi("GET",
+		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
+		/providers/Microsoft.Devices/IotHubs/:resourceName/listkyes`,
+		getSecurityMetadataFromHub)
+
+	// Job Api
+	m.RegisterApi("POST", "/jobs/v2/:jobid/cancel", cancelJob)
+	m.RegisterApi("PUT", "/jobs/v2/:jobid", createJob)
+	m.RegisterApi("GET", "/jobs/v2/:jobid", getJob)
+	m.RegisterApi("GET", "/jobs/v2/query", queryJobs)
+
 	return m
-}
-
-func deleteDevices(c echo.Context) error {
-	return nil
-
 }
