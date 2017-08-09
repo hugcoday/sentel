@@ -10,31 +10,21 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package apiserver
+package azure
 
 import (
 	"sentel/apiserver/api"
-	"sentel/apiserver/aws"
-	"sentel/apiserver/azure"
-	config "sentel/utility/config"
+
+	"github.com/labstack/echo"
 )
 
-const (
-	DefaultConfigFilePath = "/etc/sentel-apiserver.toml"
-)
+func NewApi() *api.ApiManager {
+	m := &api.ApiManager{
+		Name:         "azure",
+		Config:       nil,
+		EchoInstance: echo.New(),
+		Handlers:     []api.ApiDescriptor{},
+	}
 
-func main() {
-	// Get configuration
-	c := config.NewWithPath(DefaultConfigFilePath)
-	var apiConfig api.ApiConfig
-	c.MustLoad(apiConfig)
-
-	// Create api manager using configuration
-	apiManager := api.GetApiManager(apiConfig.ApiCategory)
-	apiManager.Start(&apiConfig)
-}
-
-func init() {
-	api.RegisterApiManager(azure.NewApi())
-	api.RegisterApiManager(aws.NewApi())
+	return m
 }
