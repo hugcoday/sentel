@@ -11,4 +11,18 @@
 //  under the License.
 
 package client
+
+import (
+  "log"
+  "os"
+
+  "golang.org/x/net/context"
+  "google.golang.org/grpc"
+  pb "sentel/registry/client"
+
+)
+
+const address = "localhost:5051"
+
+
  
