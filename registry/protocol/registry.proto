@@ -1,5 +1,5 @@
 syntax = "proto3";
-package registry;
+package protocol;
 
 service Registry {
   // Add a device to registry
