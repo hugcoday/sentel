@@ -1,0 +1,17 @@
+syntax = "proto3";
+package registry;
+
+service Registry {
+  // Add a device to registry
+  rpc AddDevice(DeviceAddRequest) returns (DeviceAddResponse){}
+}
+
+
+message DeviceAddRequest {
+  string name = 1;
+}
+
+message DeviceAddResponse {
+  string reply = 1;
+}
+
