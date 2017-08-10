@@ -10,7 +10,7 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package apiserver
+package main
 
 import (
 	"sentel/apiserver/api"
@@ -20,12 +20,12 @@ import (
 )
 
 const (
-	DefaultConfigFilePath = "/etc/sentel-apiserver.toml"
+	defaultConfigFilePath = "/etc/sentel-apiserver.toml"
 )
 
 func main() {
 	// Get configuration
-	c := config.NewWithPath(DefaultConfigFilePath)
+	c := config.NewWithPath(defaultConfigFilePath)
 	var apiConfig api.ApiConfig
 	c.MustLoad(apiConfig)
 
