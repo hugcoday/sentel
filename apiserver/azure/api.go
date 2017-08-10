@@ -19,7 +19,7 @@ func NewApi() *api.ApiManager {
 
 	// Device APIs
 	m.RegisterApi("GET", "/devices/:id", getDevices)
-	m.RegisterApi("GET", "/devices/", getMultiplyDevices)
+	m.RegisterApi("GET", "/devices/", getMultipleDevices)
 	m.RegisterApi("DELETE", "/devices/id:", deleteDevices)
 	m.RegisterApi("GET", "/statistics/devices", getRegistryStatistics)
 	m.RegisterApi("GET", "/statistics/service", getServiceStatistics)
@@ -57,7 +57,7 @@ func NewApi() *api.ApiManager {
 	m.RegisterApi("PUT",
 		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
 		/providers/Microsoft.Devices/IotHubs/:resourceName`,
-		createOrUpudateMetadata)
+		createOrUpdateMetadata)
 	m.RegisterApi("DELETE",
 		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
 		/providers/Microsoft.Devices/IotHubs/:resourceName`,
@@ -81,7 +81,7 @@ func NewApi() *api.ApiManager {
 	m.RegisterApi("GET",
 		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
 		/providers/Microsoft.Devices/IotHubs/:resourceName/jobs/:jobId`,
-		getJob)
+		getJobDetail)
 
 	m.RegisterApi("GET",
 		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName

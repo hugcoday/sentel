@@ -32,7 +32,7 @@ func createFileUploadSasUri(c echo.Context) error {
 }
 
 // Retrive a cloud-to-device message
-func receiveDeviceBoundNotification(c echo.Notification) error {
+func receiveDeviceBoundNotification(c echo.Context) error {
 	return nil
 }
 

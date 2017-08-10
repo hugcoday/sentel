@@ -58,7 +58,7 @@ func getEventHubConsumerGroup(c echo.Context) error {
 }
 
 // Get the details of a job from an IoT hub
-func getJob(c echo.Context) error {
+func getJobDetail(c echo.Context) error {
 	return nil
 }
 

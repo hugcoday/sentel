@@ -26,7 +26,7 @@ func getDevices(e echo.Context) error {
 }
 
 // Get the identifies of multiple devices from The IoT hub
-func getMultiplyeDevices(c echo.Context) error {
+func getMultipleDevices(c echo.Context) error {
 	return nil
 }
 
