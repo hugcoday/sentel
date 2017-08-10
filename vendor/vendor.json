@@ -21,6 +21,12 @@
 			"revisionTime": "2017-06-12T12:55:44Z"
 		},
 		{
+			"checksumSHA1": "YtELZ2Ui4GGwiSEQnaSrOAFq7Rk=",
+			"path": "github.com/grpc/grpc-go",
+			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
+			"revisionTime": "2017-08-09T21:16:03Z"
+		},
+		{
 			"checksumSHA1": "35LVOh0jmZMo5Sf7JLGCkKtBTBI=",
 			"path": "github.com/koding/multiconfig",
 			"revision": "7ab5923ac43fc173d0c21e5e91da559469fa04f8",
