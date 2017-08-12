@@ -1,17 +1,32 @@
 package main
 
 import (
-	"net/http"
+	"log"
+	"net"
+	mc "sentel/utility/config"
 
-	"github.com/labstack/echo"
+	grpc "github.com/grpc/grpc-go"
+	//	"google.golang.org/grpc"
+)
+
+const (
+	defaultConfigFilePath = "/etc/sentel/registry.toml"
 )
 
 func main() {
-	e := echo.New()
+	// Get configuration
+	loader := mc.NewWithPath(defaultConfigFilePath)
+	var c RegistryConfig
+	c.MustLoad(c)
 
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "hello, world\n")
-	})
-
-	e.Logger.Fatal(e.Start(":1323"))
+	// run rpc server
+	address := c.Host + ":" + c.Port
+	lis, err = net.Listen("tcp", address)
+	if err != nil {
+		log.Fatal("failed to listen: %v", err)
+		return
+	}
+	s := grpc.NewServer()
+	pb.RegistryRegistryServer(s, &server.RegisryServer{Config: &c})
+	s.Serve(lis)
 }
