@@ -17,7 +17,7 @@ func main() {
 	// Get configuration
 	loader := mc.NewWithPath(defaultConfigFilePath)
 	var c RegistryConfig
-	c.MustLoad(c)
+	loader.MustLoad(c)
 
 	// run rpc server
 	address := c.Host + ":" + c.Port
