@@ -10,11 +10,10 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package client
+package api
 
 import (
   pb "registry/protocol"
-  util "lib/config"
 
 	"context"
 	"log"
@@ -27,8 +26,8 @@ type RegistryApi struct {
 	registry pb.RegistryClient
 }
 
-func New(c util.Config) (*RegistryApi, error) {
-	conn, err := grpc.Dial(c.GetKey("registry"), grpc.WithInsecure())
+func NewRegistryApi(c *ApiConfig) (*RegistryApi, error) {
+	conn, err := grpc.Dial(c.Registry, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal("did not connect: %v", err)
 		return nil, err

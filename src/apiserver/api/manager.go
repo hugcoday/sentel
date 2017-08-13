@@ -15,7 +15,6 @@ package  api
 import (
   "log"
 	"strings"
-  registry "registry/client"
 
 	echo "github.com/labstack/echo"
 )
@@ -36,7 +35,7 @@ type ApiManager struct {
 type ApiContext struct {
   echo.Context
   Conf *ApiConfig
-  Registry *registry.RegistryApi
+  Registry *RegistryApi
 }
 
  var (
@@ -52,7 +51,7 @@ func NewApiManager(name string, c *ApiConfig) *ApiManager {
 	}
 
   // Create Registry client api
-  r, err := registry.New(c)
+  r, err := NewRegistryApi(c)
   if err != nil {
     log.Fatal("failed to create registry api client for %s", name)
     return nil

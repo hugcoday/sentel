@@ -10,19 +10,11 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package server
+package main
 
-import (
-  "registry/config"
-	pb "registry/protocol"
-
-	"golang.org/x/net/context"
-)
-
-type RegistryServer struct {
-	Config *config.RegistryConfig
-}
-
-func (s *RegistryServer) AddDevice(context.Context, *pb.DeviceAddRequest)(*pb.DeviceAddResponse, error) {
-	return &pb.DeviceAddResponse{Reply: "hello, world"}, nil
+type RegistryConfig struct {
+	Host     string // server host
+	Port     string // server port
+	LogLevel string // Log level
+	Registry string // Registry RPC server
 }

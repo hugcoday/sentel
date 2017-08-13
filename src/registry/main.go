@@ -1,8 +1,6 @@
 package main
 
 import (
-  "registry/server"
-  "registry/config"
   "registry/protocol"
 
 	"log"
@@ -19,7 +17,7 @@ const (
 func main() {
 	// Get configuration
 	loader := mc.NewWithPath(defaultConfigFilePath)
-	var c config.RegistryConfig
+	var c RegistryConfig
 	loader.MustLoad(c)
 
 	// run rpc server
@@ -30,6 +28,6 @@ func main() {
 		return
 	}
 	s := grpc.NewServer()
-	protocol.RegisterRegistryServer(s, &server.RegistryServer{Config: &c})
+	protocol.RegisterRegistryServer(s, &RegistryServer{Config: &c})
 	s.Serve(lis)
 }
