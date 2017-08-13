@@ -8,7 +8,7 @@ import (
 	"log"
 	"net"
 
-	mc "utility/config"
+	mc "lib/config"
 	grpc	"google.golang.org/grpc"
 )
 

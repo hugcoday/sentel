@@ -16,7 +16,7 @@ import (
 	"apiserver/api"
 	"apiserver/aws"
 	"apiserver/azure"
-	config "utility/config"
+	config "lib/config"
 )
 
 const (
