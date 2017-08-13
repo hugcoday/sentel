@@ -14,8 +14,8 @@ package azure
 
 import "apiserver/api"
 
-func NewApi() *api.ApiManager {
-	m := api.NewApiManager("azure", nil)
+func NewApi(c *api.ApiConfig) *api.ApiManager {
+	m := api.NewApiManager("azure", c)
 
 	// Device APIs
 	m.RegisterApi("GET", "/devices/:id", getDevices)

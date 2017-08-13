@@ -10,20 +10,20 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package aws
+package api
 
-import (
-  "apiserver/api"
-	"github.com/labstack/echo"
-)
-
-func NewApi(c *api.ApiConfig) *api.ApiManager {
-	m := api.NewApiManager("aws", c)
-	m.RegisterApi("post", "/devices/id:", deleteDevices)
-	return m
+type ApiConfig struct {
+	Host        string // server host
+	Port        string // server port
+	LogLevel    string // Log level
+	Registry    string // Registry RPC server
+	ApiCategory string // Api category, aws or azure
 }
 
-func deleteDevices(c echo.Context) error {
-	return nil
-
+func (c *ApiConfig)GetKey(name string) string {
+  return ""
 }
+
+
+
+

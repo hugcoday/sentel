@@ -13,7 +13,7 @@
 package main
 
 import (
-	"apiserver/api"
+  "apiserver/api"
 	"apiserver/aws"
 	"apiserver/azure"
 	config "lib/config"
@@ -23,18 +23,22 @@ const (
 	defaultConfigFilePath = "/etc/sentel-apiserver.toml"
 )
 
+var (
+  apiconfig  api.ApiConfig
+)
+
 func main() {
 	// Get configuration
-	c := config.NewWithPath(defaultConfigFilePath)
-	var apiConfig api.ApiConfig
-	c.MustLoad(apiConfig)
+  c := config.NewWithPath(defaultConfigFilePath)
+	c.MustLoad(apiconfig)
+
+  // Register api managaer
+  // Api manager can not be registered in init methods because 
+  // the registration need apiconfig
+	api.RegisterApiManager(azure.NewApi(&apiconfig))
+	api.RegisterApiManager(aws.NewApi(&apiconfig))
 
 	// Create api manager using configuration
-	apiManager := api.GetApiManager(apiConfig.ApiCategory)
-	apiManager.Start(&apiConfig)
-}
-
-func init() {
-	api.RegisterApiManager(azure.NewApi())
-	api.RegisterApiManager(aws.NewApi())
+	apiManager := api.GetApiManager(apiconfig.ApiCategory)
+	apiManager.Start(&apiconfig)
 }

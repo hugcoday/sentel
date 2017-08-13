@@ -13,34 +13,34 @@
 package client
 
 import (
+  pb "registry/protocol"
+  util "lib/config"
+
 	"context"
 	"log"
-
-	pb "registry/client"
 
 	grpc "google.golang.org/grpc"
 )
 
 type RegistryApi struct {
 	conn     *grpc.ClientConn
-	registry *pb.RegistryClient
+	registry pb.RegistryClient
 }
 
-func New(c *util.Config) (*RpcApi, error) {
+func New(c util.Config) (*RegistryApi, error) {
 	conn, err := grpc.Dial(c.GetKey("registry"), grpc.WithInsecure())
 	if err != nil {
 		log.Fatal("did not connect: %v", err)
 		return nil, err
 	}
-	c := pb.NewRegistryClient(conn)
-	return &RegistryApi{conn: conn, registry: c}, nil
+	r := pb.NewRegistryClient(conn)
+	return &RegistryApi{conn: conn, registry: r}, nil
 }
 
-func (r *RregistryApi) AddDevice(ctx context.Context, name string) error {
-	resp, err = registry.AddDevice(ctx, &pb.DeviceAddRequest{Name: "hello"})
+func (r *RegistryApi) AddDevice(ctx context.Context, name string) error {
+  _, err := r.registry.AddDevice(ctx, &pb.DeviceAddRequest{Name: "hello"})
 	if err != nil {
-		return log.Fatal("AddDevice rpc fail failed: %v", err)
-	} else {
-		return nil
+		log.Fatal("AddDevice rpc fail failed: %v", err)
 	}
+  return nil
 }
