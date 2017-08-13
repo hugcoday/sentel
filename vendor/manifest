@@ -8,6 +8,38 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/Shopify/sarama",
+			"repository": "https://github.com/Shopify/sarama",
+			"revision": "2fd980e23bdcbb8edeb78fc704de0c39a6567ffc",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/davecgh/go-spew/spew",
+			"repository": "https://github.com/davecgh/go-spew",
+			"revision": "adab96458c51a58dc1783b3335dcce5461522e75",
+			"branch": "master",
+			"path": "/spew"
+		},
+		{
+			"importpath": "github.com/eapache/go-resiliency/breaker",
+			"repository": "https://github.com/eapache/go-resiliency",
+			"revision": "b1fe83b5b03f624450823b751b662259ffc6af70",
+			"branch": "master",
+			"path": "/breaker"
+		},
+		{
+			"importpath": "github.com/eapache/go-xerial-snappy",
+			"repository": "https://github.com/eapache/go-xerial-snappy",
+			"revision": "bb955e01b9346ac19dc29eb16586c90ded99a98c",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/eapache/queue",
+			"repository": "https://github.com/eapache/queue",
+			"revision": "44cc805cf13205b55f69e14bcb69867d1ae92f98",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/fatih/camelcase",
 			"repository": "https://github.com/fatih/camelcase",
 			"revision": "f6a740d52f961c60348ebb109adde9f4635d7540",
@@ -48,6 +80,12 @@
 			"path": "/ptypes/any"
 		},
 		{
+			"importpath": "github.com/golang/snappy",
+			"repository": "https://github.com/golang/snappy",
+			"revision": "553a641470496b2327abcac10b36396bd98e45c9",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/koding/multiconfig",
 			"repository": "https://github.com/koding/multiconfig",
 			"revision": "7ab5923ac43fc173d0c21e5e91da559469fa04f8",
@@ -83,6 +121,25 @@
 			"importpath": "github.com/mattn/go-isatty",
 			"repository": "https://github.com/mattn/go-isatty",
 			"revision": "fc9e8d8ef48496124e79ae0df75490096eccf6fe",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/pierrec/lz4",
+			"repository": "https://github.com/pierrec/lz4",
+			"revision": "5a3d2245f97fc249850e7802e3c01fad02a1c316",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/pierrec/xxHash/xxHash32",
+			"repository": "https://github.com/pierrec/xxHash",
+			"revision": "a0006b13c722f7f12368c00a3d3c2ae8a999a0c6",
+			"branch": "master",
+			"path": "/xxHash32"
+		},
+		{
+			"importpath": "github.com/rcrowley/go-metrics",
+			"repository": "https://github.com/rcrowley/go-metrics",
+			"revision": "1f30fe9094a513ce4c700b9a54458bbb0c96996c",
 			"branch": "master"
 		},
 		{
