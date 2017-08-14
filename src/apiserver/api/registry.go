@@ -13,11 +13,12 @@
 package api
 
 import (
-  pb "registry/protocol"
-
 	"context"
+	pb "registry/protocol"
+
 	"log"
 
+	echo "github.com/labstack/echo"
 	grpc "google.golang.org/grpc"
 )
 
@@ -36,10 +37,18 @@ func NewRegistryApi(c *ApiConfig) (*RegistryApi, error) {
 	return &RegistryApi{conn: conn, registry: r}, nil
 }
 
-func (r *RegistryApi) AddDevice(ctx context.Context, name string) error {
-  _, err := r.registry.AddDevice(ctx, &pb.DeviceAddRequest{Name: "hello"})
+func (r *RegistryApi) AddDevice(c echo.Context, name string) error {
+	_, err := r.registry.AddDevice(context.TODO(), &pb.DeviceAddRequest{Name: name})
 	if err != nil {
 		log.Fatal("AddDevice rpc fail failed: %v", err)
 	}
-  return nil
+	return nil
+}
+
+func (r *RegistryApi) DeleteDevice(c echo.Context, name string) error {
+	//	_, err := r.registry.Deletevice(context.TODO(), &pb.DeviceAddRequest{Name: name})
+	//	if err != nil {
+	//		log.Fatal("AddDevice rpc fail failed: %v", err)
+	//	}
+	return nil
 }

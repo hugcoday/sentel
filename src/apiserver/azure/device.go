@@ -12,12 +12,20 @@
 
 package azure
 
-import "github.com/labstack/echo"
+import (
+	"apiserver/api"
+	"net/http"
+
+	"github.com/labstack/echo"
+)
 
 // Delete the identify of a device from the identity registry
 // of an IoT Hub
 func deleteDevices(c echo.Context) error {
-	return nil
+	id := c.Param("id")
+	cc := c.(*api.ApiContext)
+	cc.Registry.DeleteDevice(c, id)
+	return c.NoContent(http.StatusNoContent)
 }
 
 // Retrieve a device from the identify registry of an IoT hub

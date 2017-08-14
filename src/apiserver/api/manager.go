@@ -10,10 +10,10 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package  api
+package api
 
 import (
-  "log"
+	"log"
 	"strings"
 
 	echo "github.com/labstack/echo"
@@ -33,12 +33,12 @@ type ApiManager struct {
 }
 
 type ApiContext struct {
-  echo.Context
-  Conf *ApiConfig
-  Registry *RegistryApi
+	echo.Context
+	Conf     *ApiConfig
+	Registry *RegistryApi
 }
 
- var (
+var (
 	apiManagers map[string]*ApiManager = make(map[string]*ApiManager)
 )
 
@@ -50,19 +50,19 @@ func NewApiManager(name string, c *ApiConfig) *ApiManager {
 		ech:      echo.New(),
 	}
 
-  // Create Registry client api
-  r, err := NewRegistryApi(c)
-  if err != nil {
-    log.Fatal("failed to create registry api client for %s", name)
-    return nil
-  }
+	// Create Registry client api
+	r, err := NewRegistryApi(c)
+	if err != nil {
+		log.Fatal("failed to create registry api client for %s", name)
+		return nil
+	}
 
-  m.ech.Use(func(h echo.HandlerFunc) echo.HandlerFunc {
-    return func(e echo.Context) error {
-      cc := &ApiContext{Context:e, Conf:c, Registry:r}
-      return h(cc)
-    }
-  })
+	m.ech.Use(func(h echo.HandlerFunc) echo.HandlerFunc {
+		return func(e echo.Context) error {
+			cc := &ApiContext{Context: e, Conf: c, Registry: r}
+			return h(cc)
+		}
+	})
 	//	m.ech.Use(middleware.Logger())
 	//	m.ech.Use(middleware.Recover())
 	return m
