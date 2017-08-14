@@ -20,7 +20,7 @@ func NewApi(c *api.ApiConfig) *api.ApiManager {
 	// Device APIs
 	m.RegisterApi("GET", "/devices/:id", getDevices)
 	m.RegisterApi("GET", "/devices/", getMultipleDevices)
-	m.RegisterApi("DELETE", "/devices/id:", deleteDevices)
+	m.RegisterApi("DELETE", "/devices/:id", deleteDevices)
 	m.RegisterApi("GET", "/statistics/devices", getRegistryStatistics)
 	m.RegisterApi("GET", "/statistics/service", getServiceStatistics)
 	m.RegisterApi("DELETE", "/devices/:id/commands", purgeCommandQueue)
