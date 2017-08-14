@@ -13,7 +13,7 @@
 package main
 
 import (
-  "apiserver/api"
+	"apiserver/api"
 	"apiserver/aws"
 	"apiserver/azure"
 	config "lib/config"
@@ -24,17 +24,17 @@ const (
 )
 
 var (
-  apiconfig  api.ApiConfig
+	apiconfig api.ApiConfig
 )
 
 func main() {
 	// Get configuration
-  c := config.NewWithPath(defaultConfigFilePath)
+	c := config.NewWithPath(defaultConfigFilePath)
 	c.MustLoad(apiconfig)
 
-  // Register api managaer
-  // Api manager can not be registered in init methods because 
-  // the registration need apiconfig
+	// Register api managaer
+	// Api manager can not be registered in init methods because
+	// the registration need apiconfig
 	api.RegisterApiManager(azure.NewApi(&apiconfig))
 	api.RegisterApiManager(aws.NewApi(&apiconfig))
 
