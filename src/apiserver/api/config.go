@@ -19,11 +19,3 @@ type ApiConfig struct {
 	Registry    string // Registry RPC server
 	ApiCategory string // Api category, aws or azure
 }
-
-func (c *ApiConfig)GetKey(name string) string {
-  return ""
-}
-
-
-
-

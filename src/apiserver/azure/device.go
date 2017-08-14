@@ -19,6 +19,14 @@ import (
 	"github.com/labstack/echo"
 )
 
+// Retrieve a device from the identify registry of an IoT hub
+func getDevices(c echo.Context) error {
+	//	id := c.Param("id")
+	//	cc := c.(*api.ApiContext)
+	//	_, err := cc.Registry.GetDevice(c, id)
+	return nil
+}
+
 // Delete the identify of a device from the identity registry
 // of an IoT Hub
 func deleteDevices(c echo.Context) error {
@@ -26,11 +34,6 @@ func deleteDevices(c echo.Context) error {
 	cc := c.(*api.ApiContext)
 	cc.Registry.DeleteDevice(c, id)
 	return c.NoContent(http.StatusNoContent)
-}
-
-// Retrieve a device from the identify registry of an IoT hub
-func getDevices(e echo.Context) error {
-	return nil
 }
 
 // Get the identifies of multiple devices from The IoT hub

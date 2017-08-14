@@ -25,6 +25,7 @@ import (
 type RegistryApi struct {
 	conn     *grpc.ClientConn
 	registry pb.RegistryClient
+	category string
 }
 
 func NewRegistryApi(c *ApiConfig) (*RegistryApi, error) {
@@ -34,7 +35,7 @@ func NewRegistryApi(c *ApiConfig) (*RegistryApi, error) {
 		return nil, err
 	}
 	r := pb.NewRegistryClient(conn)
-	return &RegistryApi{conn: conn, registry: r}, nil
+	return &RegistryApi{conn: conn, registry: r, category: c.ApiCategory}, nil
 }
 
 func (r *RegistryApi) AddDevice(c echo.Context, name string) error {
