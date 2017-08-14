@@ -7,10 +7,6 @@ import (
 	mc "github.com/koding/multiconfig"
 )
 
-type Config interface {
-  GetKey(name string)string
-}
-
 type ConfigLoader struct {
 	mc.DefaultLoader
 }
