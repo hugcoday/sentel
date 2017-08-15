@@ -13,9 +13,9 @@
 package api
 
 type ApiConfig struct {
-	Host        string // server host
-	Port        string // server port
-	LogLevel    string // Log level
-	Registry    string // Registry RPC server
-	ApiCategory string // Api category, aws or azure
+	Host     string // server host
+	Port     string // server port
+	LogLevel string // Log level
+	Registry string // Registry RPC server
+	Version  string // Api category, aws or azure
 }

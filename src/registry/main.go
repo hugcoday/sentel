@@ -1,13 +1,14 @@
 package main
 
 import (
-  "registry/protocol"
+	"registry/protocol"
 
 	"log"
 	"net"
 
 	mc "lib/config"
-	grpc	"google.golang.org/grpc"
+
+	grpc "google.golang.org/grpc"
 )
 
 const (
@@ -22,7 +23,7 @@ func main() {
 
 	// run rpc server
 	address := c.Host + ":" + c.Port
-  lis, err := net.Listen("tcp", address)
+	lis, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Fatal("failed to listen: %v", err)
 		return

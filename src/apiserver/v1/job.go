@@ -10,20 +10,27 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package aws
+package v1
 
-import (
-  "apiserver/api"
-	"github.com/labstack/echo"
-)
+import "github.com/labstack/echo"
 
-func NewApi(c *api.ApiConfig) *api.ApiManager {
-	m := api.NewApiManager("aws", c)
-	m.RegisterApi("post", "/devices/id:", deleteDevices)
-	return m
+// Cancel an existing job on an IoT hub
+func cancelJob(c echo.Context) error {
+	return nil
 }
 
-func deleteDevices(c echo.Context) error {
+// Create a new job on an IoT hub
+func createJob(c echo.Context) error {
 	return nil
+}
 
+// Retrieve details of an existing job from an IoT hub
+func getJob(c echo.Context) error {
+	return nil
+}
+
+// Query an IoT hub to retrieve information regarding jobs using
+// the IoT Hub query language
+func queryJobs(c echo.Context) error {
+	return nil
 }

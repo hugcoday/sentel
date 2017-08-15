@@ -14,8 +14,7 @@ package main
 
 import (
 	"apiserver/api"
-	"apiserver/aws"
-	"apiserver/azure"
+	"apiserver/v1"
 	config "lib/config"
 )
 
@@ -35,10 +34,9 @@ func main() {
 	// Register api managaer
 	// Api manager can not be registered in init methods because
 	// the registration need apiconfig
-	api.RegisterApiManager(azure.NewApi(&apiconfig))
-	api.RegisterApiManager(aws.NewApi(&apiconfig))
+	api.RegisterApiManager(v1.NewApi(&apiconfig))
 
 	// Create api manager using configuration
-	apiManager := api.GetApiManager(apiconfig.ApiCategory)
+	apiManager := api.GetApiManager(apiconfig.Version)
 	apiManager.Start(&apiconfig)
 }

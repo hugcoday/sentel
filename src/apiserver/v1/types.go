@@ -10,23 +10,22 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package azure
+package v1
 
-import "github.com/labstack/echo"
-
-// Twin Api
-
-// Get a device twin
-func getDeviceTwin(c echo.Context) error {
-	return nil
+type DeviceRegistryOperationError struct {
+	deviceId string
+	//  errorCode ErrorCode
+	errorStatus string
 }
 
-// Invoce a direct method on device
-func invokeDeviceMethod(c echo.Context) error {
-	return nil
+type BulkRegistryOperationResult struct {
+	isSuccessful bool
+	errors       []DeviceRegistryOperationError
 }
 
-// Updates tags and desired properties of a device twin
-func updateDeviceTwin(c echo.Context) error {
-	return nil
+type Device struct {
+	deviceId        string
+	generationId    string
+	etag            string
+	connectionState int
 }
