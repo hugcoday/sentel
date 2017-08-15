@@ -12,5 +12,4 @@
 
 package base
 
-type Config struct {
-}
+type Config struct{}
