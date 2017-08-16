@@ -12,24 +12,21 @@
 package base
 
 var (
-  serviceFactories map[string]ServiceFactory = make(map[string]ServiceFactory)
+	serviceFactories map[string]ServiceFactory = make(map[string]ServiceFactory)
 )
 
 type Service interface {
-  Run() error
+	Run() error
 }
 
 type ServiceFactory interface {
-  NewService(c *Config) (Service, error)
+	NewService(c *Config) (Service, error)
 }
 
 func RegisterServiceFactory(name string, factory ServiceFactory) {
-  serviceFactories[name] = factory
+	serviceFactories[name] = factory
 }
 
-func CreateService(name string, c *Config)(Service, error) {
-  return nil, nil
+func CreateService(name string, c *Config) (Service, error) {
+	return nil, nil
 }
-
-
-
