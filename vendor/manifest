@@ -14,6 +14,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/bmizerany/pq",
+			"repository": "https://github.com/bmizerany/pq",
+			"revision": "da2b95e392c172df0be322eadc19a90b0f771548",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/davecgh/go-spew/spew",
 			"repository": "https://github.com/davecgh/go-spew",
 			"revision": "adab96458c51a58dc1783b3335dcce5461522e75",
