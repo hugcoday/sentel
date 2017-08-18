@@ -14,7 +14,7 @@ package main
 
 import (
 	"apiserver/api"
-	config "lib/config"
+	config "common/config"
 	"log"
 )
 
