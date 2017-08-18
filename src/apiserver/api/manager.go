@@ -25,7 +25,7 @@ type apiDescriptor struct {
 }
 
 type ApiManager struct {
-	Name     string
+	Version  string
 	Config   *ApiConfig
 	handlers []apiDescriptor
 	ech      *echo.Echo
@@ -33,29 +33,21 @@ type ApiManager struct {
 
 type ApiContext struct {
 	echo.Context
-	Conf     *ApiConfig
+	Conf *ApiConfig
 }
 
 var (
 	apiManagers map[string]*ApiManager = make(map[string]*ApiManager)
 )
 
-func NewApiManager(name string, c *ApiConfig) *ApiManager {
+func NewApiManager(version string) *ApiManager {
 	m := &ApiManager{
-		Name:     name,
-		Config:   c,
+		Version:  version,
+		Config:   nil,
 		handlers: []apiDescriptor{},
 		ech:      echo.New(),
 	}
 
-	m.ech.Use(func(h echo.HandlerFunc) echo.HandlerFunc {
-		return func(e echo.Context) error {
-			cc := &ApiContext{Context: e, Conf: c}
-			return h(cc)
-		}
-	})
-	//	m.ech.Use(middleware.Logger())
-	//	m.ech.Use(middleware.Recover())
 	return m
 }
 
@@ -76,15 +68,27 @@ func (m *ApiManager) RegisterApi(action string, url string, handler echo.Handler
 	}
 }
 
-func (m *ApiManager) Start(c *ApiConfig) error {
+func (m *ApiManager) Start() error {
 	address := m.Config.Host + ":" + m.Config.Port
 	return m.ech.Start(address)
 }
 
 func RegisterApiManager(api *ApiManager) {
-	apiManagers[api.Name] = api
+	apiManagers[api.Version] = api
 }
 
-func GetApiManager(name string) *ApiManager {
-	return apiManagers[name]
+func GetApiManager(c *ApiConfig) *ApiManager {
+	m := apiManagers[c.Version]
+	m.Config = c
+
+	m.ech.Use(func(h echo.HandlerFunc) echo.HandlerFunc {
+		return func(e echo.Context) error {
+			cc := &ApiContext{Context: e, Conf: m.Config}
+			return h(cc)
+		}
+	})
+	//	m.ech.Use(middleware.Logger())
+	//	m.ech.Use(middleware.Recover())
+
+	return m
 }

@@ -14,8 +14,8 @@ package main
 
 import (
 	"apiserver/api"
-	"apiserver/v1"
 	config "lib/config"
+	"log"
 )
 
 const (
@@ -31,12 +31,7 @@ func main() {
 	c := config.NewWithPath(defaultConfigFilePath)
 	c.MustLoad(apiconfig)
 
-	// Register api managaer
-	// Api manager can not be registered in init methods because
-	// the registration need apiconfig
-	api.RegisterApiManager(v1.NewApi(&apiconfig))
-
 	// Create api manager using configuration
-	apiManager := api.GetApiManager(apiconfig.Version)
-	apiManager.Start(&apiconfig)
+	apiManager := api.GetApiManager(&apiconfig)
+	log.Fatal(apiManager.Start())
 }

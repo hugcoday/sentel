@@ -14,8 +14,8 @@ package v1
 
 import "apiserver/api"
 
-func NewApi(c *api.ApiConfig) *api.ApiManager {
-	m := api.NewApiManager("azure", c)
+func newApi() *api.ApiManager {
+	m := api.NewApiManager("v1")
 
 	// Device APIs
 	m.RegisterApi("GET", "/devices/:id", getDevices)
@@ -124,4 +124,8 @@ func NewApi(c *api.ApiConfig) *api.ApiManager {
 	m.RegisterApi("GET", "/jobs/v2/query", queryJobs)
 
 	return m
+}
+
+func init() {
+	api.RegisterApiManager(newApi())
 }
