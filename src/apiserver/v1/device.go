@@ -13,6 +13,8 @@
 package v1
 
 import (
+	"apiserver/api"
+	"apiserver/db"
 	"net/http"
 
 	"github.com/labstack/echo"
@@ -20,18 +22,18 @@ import (
 
 // Retrieve a device from the identify registry of an IoT hub
 func getDevices(c echo.Context) error {
-	//	id := c.Param("id")
-	//	cc := c.(*api.ApiContext)
-	//	_, err := cc.Registry.GetDevice(c, id)
 	return nil
 }
 
 // Delete the identify of a device from the identity registry
 // of an IoT Hub
 func deleteDevices(c echo.Context) error {
-	//id := c.Param("id")
- //cc := c.(*api.ApiContext)
-//	cc.Registry.DeleteDevice(c, id)
+	id := c.Param("id")
+	ctx := *c.(*api.ApiContext)
+	r, _ := db.NewRegistry(ctx)
+	defer r.Release(ctx)
+	r.DeleteDevice(ctx, id)
+
 	return c.NoContent(http.StatusNoContent)
 }
 

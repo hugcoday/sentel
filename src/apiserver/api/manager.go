@@ -33,7 +33,7 @@ type ApiManager struct {
 
 type ApiContext struct {
 	echo.Context
-	Conf *ApiConfig
+	Config *ApiConfig
 }
 
 var (
@@ -83,7 +83,7 @@ func GetApiManager(c *ApiConfig) *ApiManager {
 
 	m.ech.Use(func(h echo.HandlerFunc) echo.HandlerFunc {
 		return func(e echo.Context) error {
-			cc := &ApiContext{Context: e, Conf: m.Config}
+			cc := &ApiContext{Context: e, Config: m.Config}
 			return h(cc)
 		}
 	})
