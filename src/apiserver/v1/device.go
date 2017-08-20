@@ -31,8 +31,8 @@ func deleteDevices(c echo.Context) error {
 	id := c.Param("id")
 	ctx := *c.(*api.ApiContext)
 	r, _ := db.NewRegistry(ctx)
-	defer r.Release(ctx)
-	r.DeleteDevice(ctx, id)
+	defer r.Release()
+	r.DeleteDevice(id)
 
 	return c.NoContent(http.StatusNoContent)
 }

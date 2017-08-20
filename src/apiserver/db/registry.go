@@ -20,6 +20,7 @@ import (
 
 type Registry struct {
 	conn *sql.DB
+	ctx  api.ApiContext
 }
 
 func NewRegistry(ctx api.ApiContext) (*Registry, error) {
@@ -32,13 +33,13 @@ func NewRegistry(ctx api.ApiContext) (*Registry, error) {
 		return nil, err
 	}
 
-	return &Registry{conn: conn}, nil
+	return &Registry{conn: conn, ctx: ctx}, nil
 }
 
-func (r *Registry) Release(ctx api.ApiContext) {
+func (r *Registry) Release() {
 	r.conn.Close()
 }
 
-func (r *Registry) DeleteDevice(ctx api.ApiContext, name string) error {
+func (r *Registry) DeleteDevice(name string) error {
 	return nil
 }
