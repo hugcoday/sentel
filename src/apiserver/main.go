@@ -14,7 +14,6 @@ package main
 
 import (
 	"apiserver/api"
-	config "common/config"
 	"log"
 )
 
@@ -28,7 +27,7 @@ var (
 
 func main() {
 	// Get configuration
-	c := config.NewWithPath(defaultConfigFilePath)
+	c := api.NewLoaderWithPath(defaultConfigFilePath)
 	c.MustLoad(apiconfig)
 
 	// Create api manager using configuration
