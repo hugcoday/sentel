@@ -13,8 +13,8 @@
 package api
 
 type SentelError struct {
-	Code        int
-	Description string
+	Code        int    `json:"code"`
+	Description string `json:"description"`
 	Err         error
 }
 
@@ -33,7 +33,8 @@ var (
 	ErrorPreconditionFailed                         = NewError(412, "Precondtion failed")
 	ErrorTooManyRequest                             = NewError(429, "The IoT hub's identity registry operations are being throttled by the service")
 	ErrorInternalError                              = NewError(500, "An internal error occured")
-	ErrorInvalidErrorCode                           = NewError(1000, "Invalid error code")
+	ErrorInvalidErrorCode                           = NewError(600, "Invalid error code")
+	ErrorInvalidApiVersion                          = NewError(1000, "Invalid api version")
 	ErrorInvalidProtocolVersion                     = NewError(10001, "Invalid protocol version")
 	ErrorDeviceInvalidResultCount                   = NewError(10002, "Invalid result count")
 	ErrorDeviceInvalidOperation                     = NewError(10003, "Invalid operation")

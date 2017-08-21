@@ -23,6 +23,10 @@ type Registry struct {
 	ctx  api.ApiContext
 }
 
+func InitializeRegistryStore(c api.ApiConfig) error {
+	return nil
+}
+
 func NewRegistry(ctx api.ApiContext) (*Registry, error) {
 	info := fmt.Sprintf("%s:%s@tcp(%s:%s)/registry",
 		ctx.Config.Registry.User, ctx.Config.Registry.Password,

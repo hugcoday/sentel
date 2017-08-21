@@ -77,7 +77,7 @@ func RegisterApiManager(api *ApiManager) {
 	apiManagers[api.Version] = api
 }
 
-func GetApiManager(c *ApiConfig) *ApiManager {
+func CreateApiManager(c *ApiConfig) (*ApiManager, error) {
 	m := apiManagers[c.Version]
 	m.Config = c
 
@@ -87,8 +87,9 @@ func GetApiManager(c *ApiConfig) *ApiManager {
 			return h(cc)
 		}
 	})
+	m.ech.Use(ApiVersion(c.Version))
 	//	m.ech.Use(middleware.Logger())
 	//	m.ech.Use(middleware.Recover())
 
-	return m
+	return m, nil
 }

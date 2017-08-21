@@ -64,6 +64,30 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/go-sql-driver/mysql",
+			"repository": "https://github.com/go-sql-driver/mysql",
+			"revision": "21d7e97c9f760ca685a01ecea202e1c84276daa1",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/go-xorm/builder",
+			"repository": "https://github.com/go-xorm/builder",
+			"revision": "c8871c857d2555fbfbd8524f895be5386d3d8836",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/go-xorm/core",
+			"repository": "https://github.com/go-xorm/core",
+			"revision": "cd38c8eb3375b27cbc8c7f3f4f6501cce1eb4b4c",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/go-xorm/xorm",
+			"repository": "https://github.com/go-xorm/xorm",
+			"revision": "a10b5aba4bb97b30daa74e7c0363d3084ede0514",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/golang/protobuf/proto",
 			"repository": "https://github.com/golang/protobuf",
 			"revision": "1909bc2f63dc92bb931deace8b8312c4db72d12f",
@@ -124,6 +148,12 @@
 			"path": "/log"
 		},
 		{
+			"importpath": "github.com/lib/pq",
+			"repository": "https://github.com/lib/pq",
+			"revision": "e42267488fe361b9dc034be7a6bffef5b195bceb",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/mattn/go-colorable",
 			"repository": "https://github.com/mattn/go-colorable",
 			"revision": "6df6d4d004b64986bbb0d1b25945f42b44787e90",
@@ -133,6 +163,12 @@
 			"importpath": "github.com/mattn/go-isatty",
 			"repository": "https://github.com/mattn/go-isatty",
 			"revision": "fc9e8d8ef48496124e79ae0df75490096eccf6fe",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/mattn/go-sqlite3",
+			"repository": "https://github.com/mattn/go-sqlite3",
+			"revision": "6654e412c3c7eabb310d920cf73a2102dbf8c632",
 			"branch": "master"
 		},
 		{
@@ -153,6 +189,13 @@
 			"repository": "https://github.com/pkg/errors",
 			"revision": "c605e284fe17294bda444b34710735b29d1a9d90",
 			"branch": "master"
+		},
+		{
+			"importpath": "github.com/pmezard/go-difflib/difflib",
+			"repository": "https://github.com/pmezard/go-difflib",
+			"revision": "792786c7400a136282c1664665ae0a8db921c6c2",
+			"branch": "master",
+			"path": "/difflib"
 		},
 		{
 			"importpath": "github.com/rcrowley/go-metrics",

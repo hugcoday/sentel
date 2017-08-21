@@ -20,11 +20,16 @@ import (
 	"github.com/labstack/echo"
 )
 
+// addTenant add a new tenant
 func addTenant(c echo.Context) error {
-	//id := c.Param("id")
+	// Make security check, for add content, no security policy
+
+	// Get registry store instance by context
 	ctx := *c.(*api.ApiContext)
 	r, _ := db.NewRegistry(ctx)
 	defer r.Release()
+
+	//id := c.Param("id")
 	//	r.DeleteDevice(id)
 	return c.NoContent(http.StatusNoContent)
 }

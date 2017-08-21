@@ -14,6 +14,7 @@ package main
 
 import (
 	"apiserver/api"
+	"apiserver/db"
 	"log"
 )
 
@@ -30,7 +31,17 @@ func main() {
 	c := api.NewLoaderWithPath(defaultConfigFilePath)
 	c.MustLoad(apiconfig)
 
+	// Initialize registry store
+	if err := db.InitializeRegistryStore(apiconfig); err != nil {
+		log.Fatal("Registry initialization failed:%v", err)
+		return
+	}
+
 	// Create api manager using configuration
-	apiManager := api.GetApiManager(&apiconfig)
+	apiManager, err := api.CreateApiManager(&apiconfig)
+	if err != nil {
+		log.Fatal("ApiManager creation failed:%v", err)
+		return
+	}
 	log.Fatal(apiManager.Start())
 }
