@@ -13,7 +13,7 @@
 package main
 
 import (
-	"apiserver/api"
+	"apiserver/base"
 	"apiserver/db"
 	"log"
 )
@@ -23,12 +23,12 @@ const (
 )
 
 var (
-	apiconfig api.ApiConfig
+	apiconfig base.ApiConfig
 )
 
 func main() {
 	// Get configuration
-	c := api.NewLoaderWithPath(defaultConfigFilePath)
+	c := base.NewLoaderWithPath(defaultConfigFilePath)
 	c.MustLoad(apiconfig)
 
 	// Initialize registry store
@@ -38,7 +38,7 @@ func main() {
 	}
 
 	// Create api manager using configuration
-	apiManager, err := api.CreateApiManager(&apiconfig)
+	apiManager, err := base.CreateApiManager(&apiconfig)
 	if err != nil {
 		log.Fatal("ApiManager creation failed:%v", err)
 		return

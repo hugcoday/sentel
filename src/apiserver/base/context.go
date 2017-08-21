@@ -10,34 +10,11 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package v1
+package base
 
-import (
-	"apiserver/base"
-	"apiserver/db"
-	"net/http"
+import echo "github.com/labstack/echo"
 
-	"github.com/labstack/echo"
-)
-
-// addTenant add a new tenant
-func addTenant(c echo.Context) error {
-	// Make security check, for add content, no security policy
-
-	// Get registry store instance by context
-	ctx := *c.(*base.ApiContext)
-	r, _ := db.NewRegistry(ctx)
-	defer r.Release()
-
-	//id := c.Param("id")
-	//	r.DeleteDevice(id)
-	return c.NoContent(http.StatusNoContent)
-}
-
-func deleteTenant(c echo.Context) error {
-	return nil
-}
-
-func getTenant(c echo.Context) error {
-	return nil
+type ApiContext struct {
+	echo.Context
+	Config *ApiConfig
 }

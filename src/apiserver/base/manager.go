@@ -10,9 +10,10 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package api
+package base
 
 import (
+	mw "apiserver/middleware"
 	"strings"
 
 	echo "github.com/labstack/echo"
@@ -29,11 +30,6 @@ type ApiManager struct {
 	Config   *ApiConfig
 	handlers []apiDescriptor
 	ech      *echo.Echo
-}
-
-type ApiContext struct {
-	echo.Context
-	Config *ApiConfig
 }
 
 var (
@@ -87,7 +83,7 @@ func CreateApiManager(c *ApiConfig) (*ApiManager, error) {
 			return h(cc)
 		}
 	})
-	m.ech.Use(ApiVersion(c.Version))
+	m.ech.Use(mw.ApiVersion(c.Version))
 	//	m.ech.Use(middleware.Logger())
 	//	m.ech.Use(middleware.Recover())
 

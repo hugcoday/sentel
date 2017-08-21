@@ -13,7 +13,7 @@
 package v1
 
 import (
-	"apiserver/api"
+	"apiserver/base"
 	"apiserver/db"
 	"net/http"
 
@@ -29,7 +29,7 @@ func getDevices(c echo.Context) error {
 // of an IoT Hub
 func deleteDevices(c echo.Context) error {
 	id := c.Param("id")
-	ctx := *c.(*api.ApiContext)
+	ctx := *c.(*base.ApiContext)
 	r, _ := db.NewRegistry(ctx)
 	defer r.Release()
 	r.DeleteDevice(id)

@@ -13,21 +13,22 @@
 package db
 
 import (
-	"apiserver/api"
+	"apiserver/base"
+	"apiserver/types"
 	"database/sql"
 	"fmt"
 )
 
 type Registry struct {
 	conn *sql.DB
-	ctx  api.ApiContext
+	ctx  base.ApiContext
 }
 
-func InitializeRegistryStore(c api.ApiConfig) error {
+func InitializeRegistryStore(c base.ApiConfig) error {
 	return nil
 }
 
-func NewRegistry(ctx api.ApiContext) (*Registry, error) {
+func NewRegistry(ctx base.ApiContext) (*Registry, error) {
 	info := fmt.Sprintf("%s:%s@tcp(%s:%s)/registry",
 		ctx.Config.Registry.User, ctx.Config.Registry.Password,
 		ctx.Config.Registry.Server, ctx.Config.Registry.Port)
@@ -45,39 +46,39 @@ func (r *Registry) Release() {
 }
 
 // Tenant
-func (r *Registry) CheckTenantNameAvailable(t *api.Tenant) bool {
+func (r *Registry) CheckTenantNameAvailable(t *types.Tenant) bool {
 	return false
 }
 
-func (r *Registry) AddTenant(t *api.Tenant) error {
+func (r *Registry) AddTenant(t *types.Tenant) error {
 	return nil
 }
 
-func (r *Registry) DeleteTenant(t *api.Tenant) error {
+func (r *Registry) DeleteTenant(t *types.Tenant) error {
 	return nil
 }
 
-func (r *Registry) GetTenant(t *api.Tenant) error {
+func (r *Registry) GetTenant(t *types.Tenant) error {
 	return nil
 }
 
 // Product
-func (r *Registry) CheckProductNameAvailable(p *api.Product) bool {
+func (r *Registry) CheckProductNameAvailable(p *types.Product) bool {
 	return true
 }
 
-func (r *Registry) AddProduct(p *api.Product) error {
+func (r *Registry) AddProduct(p *types.Product) error {
 	return nil
 }
-func (r *Registry) DeleteProduct(p *api.Product) error {
-	return nil
-}
-
-func (r *Registry) GetProduct(p *api.Product) error {
+func (r *Registry) DeleteProduct(p *types.Product) error {
 	return nil
 }
 
-func (r *Registry) GetProductDevices(p *api.Product) error {
+func (r *Registry) GetProduct(p *types.Product) error {
+	return nil
+}
+
+func (r *Registry) GetProductDevices(p *types.Product) error {
 	return nil
 }
 

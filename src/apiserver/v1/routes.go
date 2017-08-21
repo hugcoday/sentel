@@ -12,10 +12,10 @@
 
 package v1
 
-import "apiserver/api"
+import "apiserver/base"
 
-func newApi() *api.ApiManager {
-	m := api.NewApiManager("v1")
+func newApi() *base.ApiManager {
+	m := base.NewApiManager("v1")
 
 	// Tenant Api
 	m.RegisterApi("POST", "/tenants/:id", addTenant)
@@ -138,5 +138,5 @@ func newApi() *api.ApiManager {
 }
 
 func init() {
-	api.RegisterApiManager(newApi())
+	base.RegisterApiManager(newApi())
 }

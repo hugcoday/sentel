@@ -13,7 +13,7 @@
 package v1
 
 import (
-	"apiserver/api"
+	"apiserver/base"
 	"apiserver/db"
 	"net/http"
 
@@ -22,7 +22,7 @@ import (
 
 func addProduct(c echo.Context) error {
 	//id := c.Param("id")
-	ctx := *c.(*api.ApiContext)
+	ctx := *c.(*base.ApiContext)
 	r, _ := db.NewRegistry(ctx)
 	defer r.Release()
 	//	r.DeleteDevice(id)

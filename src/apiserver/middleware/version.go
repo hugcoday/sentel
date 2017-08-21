@@ -10,9 +10,13 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package api
+package middleware
 
-import "github.com/labstack/echo"
+import (
+	"apiserver/types"
+
+	"github.com/labstack/echo"
+)
 
 type (
 	// BodyLimitConfig defines the config for BodyLimit middleware.
@@ -40,7 +44,7 @@ func ApiVersionWithConfig(config ApiVersionConfig) echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			version := c.Param("api-version")
 			if version != config.Version {
-				return c.JSON(ErrorInvalidApiVersion.Code, ErrorInvalidApiVersion)
+				return c.JSON(types.ErrorInvalidApiVersion.Code, types.ErrorInvalidApiVersion)
 			}
 			return next(c)
 		}
