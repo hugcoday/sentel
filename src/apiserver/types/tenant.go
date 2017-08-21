@@ -12,38 +12,9 @@
 
 package types
 
-type CommonParameter struct {
-}
-
 // Tenant
 type Tenant struct {
 	CommonParameter
 	id   string
 	name string
-}
-
-// Product
-type Product struct {
-	CommonParameter
-	id   string
-	name string
-}
-
-// Device
-type DeviceRegistryOperationError struct {
-	deviceId string
-	//  errorCode ErrorCode
-	errorStatus string
-}
-
-type BulkRegistryOperationResult struct {
-	isSuccessful bool
-	errors       []DeviceRegistryOperationError
-}
-
-type Device struct {
-	deviceId        string
-	generationId    string
-	etag            string
-	connectionState int
 }
