@@ -17,7 +17,18 @@ import "apiserver/api"
 func newApi() *api.ApiManager {
 	m := api.NewApiManager("v1")
 
-	// Device APIs
+	// Tenant Api
+	m.RegisterApi("POST", "/tenants/:id", addTenant)
+	m.RegisterApi("DELETE", "/tenants/:id", deleteTenant)
+	m.RegisterApi("GET", "/tenants/:id", getTenant)
+
+	// Product Api
+	m.RegisterApi("POST", "/products/:id", addProduct)
+	m.RegisterApi("DELETE", "/products/:id", deleteProduct)
+	m.RegisterApi("GET", "/products/:id", getProduct)
+	m.RegisterApi("GET", "/products/:id/devices", getProductDevices)
+
+	// Device Api
 	m.RegisterApi("GET", "/devices/:id", getDevices)
 	m.RegisterApi("GET", "/devices/", getMultipleDevices)
 	m.RegisterApi("DELETE", "/devices/:id", deleteDevices)

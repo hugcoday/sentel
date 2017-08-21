@@ -12,20 +12,31 @@
 
 package v1
 
-type DeviceRegistryOperationError struct {
-	deviceId string
-	//  errorCode ErrorCode
-	errorStatus string
+import (
+	"apiserver/api"
+	"apiserver/db"
+	"net/http"
+
+	"github.com/labstack/echo"
+)
+
+func addProduct(c echo.Context) error {
+	//id := c.Param("id")
+	ctx := *c.(*api.ApiContext)
+	r, _ := db.NewRegistry(ctx)
+	defer r.Release()
+	//	r.DeleteDevice(id)
+	return c.NoContent(http.StatusNoContent)
 }
 
-type BulkRegistryOperationResult struct {
-	isSuccessful bool
-	errors       []DeviceRegistryOperationError
+func deleteProduct(c echo.Context) error {
+	return nil
 }
 
-type Device struct {
-	deviceId        string
-	generationId    string
-	etag            string
-	connectionState int
+func getProduct(c echo.Context) error {
+	return nil
+}
+
+func getProductDevices(c echo.Context) error {
+	return nil
 }
