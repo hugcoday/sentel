@@ -11,3 +11,20 @@
 //  under the License.
 
 package middleware
+
+import (
+	"github.com/labstack/echo"
+	mw "github.com/labstack/echo/middleware"
+)
+
+// DefaultKeyValidator use query key to confirm with auth server
+func defaultKeyValidator(key string, c echo.Context) (bool, error) {
+	return true, nil
+}
+
+var DefaultKeyAuthConfig = mw.KeyAuthConfig{
+	Validator: defaultKeyValidator,
+	KeyLookup: "query:api-key",
+}
+
+var DefaultKeyAuth = mw.KeyAuthWithConfig(DefaultKeyAuthConfig)

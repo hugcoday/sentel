@@ -27,6 +27,12 @@
 			"path": "/spew"
 		},
 		{
+			"importpath": "github.com/dgrijalva/jwt-go",
+			"repository": "https://github.com/dgrijalva/jwt-go",
+			"revision": "a539ee1a749a2b895533f979515ac7e6e0f5b650",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/eapache/go-resiliency/breaker",
 			"repository": "https://github.com/eapache/go-resiliency",
 			"revision": "b1fe83b5b03f624450823b751b662259ffc6af70",
@@ -134,6 +140,13 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/labstack/gommon/bytes",
+			"repository": "https://github.com/labstack/gommon",
+			"revision": "779b8a8b9850a97acba6a3fe20feb628c39e17c1",
+			"branch": "master",
+			"path": "/bytes"
+		},
+		{
 			"importpath": "github.com/labstack/gommon/color",
 			"repository": "https://github.com/labstack/gommon",
 			"revision": "779b8a8b9850a97acba6a3fe20feb628c39e17c1",
@@ -146,6 +159,13 @@
 			"revision": "779b8a8b9850a97acba6a3fe20feb628c39e17c1",
 			"branch": "master",
 			"path": "/log"
+		},
+		{
+			"importpath": "github.com/labstack/gommon/random",
+			"repository": "https://github.com/labstack/gommon",
+			"revision": "779b8a8b9850a97acba6a3fe20feb628c39e17c1",
+			"branch": "master",
+			"path": "/random"
 		},
 		{
 			"importpath": "github.com/lib/pq",

@@ -13,7 +13,7 @@
 package base
 
 import (
-	mw "apiserver/middleware"
+	"apiserver/middleware"
 	"strings"
 
 	echo "github.com/labstack/echo"
@@ -47,20 +47,20 @@ func NewApiManager(version string) *ApiManager {
 	return m
 }
 
-func (m *ApiManager) RegisterApi(action string, url string, handler echo.HandlerFunc) {
+func (m *ApiManager) RegisterApi(action string, url string, handler echo.HandlerFunc, h ...echo.MiddlewareFunc) {
 	m.handlers = append(m.handlers,
 		apiDescriptor{action: action, url: url, handler: handler})
 
 	// add to echo
 	action = strings.ToUpper(action)
 	if action == "GET" {
-		m.ech.GET(url, handler)
+		m.ech.GET(url, handler, h...)
 	} else if action == "POST" {
-		m.ech.POST(url, handler)
+		m.ech.POST(url, handler, h...)
 	} else if action == "PUT" {
-		m.ech.PUT(url, handler)
+		m.ech.PUT(url, handler, h...)
 	} else if action == "DELETE" {
-		m.ech.DELETE(url, handler)
+		m.ech.DELETE(url, handler, h...)
 	}
 }
 
@@ -83,7 +83,8 @@ func CreateApiManager(c *ApiConfig) (*ApiManager, error) {
 			return h(cc)
 		}
 	})
-	m.ech.Use(mw.ApiVersion(c.Version))
+	m.ech.Use(middleware.ApiVersion(c.Version))
+	//m.ech.Use(mw.KeyAuthWithConfig(middleware.DefaultKeyAuthConfig))
 	//	m.ech.Use(middleware.Logger())
 	//	m.ech.Use(middleware.Recover())
 
