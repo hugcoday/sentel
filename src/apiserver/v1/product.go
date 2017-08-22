@@ -41,7 +41,7 @@ type productAddResponse struct {
 	product
 }
 
-func addProduct(c echo.Context) error {
+func registerProduct(c echo.Context) error {
 	logInfo(c, "addProduct called")
 	// Get product
 	req := new(productAddRequest)
@@ -70,7 +70,7 @@ func addProduct(c echo.Context) error {
 		Success:      true,
 		ErrorMessage: "",
 	}
-	err = r.AddProduct(&dp)
+	err = r.RegisterProduct(&dp)
 	if err != nil {
 		rcp.Success = false
 		rcp.ErrorMessage = err.Error()
@@ -201,8 +201,8 @@ func getProduct(c echo.Context) error {
 }
 
 type device struct {
-	Id    string `json:"id"`
-	State string `json:"state"`
+	Id     string `json:"id"`
+	Status string `json:"status"`
 }
 
 type getProductDevicesResponse struct {
@@ -240,7 +240,7 @@ func getProductDevices(c echo.Context) error {
 	for _, dev := range devices {
 		rsp.devices = append(rsp.devices,
 			device{Id: dev.Id,
-				State: dev.State,
+				Status: dev.DeviceStatus,
 			})
 	}
 	return c.JSON(http.StatusOK, rsp)

@@ -14,13 +14,12 @@ package base
 
 import (
 	"apiserver/middleware"
-	"strings"
 
 	echo "github.com/labstack/echo"
 )
 
 type apiDescriptor struct {
-	action  string
+	action  int
 	url     string
 	handler echo.HandlerFunc
 }
@@ -31,6 +30,14 @@ type ApiManager struct {
 	handlers []apiDescriptor
 	ech      *echo.Echo
 }
+
+const (
+	GET    = 0
+	POST   = 1
+	DELETE = 2
+	PATCH  = 3
+	PUT    = 4
+)
 
 var (
 	apiManagers map[string]*ApiManager = make(map[string]*ApiManager)
@@ -47,20 +54,20 @@ func NewApiManager(version string) *ApiManager {
 	return m
 }
 
-func (m *ApiManager) RegisterApi(action string, url string, handler echo.HandlerFunc, h ...echo.MiddlewareFunc) {
+func (m *ApiManager) RegisterApi(action int, url string, handler echo.HandlerFunc, h ...echo.MiddlewareFunc) {
 	m.handlers = append(m.handlers,
 		apiDescriptor{action: action, url: url, handler: handler})
-
-	// add to echo
-	action = strings.ToUpper(action)
-	if action == "GET" {
+	switch action {
+	case GET:
 		m.ech.GET(url, handler, h...)
-	} else if action == "POST" {
+	case POST:
 		m.ech.POST(url, handler, h...)
-	} else if action == "PUT" {
+	case PUT:
 		m.ech.PUT(url, handler, h...)
-	} else if action == "DELETE" {
+	case DELETE:
 		m.ech.DELETE(url, handler, h...)
+	case PATCH:
+		m.ech.PATCH(url, handler, h...)
 	}
 }
 

@@ -67,17 +67,17 @@ func (r *Registry) CheckProductNameAvailable(p *Product) bool {
 	return true
 }
 
-// AddProduct add a product into registry store
-func (r *Registry) AddProduct(p *Product) error {
+// RegisterProduct register a product into registry
+func (r *Registry) RegisterProduct(p *Product) error {
 	return nil
 }
 
-// DeleteProduct delete a product from registry store
+// DeleteProduct delete a product from registry
 func (r *Registry) DeleteProduct(id string) error {
 	return nil
 }
 
-// GetProduct retrieve product detail information from registry store
+// GetProduct retrieve product detail information from registry
 func (r *Registry) GetProduct(id string) (*Product, error) {
 	return nil, nil
 }
@@ -88,12 +88,40 @@ func (r *Registry) GetProductDevices(id string) ([]Device, error) {
 	return devices, nil
 }
 
-// UpdateProduct update product detail information in registry store
+// UpdateProduct update product detail information in registry
 func (r *Registry) UpdateProduct(p *Product) error {
 	return nil
 }
 
 // Device
-func (r *Registry) DeleteDevice(name string) error {
+
+// AddDevice add a new device into registry
+func (r *Registry) RegisterDevice(dev *Device) error {
+	return nil
+
+}
+
+// BulkRegisterDevice add a lot of devices into registry
+func (r *Registry) BulkRegisterDevice(devices []Device) error {
+	return nil
+}
+
+// DeleteDevice delete a device from registry
+func (r *Registry) DeleteDevice(id string) error {
+	return nil
+}
+
+// BulkDeleteDevice delete a lot of devices from registry
+func (r *Registry) BulkDeleteDevice(devices []string) error {
+	return nil
+}
+
+// UpdateDevice update device information in registry
+func (r *Registry) UpdateDevice(dev *Device) error {
+	return nil
+}
+
+// BulkUpdateDevice update a lot of devices in registry
+func (r *Registry) BulkUpdateDevice(devices []Device) error {
 	return nil
 }

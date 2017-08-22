@@ -10,30 +10,17 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package db
+package v1
 
-// Tenant
-type Tenant struct {
-	Id   string
-	Name string
+import "github.com/labstack/echo"
+
+// Retrieves statistics about devices identities in the IoT hub's
+// identify registry
+func getRegistryStatistics(c echo.Context) error {
+	return nil
 }
 
-// Product
-type Product struct {
-	Id           string
-	Name         string
-	Description  string
-	TimeCreated  string
-	TimeModified string
-	CategoryId   string
-}
-
-type Device struct {
-	Id           string
-	Name         string
-	ProductKey   string
-	DeviceStatus string
-	DeviceSecret string
-	TimeCreated  string
-	TimeModified string
+// Retrieves services statisticsfor this IoT hubs's identity registry
+func getServiceStatistics(c echo.Context) error {
+	return nil
 }

@@ -16,12 +16,78 @@ import (
 	"apiserver/base"
 	"apiserver/db"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo"
+	uuid "github.com/satori/go.uuid"
 )
 
+// Device internal definition
+type registerDeviceRequest struct {
+	RequestCommonParameter
+	ProductKey string `json:"productKey"`
+	DeviceName string `json:"productName"`
+}
+
+type registerDeviceResponse struct {
+	ResponseCommonParameter
+	DeviceId     string `json:"deviceId"`
+	DeviceName   string `json:"deviceName"`
+	DeviceSecret string `json:deviceSecret"`
+	DeviceStatus string `json:deviceStatus"`
+	ProductKey   string `json:"productKey"`
+	TimeCreated  string `json:"timeCreated"`
+}
+
+// RegisterDevice register a new device in IoT hub
+func registerDevice(c echo.Context) error {
+	logInfo(c, "registerProduct(%s) called", c.Param("id"))
+	// Get product
+	req := new(registerDeviceRequest)
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+	// Connect with registry
+	r, err := db.NewRegistry(*c.(*base.ApiContext))
+	if err != nil {
+		logFatal(c, "Registry connection failed")
+		return err
+	}
+	defer r.Release()
+
+	// Insert device into registry, the created product
+	// will be modified to retrieve specific information sucha as
+	// product.id and creation time
+	dp := db.Device{
+		Name:        req.DeviceName,
+		ProductKey:  req.ProductKey,
+		TimeCreated: time.Now().String(),
+	}
+	rcp := ResponseCommonParameter{
+		RequestId:    uuid.NewV4().String(),
+		Success:      true,
+		ErrorMessage: "",
+	}
+	err = r.RegisterDevice(&dp)
+	if err != nil {
+		rcp.Success = false
+		rcp.ErrorMessage = err.Error()
+		return c.JSON(http.StatusOK, rcp)
+	}
+	rsp := &registerDeviceResponse{
+		ResponseCommonParameter: rcp,
+		DeviceId:                dp.Id,
+		DeviceName:              dp.Name,
+		ProductKey:              dp.ProductKey,
+		DeviceSecret:            dp.DeviceSecret,
+		TimeCreated:             dp.TimeCreated,
+	}
+	return c.JSON(http.StatusOK, rsp)
+
+}
+
 // Retrieve a device from the identify registry of an IoT hub
-func getDevices(c echo.Context) error {
+func getDevice(c echo.Context) error {
 	return nil
 }
 
@@ -39,17 +105,6 @@ func deleteDevices(c echo.Context) error {
 
 // Get the identifies of multiple devices from The IoT hub
 func getMultipleDevices(c echo.Context) error {
-	return nil
-}
-
-// Retrieves statistics about devices identities in the IoT hub's
-// identify registry
-func getRegistryStatistics(c echo.Context) error {
-	return nil
-}
-
-// Retrieves services statisticsfor this IoT hubs's identity registry
-func getServiceStatistics(c echo.Context) error {
 	return nil
 }
 

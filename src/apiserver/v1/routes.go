@@ -21,121 +21,122 @@ func newApi() *base.ApiManager {
 	m := base.NewApiManager("v1")
 
 	// Tenant Api
-	m.RegisterApi("POST", "/tenants/:id", addTenant)
-	m.RegisterApi("DELETE", "/tenants/:id", deleteTenant, middleware.DefaultKeyAuth)
-	m.RegisterApi("GET", "/tenants/:id", getTenant, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.POST, "/tenants/:id", addTenant)
+	m.RegisterApi(base.DELETE, "/tenants/:id", deleteTenant, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.GET, "/tenants/:id", getTenant, middleware.DefaultKeyAuth)
 
 	// Product Api
-	m.RegisterApi("POST", "/products/:id", addProduct, middleware.DefaultKeyAuth)
-	m.RegisterApi("DELETE", "/products/:id", deleteProduct, middleware.DefaultKeyAuth)
-	m.RegisterApi("GET", "/products/:id", getProduct, middleware.DefaultKeyAuth)
-	m.RegisterApi("GET", "/products/:id/devices", getProductDevices, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.POST, "/products/:id", registerProduct, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.DELETE, "/products/:id", deleteProduct, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.GET, "/products/:id", getProduct, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.GET, "/products/:id/devices", getProductDevices, middleware.DefaultKeyAuth)
 
 	// Device Api
-	m.RegisterApi("GET", "/devices/:id", getDevices, middleware.DefaultKeyAuth)
-	m.RegisterApi("GET", "/devices/", getMultipleDevices, middleware.DefaultKeyAuth)
-	m.RegisterApi("DELETE", "/devices/:id", deleteDevices, middleware.DefaultKeyAuth)
-	m.RegisterApi("GET", "/statistics/devices", getRegistryStatistics, middleware.DefaultKeyAuth)
-	m.RegisterApi("GET", "/statistics/service", getServiceStatistics, middleware.DefaultKeyAuth)
-	m.RegisterApi("DELETE", "/devices/:id/commands", purgeCommandQueue, middleware.DefaultKeyAuth)
-	m.RegisterApi("PUT", "/devices/:id", putDevices, middleware.DefaultKeyAuth)
-	m.RegisterApi("POST", "/devices/query", queryDevices, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.POST, "/devices/:id", registerDevice, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.GET, "/devices/:id", getDevice, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.GET, "/devices/", getMultipleDevices, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.DELETE, "/devices/:id", deleteDevices, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.GET, "/statistics/devices", getRegistryStatistics, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.GET, "/statistics/service", getServiceStatistics, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.DELETE, "/devices/:id/commands", purgeCommandQueue, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.PUT, "/devices/:id", putDevices, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.POST, "/devices/query", queryDevices, middleware.DefaultKeyAuth)
 
 	// Device Twin Api
-	m.RegisterApi("GET", "/twins/:id", getDeviceTwin, middleware.DefaultKeyAuth)
-	m.RegisterApi("POST", "/twins/:id/methods", invokeDeviceMethod, middleware.DefaultKeyAuth)
-	m.RegisterApi("PATCH", "/twins/:id", updateDeviceTwin, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.GET, "/twins/:id", getDeviceTwin, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.POST, "/twins/:id/methods", invokeDeviceMethod, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.PATCH, "/twins/:id", updateDeviceTwin, middleware.DefaultKeyAuth)
 
 	// Http Runtime Api
-	m.RegisterApi("POST", "/devices/:id/messages/deviceBound/:etag/abandon",
+	m.RegisterApi(base.POST, "/devices/:id/messages/deviceBound/:etag/abandon",
 		abandonDeviceBoundNotification, middleware.DefaultKeyAuth)
-	m.RegisterApi("DELETE", "/devices/:id/messages/devicesBound/:etag",
+	m.RegisterApi(base.DELETE, "/devices/:id/messages/devicesBound/:etag",
 		completeDeviceBoundNotification, middleware.DefaultKeyAuth)
-	m.RegisterApi("POST", "/devices/:ideviceId/files",
+	m.RegisterApi(base.POST, "/devices/:ideviceId/files",
 		createFileUploadSasUri, middleware.DefaultKeyAuth)
-	m.RegisterApi("GET", "/devices/:id/message/deviceBound",
+	m.RegisterApi(base.GET, "/devices/:id/message/deviceBound",
 		receiveDeviceBoundNotification, middleware.DefaultKeyAuth)
-	m.RegisterApi("POST", "/devices/:deviceId/files/notifications",
+	m.RegisterApi(base.POST, "/devices/:deviceId/files/notifications",
 		updateFileUploadStatus, middleware.DefaultKeyAuth)
-	m.RegisterApi("POST", "/devices/:id/messages/event", sendDeviceEvent, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.POST, "/devices/:id/messages/event", sendDeviceEvent, middleware.DefaultKeyAuth)
 
 	// Resource Api
-	m.RegisterApi("POST",
+	m.RegisterApi(base.POST,
 		"/subscriptions/:subscriptionId/providers/Microsoft.Devices/checkNameAvailibility",
 		checkNameAvailability, middleware.DefaultKeyAuth)
-	m.RegisterApi("PUT",
+	m.RegisterApi(base.PUT,
 		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
 		/providers/Microsoft.Devices/IotHubs/:resourceName/eventHubEndPoints
 		/:eventHubEndpointName/ConsumerGroups/:name`,
 		createEventHubConsumerGroup, middleware.DefaultKeyAuth)
-	m.RegisterApi("PUT",
+	m.RegisterApi(base.PUT,
 		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
 		/providers/Microsoft.Devices/IotHubs/:resourceName`,
 		createOrUpdateMetadata, middleware.DefaultKeyAuth)
-	m.RegisterApi("DELETE",
+	m.RegisterApi(base.DELETE,
 		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
 		/providers/Microsoft.Devices/IotHubs/:resourceName`,
 		deleteIoTHub, middleware.DefaultKeyAuth)
-	m.RegisterApi("GET",
+	m.RegisterApi(base.GET,
 		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
 		/providers/Microsoft.Devices/IotHubs/:resourceName`,
 		getNonsecurityMetadata, middleware.DefaultKeyAuth)
 
-	m.RegisterApi("DELETE",
+	m.RegisterApi(base.DELETE,
 		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
 		/providers/Microsoft.Devices/IotHubs/:resourceName
 		/eventHubEndpoints/:eventHubEndpointName/ConsumerGroups/:name`,
 		deleteEventHubConsumerGroup, middleware.DefaultKeyAuth)
 
-	m.RegisterApi("GET",
+	m.RegisterApi(base.GET,
 		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
 		/providers/Microsoft.Devices/IotHubs/:resourceName
 		/eventHubEndpoints/:eventHubEndpointName/ConsumerGroups/:name`,
 		getEventHubConsumerGroup, middleware.DefaultKeyAuth)
-	m.RegisterApi("GET",
+	m.RegisterApi(base.GET,
 		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
 		/providers/Microsoft.Devices/IotHubs/:resourceName/jobs/:jobId`,
 		getJobDetail, middleware.DefaultKeyAuth)
 
-	m.RegisterApi("GET",
+	m.RegisterApi(base.GET,
 		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
 		/providers/Microsoft.Devices/IotHubs/:resourceName/jobs`,
 		getAllJobsInIotHub, middleware.DefaultKeyAuth)
-	m.RegisterApi("GET",
+	m.RegisterApi(base.GET,
 		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
 		/providers/Microsoft.Devices/IotHubs/:resourceName/IotHubKyes/:keyName/listkyes`,
 		getKeyForKeyName, middleware.DefaultKeyAuth)
 
-	m.RegisterApi("GET",
+	m.RegisterApi(base.GET,
 		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
 		/providers/Microsoft.Devices/IotHubs/:resourceName/quatoMetrics`,
 		getQuotaMetrics, middleware.DefaultKeyAuth)
-	m.RegisterApi("GET",
+	m.RegisterApi(base.GET,
 		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
 		/providers/Microsoft.Devices/IotHubs/:resourceName/IotHubStats`,
 		getStatics, middleware.DefaultKeyAuth)
-	m.RegisterApi("GET",
+	m.RegisterApi(base.GET,
 		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
 		/providers/Microsoft.Devices/IotHubs/:resourceName/skus`,
 		getValidSkus, middleware.DefaultKeyAuth)
-	m.RegisterApi("GET",
+	m.RegisterApi(base.GET,
 		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
 		/providers/Microsoft.Devices/IotHubs`,
 		getAllHubsInGroup, middleware.DefaultKeyAuth)
-	m.RegisterApi("GET",
+	m.RegisterApi(base.GET,
 		`/subscriptions/:subscriptionId/providers/Microsoft.Devices/IotHubs`,
 		getAllHubs, middleware.DefaultKeyAuth)
 
-	m.RegisterApi("GET",
+	m.RegisterApi(base.GET,
 		`/subscriptions/:subscriptionId/resourceGroups/:resourceGroupName
 		/providers/Microsoft.Devices/IotHubs/:resourceName/listkyes`,
 		getSecurityMetadataFromHub, middleware.DefaultKeyAuth)
 
 	// Job Api
-	m.RegisterApi("POST", "/jobs/v2/:jobid/cancel", cancelJob, middleware.DefaultKeyAuth)
-	m.RegisterApi("PUT", "/jobs/v2/:jobid", createJob, middleware.DefaultKeyAuth)
-	m.RegisterApi("GET", "/jobs/v2/:jobid", getJob, middleware.DefaultKeyAuth)
-	m.RegisterApi("GET", "/jobs/v2/query", queryJobs, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.POST, "/jobs/v2/:jobid/cancel", cancelJob, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.PUT, "/jobs/v2/:jobid", createJob, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.GET, "/jobs/v2/:jobid", getJob, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.GET, "/jobs/v2/query", queryJobs, middleware.DefaultKeyAuth)
 
 	return m
 }
