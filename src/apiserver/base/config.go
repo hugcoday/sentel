@@ -20,11 +20,11 @@ import (
 )
 
 type ApiConfig struct {
-	Host     string         // server host
-	Port     string         // server port
-	LogLevel string         // Log level
-	Registry RegistryConfig // Registry db name
-	Version  string         // Api category, aws or azure
+	Host     string          // server host
+	Port     string          // server port
+	LogLevel string          // Log level
+	Registry *RegistryConfig // Registry db name
+	Version  string          // Api category, aws or azure
 }
 
 type RegistryConfig struct {

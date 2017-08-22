@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	defaultConfigFilePath = "/etc/sentel-apiserver.toml"
+	defaultConfigFilePath = "../etc/sentel/apiserver.conf"
 )
 
 var (
