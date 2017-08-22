@@ -14,7 +14,6 @@ package types
 
 // Tenant
 type Tenant struct {
-	CommonParameter
-	id   string
-	name string
+	Id   string
+	Name string
 }

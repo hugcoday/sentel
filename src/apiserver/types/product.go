@@ -14,7 +14,9 @@ package types
 
 // Product
 type Product struct {
-	CommonParameter
-	id   string
-	name string
+	Id           string
+	Name         string
+	Description  string
+	TimeCreated  string
+	TimeModified string
 }

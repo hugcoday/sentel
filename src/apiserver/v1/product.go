@@ -15,18 +15,59 @@ package v1
 import (
 	"apiserver/base"
 	"apiserver/db"
+	"apiserver/types"
 	"net/http"
 
 	"github.com/labstack/echo"
+	"github.com/satori/go.uuid"
 )
 
+type productAddRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type productAddResponse struct {
+	types.ResponseCommonParameter
+	types.Product
+}
+
 func addProduct(c echo.Context) error {
-	//id := c.Param("id")
+	// Get product
+	p := new(productAddRequest)
+	if err := c.Bind(p); err != nil {
+		return err
+	}
+	// Connect with registry
 	ctx := *c.(*base.ApiContext)
-	r, _ := db.NewRegistry(ctx)
+	r, err := db.NewRegistry(ctx)
+	if err != nil {
+		return err
+	}
 	defer r.Release()
-	//	r.DeleteDevice(id)
-	return c.NoContent(http.StatusNoContent)
+
+	// Insert product into registry, the created product
+	// will be modified to retrieve specific information sucha as
+	// product.id and creation time
+	product := types.Product{
+		Name: p.Name, Description: p.Description}
+	rcp := types.ResponseCommonParameter{
+		RequestId:    uuid.NewV4().String(),
+		Success:      true,
+		ErrorMessage: "",
+	}
+
+	err = r.AddProduct(&product)
+	if err != nil {
+		rsp := &productAddResponse{
+			ResponseCommonParameter: rcp,
+			Product:                 product,
+		}
+		return c.JSON(http.StatusOK, rsp)
+	}
+	rcp.Success = false
+	rcp.ErrorMessage = err.Error()
+	return c.JSON(http.StatusOK, rcp)
 }
 
 func deleteProduct(c echo.Context) error {

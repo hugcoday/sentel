@@ -224,6 +224,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/satori/go.uuid",
+			"repository": "https://github.com/satori/go.uuid",
+			"revision": "5bf94b69c6b68ee1b541973bb8e1144db23a194b",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/valyala/bytebufferpool",
 			"repository": "https://github.com/valyala/bytebufferpool",
 			"revision": "e746df99fe4a3986f4d4f79e13c1e0117ce9c2f7",

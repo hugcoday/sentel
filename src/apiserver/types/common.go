@@ -12,5 +12,18 @@
 
 package types
 
-type CommonParameter struct {
+type RequestCommonParameter struct {
+	Format           string // Response data type, json or xml
+	AccessKeyId      string
+	Signature        string
+	Timestamp        string
+	SignatureVersion string
+	SignatueNonce    string
+	RegionId         string
+}
+
+type ResponseCommonParameter struct {
+	RequestId    string
+	Success      bool
+	ErrorMessage string
 }
