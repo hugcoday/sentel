@@ -25,6 +25,7 @@ type ApiConfig struct {
 	LogLevel string          // Log level
 	Registry *RegistryConfig // Registry db name
 	Version  string          // Api category, aws or azure
+	Kafka    string
 }
 
 type RegistryConfig struct {
