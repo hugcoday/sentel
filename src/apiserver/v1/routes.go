@@ -34,13 +34,15 @@ func newApi() *base.ApiManager {
 	// Device Api
 	m.RegisterApi(base.POST, "/devices/:id", registerDevice, middleware.DefaultKeyAuth)
 	m.RegisterApi(base.GET, "/devices/:id", getDevice, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.DELETE, "/devices/:id", deleteDevice, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.PUT, "/devices/:id", updateDevice, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.DELETE, "/devices/:id/commands", purgeCommandQueue, middleware.DefaultKeyAuth)
 	m.RegisterApi(base.GET, "/devices/", getMultipleDevices, middleware.DefaultKeyAuth)
-	m.RegisterApi(base.DELETE, "/devices/:id", deleteDevices, middleware.DefaultKeyAuth)
+	m.RegisterApi(base.POST, "/devices/query", queryDevices, middleware.DefaultKeyAuth)
+
+	// Statics Api
 	m.RegisterApi(base.GET, "/statistics/devices", getRegistryStatistics, middleware.DefaultKeyAuth)
 	m.RegisterApi(base.GET, "/statistics/service", getServiceStatistics, middleware.DefaultKeyAuth)
-	m.RegisterApi(base.DELETE, "/devices/:id/commands", purgeCommandQueue, middleware.DefaultKeyAuth)
-	m.RegisterApi(base.PUT, "/devices/:id", putDevices, middleware.DefaultKeyAuth)
-	m.RegisterApi(base.POST, "/devices/query", queryDevices, middleware.DefaultKeyAuth)
 
 	// Device Twin Api
 	m.RegisterApi(base.GET, "/twins/:id", getDeviceTwin, middleware.DefaultKeyAuth)

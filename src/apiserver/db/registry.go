@@ -95,10 +95,14 @@ func (r *Registry) UpdateProduct(p *Product) error {
 
 // Device
 
-// AddDevice add a new device into registry
+// Registerevice add a new device into registry
 func (r *Registry) RegisterDevice(dev *Device) error {
 	return nil
+}
 
+// GetDevice retrieve a device information from registry/
+func (r *Registry) GetDevice(id string) (*Device, error) {
+	return nil, nil
 }
 
 // BulkRegisterDevice add a lot of devices into registry
