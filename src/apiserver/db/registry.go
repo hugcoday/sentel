@@ -63,22 +63,34 @@ func (r *Registry) GetTenant(t *types.Tenant) error {
 }
 
 // Product
+// CheckProductNameAvailable check wethere product name is available
 func (r *Registry) CheckProductNameAvailable(p *types.Product) bool {
 	return true
 }
 
+// AddProduct add a product into registry store
 func (r *Registry) AddProduct(p *types.Product) error {
 	return nil
 }
-func (r *Registry) DeleteProduct(p *types.Product) error {
+
+// DeleteProduct delete a product from registry store
+func (r *Registry) DeleteProduct(id string) error {
 	return nil
 }
 
-func (r *Registry) GetProduct(p *types.Product) error {
-	return nil
+// GetProduct retrieve product detail information from registry store
+func (r *Registry) GetProduct(id string) (*types.Product, error) {
+	return nil, nil
 }
 
-func (r *Registry) GetProductDevices(p *types.Product) error {
+// GetProductDevices get product's device list
+func (r *Registry) GetProductDevices(id string) ([]types.Device, error) {
+	devices := []types.Device{}
+	return devices, nil
+}
+
+// UpdateProduct update product detail information in registry store
+func (r *Registry) UpdateProduct(p *types.Product) error {
 	return nil
 }
 

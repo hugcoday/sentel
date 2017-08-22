@@ -9,15 +9,15 @@
 //  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 //  License for the specific language governing permissions and limitations
 //  under the License.
+package v1
 
-package types
+import "github.com/labstack/echo"
 
-// Product
-type Product struct {
-	Id           string
-	Name         string
-	Description  string
-	TimeCreated  string
-	TimeModified string
-	CategoryId   string
+func logInfo(ctx echo.Context, fmt string, args ...interface{}) {
+}
+
+func logDebug(ctx echo.Context, fmt string, args ...interface{}) {
+}
+
+func logFatal(ctx echo.Context, fmt string, args ...interface{}) {
 }
