@@ -13,7 +13,7 @@
 package middleware
 
 import (
-	"apiserver/types"
+	"apiserver/util"
 
 	"github.com/labstack/echo"
 )
@@ -44,7 +44,7 @@ func ApiVersionWithConfig(config ApiVersionConfig) echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			version := c.Param("api-version")
 			if version != config.Version {
-				return c.JSON(types.ErrorInvalidApiVersion.Code, types.ErrorInvalidApiVersion)
+				return c.JSON(util.ErrorInvalidApiVersion.Code, util.ErrorInvalidApiVersion)
 			}
 			return next(c)
 		}

@@ -10,10 +10,25 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package types
+package db
 
 // Tenant
 type Tenant struct {
 	Id   string
 	Name string
+}
+
+// Product
+type Product struct {
+	Id           string
+	Name         string
+	Description  string
+	TimeCreated  string
+	TimeModified string
+	CategoryId   string
+}
+
+type Device struct {
+	Id    string
+	State string
 }

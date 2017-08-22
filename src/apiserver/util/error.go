@@ -10,7 +10,7 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package types
+package util
 
 type SentelError struct {
 	Code        int    `json:"code"`

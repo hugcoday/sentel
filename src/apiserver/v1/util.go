@@ -13,6 +13,22 @@ package v1
 
 import "github.com/labstack/echo"
 
+type RequestCommonParameter struct {
+	Format           string // Response data type, json or xml
+	AccessKeyId      string
+	Signature        string
+	Timestamp        string
+	SignatureVersion string
+	SignatueNonce    string
+	RegionId         string
+}
+
+type ResponseCommonParameter struct {
+	RequestId    string
+	Success      bool
+	ErrorMessage string
+}
+
 func logInfo(ctx echo.Context, fmt string, args ...interface{}) {
 }
 
@@ -20,4 +36,7 @@ func logDebug(ctx echo.Context, fmt string, args ...interface{}) {
 }
 
 func logFatal(ctx echo.Context, fmt string, args ...interface{}) {
+}
+
+func logError(ctx echo.Context, fmt string, args ...interface{}) {
 }

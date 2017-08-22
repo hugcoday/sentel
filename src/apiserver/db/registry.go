@@ -14,7 +14,6 @@ package db
 
 import (
 	"apiserver/base"
-	"apiserver/types"
 	"database/sql"
 	"fmt"
 )
@@ -46,30 +45,30 @@ func (r *Registry) Release() {
 }
 
 // Tenant
-func (r *Registry) CheckTenantNameAvailable(t *types.Tenant) bool {
+func (r *Registry) CheckTenantNameAvailable(t *Tenant) bool {
 	return false
 }
 
-func (r *Registry) AddTenant(t *types.Tenant) error {
+func (r *Registry) AddTenant(t *Tenant) error {
 	return nil
 }
 
-func (r *Registry) DeleteTenant(t *types.Tenant) error {
+func (r *Registry) DeleteTenant(t *Tenant) error {
 	return nil
 }
 
-func (r *Registry) GetTenant(t *types.Tenant) error {
+func (r *Registry) GetTenant(t *Tenant) error {
 	return nil
 }
 
 // Product
 // CheckProductNameAvailable check wethere product name is available
-func (r *Registry) CheckProductNameAvailable(p *types.Product) bool {
+func (r *Registry) CheckProductNameAvailable(p *Product) bool {
 	return true
 }
 
 // AddProduct add a product into registry store
-func (r *Registry) AddProduct(p *types.Product) error {
+func (r *Registry) AddProduct(p *Product) error {
 	return nil
 }
 
@@ -79,18 +78,18 @@ func (r *Registry) DeleteProduct(id string) error {
 }
 
 // GetProduct retrieve product detail information from registry store
-func (r *Registry) GetProduct(id string) (*types.Product, error) {
+func (r *Registry) GetProduct(id string) (*Product, error) {
 	return nil, nil
 }
 
 // GetProductDevices get product's device list
-func (r *Registry) GetProductDevices(id string) ([]types.Device, error) {
-	devices := []types.Device{}
+func (r *Registry) GetProductDevices(id string) ([]Device, error) {
+	devices := []Device{}
 	return devices, nil
 }
 
 // UpdateProduct update product detail information in registry store
-func (r *Registry) UpdateProduct(p *types.Product) error {
+func (r *Registry) UpdateProduct(p *Product) error {
 	return nil
 }
 

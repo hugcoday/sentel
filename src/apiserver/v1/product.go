@@ -15,7 +15,6 @@ package v1
 import (
 	"apiserver/base"
 	"apiserver/db"
-	"apiserver/types"
 	"net/http"
 	"time"
 
@@ -23,21 +22,30 @@ import (
 	"github.com/satori/go.uuid"
 )
 
+// Product internal definition
+type product struct {
+	Id           string `json:"id"`
+	Name         string `json:"name"`
+	Description  string `json:"description"`
+	TimeCreated  string `json:"timeCreated"`
+	TimeModified string `json:"timeModified"`
+	CategoryId   string `json:"categoryId"`
+}
 type productAddRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 
 type productAddResponse struct {
-	types.ResponseCommonParameter
-	types.Product
+	ResponseCommonParameter
+	product
 }
 
 func addProduct(c echo.Context) error {
 	logInfo(c, "addProduct called")
 	// Get product
-	p := new(productAddRequest)
-	if err := c.Bind(p); err != nil {
+	req := new(productAddRequest)
+	if err := c.Bind(req); err != nil {
 		return err
 	}
 	// Connect with registry
@@ -52,25 +60,31 @@ func addProduct(c echo.Context) error {
 	// Insert product into registry, the created product
 	// will be modified to retrieve specific information sucha as
 	// product.id and creation time
-	product := types.Product{
-		Name:        p.Name,
-		Description: p.Description,
+	dp := db.Product{
+		Name:        req.Name,
+		Description: req.Description,
 		TimeCreated: time.Now().String(),
 	}
-	rcp := types.ResponseCommonParameter{
+	rcp := ResponseCommonParameter{
 		RequestId:    uuid.NewV4().String(),
 		Success:      true,
 		ErrorMessage: "",
 	}
-	err = r.AddProduct(&product)
+	err = r.AddProduct(&dp)
 	if err != nil {
 		rcp.Success = false
 		rcp.ErrorMessage = err.Error()
 		return c.JSON(http.StatusOK, rcp)
 	}
+	p := product{
+		Id:          dp.Id,
+		Name:        dp.Name,
+		Description: dp.Description,
+		TimeCreated: dp.TimeCreated,
+	}
 	rsp := &productAddResponse{
 		ResponseCommonParameter: rcp,
-		Product:                 product,
+		product:                 p,
 	}
 	return c.JSON(http.StatusOK, rsp)
 }
@@ -87,33 +101,33 @@ func updateProduct(c echo.Context) error {
 	logInfo(c, "updateProduct called")
 
 	// Get product
-	p := new(productUpdateRequest)
-	if err := c.Bind(p); err != nil {
+	req := new(productUpdateRequest)
+	if err := c.Bind(req); err != nil {
 		return err
 	}
 	// Connect with registry
-	ctx := *c.(*base.ApiContext)
-	registry, err := db.NewRegistry(ctx)
+	registry, err := db.NewRegistry(*c.(*base.ApiContext))
 	if err != nil {
 		return err
 	}
 	defer registry.Release()
 
 	// Update product into registry
-	product := types.Product{
-		Id:           p.Id,
-		Name:         p.Name,
-		Description:  p.Description,
-		CategoryId:   p.CategoryId,
+	dp := db.Product{
+		Id:           req.Id,
+		Name:         req.Name,
+		Description:  req.Description,
+		CategoryId:   req.CategoryId,
 		TimeModified: time.Now().String(),
 	}
-	rcp := types.ResponseCommonParameter{
+	rcp := ResponseCommonParameter{
 		RequestId:    uuid.NewV4().String(),
 		Success:      true,
 		ErrorMessage: "",
 	}
-	err = registry.UpdateProduct(&product)
+	err = registry.UpdateProduct(&dp)
 	if err != nil {
+		logError(c, "Registry.UpdateProduct(%s) failed", req.Id)
 		rcp.Success = false
 		rcp.ErrorMessage = err.Error()
 	}
@@ -133,7 +147,7 @@ func deleteProduct(c echo.Context) error {
 	defer registry.Release()
 
 	// Update product into registry
-	rcp := types.ResponseCommonParameter{
+	rcp := ResponseCommonParameter{
 		RequestId:    uuid.NewV4().String(),
 		Success:      true,
 		ErrorMessage: "",
@@ -147,8 +161,8 @@ func deleteProduct(c echo.Context) error {
 }
 
 type getProductResponse struct {
-	types.ResponseCommonParameter
-	types.Product
+	ResponseCommonParameter
+	product
 }
 
 // getProduct retrieve production information from registry store
@@ -163,7 +177,7 @@ func getProduct(c echo.Context) error {
 	defer registry.Release()
 
 	// Update product into registry
-	rcp := types.ResponseCommonParameter{
+	rcp := ResponseCommonParameter{
 		RequestId:    uuid.NewV4().String(),
 		Success:      true,
 		ErrorMessage: "",
@@ -174,18 +188,32 @@ func getProduct(c echo.Context) error {
 		rcp.ErrorMessage = err.Error()
 		return c.JSON(http.StatusOK, rcp)
 	}
-	rsp := getProductResponse{ResponseCommonParameter: rcp, Product: *p}
+	rsp := getProductResponse{
+		ResponseCommonParameter: rcp,
+		product: product{
+			Id:           p.Id,
+			Name:         p.Name,
+			TimeCreated:  p.TimeCreated,
+			TimeModified: p.TimeModified,
+			Description:  p.Description,
+		}}
 	return c.JSON(http.StatusOK, rsp)
 }
 
+type device struct {
+	Id    string `json:"id"`
+	State string `json:"state"`
+}
+
 type getProductDevicesResponse struct {
-	types.ResponseCommonParameter
-	devices []types.Device
+	ResponseCommonParameter
+	devices []device `json:"devices"`
 }
 
 // getProductDevices retrieve product devices list from registry store
 func getProductDevices(c echo.Context) error {
 	logInfo(c, "getProductDevices:%s", c.Param("id"))
+
 	// Connect with registry
 	registry, err := db.NewRegistry(*c.(*base.ApiContext))
 	if err != nil {
@@ -195,7 +223,7 @@ func getProductDevices(c echo.Context) error {
 	defer registry.Release()
 
 	// Update product into registry
-	rcp := types.ResponseCommonParameter{
+	rcp := ResponseCommonParameter{
 		RequestId:    uuid.NewV4().String(),
 		Success:      true,
 		ErrorMessage: "",
@@ -208,9 +236,12 @@ func getProductDevices(c echo.Context) error {
 		return c.JSON(http.StatusOK, rcp)
 	}
 	rsp := getProductDevicesResponse{
-		ResponseCommonParameter: rcp, devices: []types.Device{}}
-	for _, device := range devices {
-		rsp.devices = append(rsp.devices, device)
+		ResponseCommonParameter: rcp, devices: []device{}}
+	for _, dev := range devices {
+		rsp.devices = append(rsp.devices,
+			device{Id: dev.Id,
+				State: dev.State,
+			})
 	}
 	return c.JSON(http.StatusOK, rsp)
 
