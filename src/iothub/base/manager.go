@@ -14,9 +14,9 @@ package base
 import "github.com/golang/glog"
 
 type ServiceManager struct {
-	config   *Config                  // Global config
-	services map[string]Service       // All service created by config.Protocols
-	chs      map[string]chan struct{} // Notification channel for each service
+	config   *Config             // Global config
+	services map[string]Service  // All service created by config.Protocols
+	chs      map[string]chan int // Notification channel for each service
 
 }
 
@@ -24,12 +24,12 @@ type ServiceManager struct {
 func NewServiceManager(c *Config) (*ServiceManager, error) {
 	mgr := &ServiceManager{
 		config:   c,
-		chs:      make(map[string]chan struct{}),
+		chs:      make(map[string]chan int),
 		services: make(map[string]Service),
 	}
 	// Create service for each protocol
 	for _, name := range c.Protocols {
-		ch := make(chan struct{})
+		ch := make(chan int)
 		service, err := CreateService(name, c, ch)
 		if err != nil {
 			glog.Error("Create service(%s) failed", name)

@@ -27,6 +27,16 @@ type Config struct {
 	Registry  *RegistryConfig // Registry db name
 	Kafka     string
 	Protocols []string
+	Mqtt      *MqttConfig
+	Coap      *CoapConfig
+}
+
+type MqttConfig struct {
+	Host string
+}
+
+type CoapConfig struct {
+	Host string
 }
 
 type RegistryConfig struct {

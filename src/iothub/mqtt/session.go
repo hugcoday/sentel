@@ -12,4 +12,17 @@
 
 package mqtt
 
-type mqttSession struct{}
+import "net"
+
+type mqttSession struct {
+	mgr  *mqtt
+	conn net.Conn
+	id   int64
+}
+
+func newMqttSession(m *mqtt, conn net.Conn, id int64) *mqttSession {
+	return &mqttSession{mgr: m, conn: conn, id: id}
+}
+
+func (s *mqttSession) handleConnection() {
+}

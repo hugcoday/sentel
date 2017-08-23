@@ -26,14 +26,14 @@ type Service interface {
 }
 
 type ServiceFactory interface {
-	New(c *Config, ch chan struct{}) (Service, error)
+	New(c *Config, ch chan int) (Service, error)
 }
 
 func RegisterServiceFactory(name string, factory ServiceFactory) {
 	serviceFactories[name] = factory
 }
 
-func CreateService(name string, c *Config, ch chan struct{}) (Service, error) {
+func CreateService(name string, c *Config, ch chan int) (Service, error) {
 	if serviceFactories[name] == nil {
 		glog.Error("Service %s is not registered", name)
 		return nil, fmt.Errorf("Service %s is not registered", name)
