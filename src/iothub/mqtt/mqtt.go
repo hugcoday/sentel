@@ -11,3 +11,16 @@
 //  under the License.
 
 package mqtt
+
+import (
+	"iothub/base"
+)
+
+type Mqtt struct {
+	config *base.Config
+	chn    chan struct{}
+}
+
+func (m *Mqtt) Run() error {
+	return nil
+}

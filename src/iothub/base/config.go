@@ -12,4 +12,66 @@
 
 package base
 
-type Config struct{}
+import (
+	"flag"
+	"fmt"
+	"os"
+
+	"github.com/golang/glog"
+	mc "github.com/koding/multiconfig"
+)
+
+type Config struct {
+	Host      string          // server host:port
+	LogLevel  string          // Log level
+	Registry  *RegistryConfig // Registry db name
+	Kafka     string
+	Protocols []string
+}
+
+type RegistryConfig struct {
+	Server   string
+	User     string
+	Password string
+}
+
+const defaultConfigFilePath = "../etc/sentel/iothub.conf"
+
+func NewConfig() (*Config, error) {
+	flag.Parse()
+	config := &Config{}
+	c := newLoaderWithPath(defaultConfigFilePath)
+	c.mustLoad(config)
+	return config, nil
+}
+
+func (c *Config) Close() {
+	glog.Flush()
+}
+
+// ConfigLoader
+type configLoader struct {
+	mc.DefaultLoader
+}
+
+func newLoaderWithPath(path string) *configLoader {
+	loader := &configLoader{}
+	loader.DefaultLoader = *mc.NewWithPath(path)
+	return loader
+}
+
+func mustLoadWithPath(path string, conf interface{}) {
+	d := newLoaderWithPath(path)
+	d.mustLoad(conf)
+}
+
+func (c *configLoader) mustLoad(conf interface{}) {
+	if err := c.Load(conf); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+}
+
+func (c *configLoader) mustValidate(conf interface{}) {
+	c.MustValidate(conf)
+}

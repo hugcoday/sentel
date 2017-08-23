@@ -11,6 +11,12 @@
 
 package base
 
+import (
+	"fmt"
+
+	"github.com/golang/glog"
+)
+
 var (
 	serviceFactories map[string]ServiceFactory = make(map[string]ServiceFactory)
 )
@@ -20,13 +26,17 @@ type Service interface {
 }
 
 type ServiceFactory interface {
-	NewService(c *Config) (Service, error)
+	New(c *Config, ch chan struct{}) (Service, error)
 }
 
 func RegisterServiceFactory(name string, factory ServiceFactory) {
 	serviceFactories[name] = factory
 }
 
-func CreateService(name string, c *Config) (Service, error) {
-	return nil, nil
+func CreateService(name string, c *Config, ch chan struct{}) (Service, error) {
+	if serviceFactories[name] == nil {
+		glog.Error("Service %s is not registered", name)
+		return nil, fmt.Errorf("Service %s is not registered", name)
+	}
+	return serviceFactories[name].New(c, ch)
 }
