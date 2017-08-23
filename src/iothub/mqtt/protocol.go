@@ -48,12 +48,12 @@ const (
 )
 
 type mqttPacket struct {
-	command         uint8
-	mid             uint16
-	pos             uint32
-	toprocess       uint32
-	length          uint32
-	remainingLength uint32
-	remainningMult  uint32
-	payload         []byte
+	command        uint8
+	remainingCount uint16
+	mid            uint16
+	pos            uint32
+	toprocess      uint32
+	length         uint32
+	remainingMult  uint32
+	payload        []byte
 }

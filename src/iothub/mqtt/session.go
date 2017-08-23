@@ -12,22 +12,95 @@
 
 package mqtt
 
-import "net"
+import (
+	"fmt"
+	"net"
+
+	"github.com/golang/glog"
+)
+
+const (
+	mqttStateNewConnect = 0
+)
 
 type mqttSession struct {
-	mgr      *mqtt
-	conn     net.Conn
-	id       int64
-	inpacket *mqttPacket
+	mgr           *mqtt
+	conn          net.Conn
+	id            int64
+	state         uint8
+	inpacket      mqttPacket
+	bytesReceived int64
 }
 
 // newMqttSession create new session  for each client connection
 func newMqttSession(m *mqtt, conn net.Conn, id int64) *mqttSession {
-	return &mqttSession{mgr: m, conn: conn, id: id}
+	return &mqttSession{
+		mgr:           m,
+		conn:          conn,
+		id:            id,
+		inpacket:      mqttPacket{},
+		bytesReceived: 0,
+		state:         mqttStateNewConnect,
+	}
 }
 
 // handleConnection is mainprocessor for iot device client
+// Loop to read packet from conn
 func (s *mqttSession) handleConnection() {
+	defer s.removeConnection()
+	for {
+		if err := s.readPacket(); err != nil {
+			glog.Errorf("Reading packet error occured for connection:%d", s.id)
+			return
+		}
+		if err := s.handlePacket(); err != nil {
+			glog.Errorf("Handle packet error occured for connection:%d", s.id)
+			return
+		}
+	}
+}
+
+// removeConnection remove current connection from mqttManaager if errors occured
+func (s *mqttSession) removeConnection() {
+	s.conn.Close()
+	s.mgr.removeSession(s)
+}
+
+func (s *mqttSession) readPacket() error {
+	var bytes []byte
+	for {
+		// Read data from client
+		n, err := s.conn.Read(bytes)
+		// Check wether reading error occured, exit mainloop if error occured
+		if err != nil {
+			return err
+		}
+		s.bytesReceived += int64(n)
+		// Start from new packet
+		if s.inpacket.command == 0 {
+			if n > 0 {
+				s.inpacket.command = bytes[0]
+				// Check connection state
+				// Client must send CONNECT as their first command
+				if s.state == mqttStateNewConnect && (bytes[0]&0xF0) != CONNECT {
+					return fmt.Errorf("Connection state error for %d", s.id)
+				}
+
+			} else {
+				return fmt.Errorf("Reading error occured for connection:%d", s.id)
+			}
+		}
+
+		if s.inpacket.remainingCount <= 0 {
+
+		}
+	}
+	return nil
+}
+
+// handlePacket dispatch packet by packet type
+func (s *mqttSession) handlePacket() error {
+	return nil
 }
 
 // handlePingReq handle ping request packet
