@@ -14,12 +14,13 @@ package base
 
 import (
 	"strings"
+	"time"
 
 	"github.com/Shopify/sarama"
 	"github.com/labstack/echo"
 )
 
-func SendMessage(c echo.Context, topic string, value sarama.Encoder) error {
+func SyncProduceMessage(c echo.Context, topic string, value sarama.Encoder) error {
 	ctx := *c.(*ApiContext)
 
 	//	sarama.Logger = c.Logger()
@@ -45,5 +46,47 @@ func SendMessage(c echo.Context, topic string, value sarama.Encoder) error {
 	if _, _, err := producer.SendMessage(msg); err != nil {
 		c.Logger().Error("Failed to send producer message:%s", err)
 	}
+	return err
+}
+
+func AsyncProduceMessage(c echo.Context, topic string, value sarama.Encoder) error {
+	ctx := *c.(*ApiContext)
+
+	//	sarama.Logger = c.Logger()
+
+	config := sarama.NewConfig()
+	config.Producer.RequiredAcks = sarama.WaitForAll
+	config.Producer.Retry.Max = 10
+	config.Producer.Return.Successes = true
+	config.Producer.Timeout = 5 * time.Second
+
+	msg := &sarama.ProducerMessage{
+		Topic: topic,
+		Key:   sarama.StringEncoder(c.Request().RemoteAddr),
+		Value: value,
+	}
+
+	producer, err := sarama.NewAsyncProducer(strings.Split(ctx.Config.Kafka, ","), config)
+	if err != nil {
+		c.Logger().Error("Failed to produce message:%s", err)
+		return err
+	}
+	defer producer.Close()
+
+	go func(p sarama.AsyncProducer) {
+		errors := p.Errors()
+		success := p.Successes()
+		for {
+			select {
+			case err := <-errors:
+				if err != nil {
+					c.Logger().Error(err)
+				}
+			case <-success:
+			}
+		}
+	}(producer)
+
+	producer.Input() <- msg
 	return err
 }

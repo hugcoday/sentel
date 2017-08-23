@@ -15,6 +15,7 @@ package v1
 import (
 	"apiserver/base"
 	"apiserver/db"
+	"apiserver/util"
 	"net/http"
 	"time"
 
@@ -76,6 +77,15 @@ func registerProduct(c echo.Context) error {
 		rcp.ErrorMessage = err.Error()
 		return c.JSON(http.StatusOK, rcp)
 	}
+
+	// Notify kafka
+	base.AsyncProduceMessage(c, util.TopicNameProduct,
+		&util.ProductTopic{
+			ProductId:   dp.Id,
+			ProductName: dp.Name,
+			Action:      util.ObjectActionRegister,
+		})
+	// Send Reply to client
 	p := product{
 		Id:          dp.Id,
 		Name:        dp.Name,

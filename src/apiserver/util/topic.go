@@ -12,8 +12,76 @@
 
 package util
 
+import (
+	"encoding/json"
+)
+
 const (
 	TopicNameTenant  = "tenant"
 	TopicNameProduct = "product"
 	TopicNameDevice  = "device"
 )
+
+const (
+	ObjectActionRegister   = "register"
+	ObjectActionUnregister = "unregister"
+	ObjectActionRetrieve   = "retrieve"
+	ObjectActionDelete     = "delete"
+	ObjectActionUpdate     = "update"
+)
+
+type TenantTopic struct{}
+
+// ProductTopic
+type ProductTopic struct {
+	ProductId   string `json:"productId"`
+	ProductName string `json:"productName"`
+	Action      string `json:"action"`
+	TenantId    string `json:"tenantId"`
+
+	encoded []byte
+	err     error
+}
+
+func (p *ProductTopic) ensureEncoded() {
+	if p.encoded == nil && p.err == nil {
+		p.encoded, p.err = json.Marshal(p)
+	}
+}
+
+func (p *ProductTopic) Length() int {
+	p.ensureEncoded()
+	return len(p.encoded)
+}
+
+func (p *ProductTopic) Encode() ([]byte, error) {
+	p.ensureEncoded()
+	return p.encoded, p.err
+}
+
+// DeviceTopic
+type DeviceTopic struct {
+	DeviceId     string `json:productId"`
+	DeviceSecret string `json:productKey"`
+	Action       string `json:"action"`
+	ProductId    string `json:"productId"`
+
+	encoded []byte
+	err     error
+}
+
+func (p *DeviceTopic) ensureEncoded() {
+	if p.encoded == nil && p.err == nil {
+		p.encoded, p.err = json.Marshal(p)
+	}
+}
+
+func (p *DeviceTopic) Length() int {
+	p.ensureEncoded()
+	return len(p.encoded)
+}
+
+func (p *DeviceTopic) Encode() ([]byte, error) {
+	p.ensureEncoded()
+	return p.encoded, p.err
+}
