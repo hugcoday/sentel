@@ -31,6 +31,7 @@ type mqtt struct {
 	index    int64
 	sessions map[int64]*mqttSession
 	mutex    sync.Mutex // Maybe not so good
+	inpacket *mqttPacket
 }
 
 // MqttFactory
