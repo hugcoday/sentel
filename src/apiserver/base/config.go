@@ -13,9 +13,11 @@
 package base
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
+	"github.com/golang/glog"
 	mc "github.com/koding/multiconfig"
 )
 
@@ -35,28 +37,43 @@ type RegistryConfig struct {
 	Password string
 }
 
-type ConfigLoader struct {
+const defaultConfigFilePath = "../etc/sentel/apiserver.conf"
+
+func NewApiConfig() (*ApiConfig, error) {
+	flag.Parse()
+	config := &ApiConfig{}
+	c := newLoaderWithPath(defaultConfigFilePath)
+	c.mustLoad(config)
+	return config, nil
+}
+
+func (c *ApiConfig) Close() {
+	glog.Flush()
+}
+
+// ConfigLoader
+type configLoader struct {
 	mc.DefaultLoader
 }
 
-func NewLoaderWithPath(path string) *ConfigLoader {
-	loader := &ConfigLoader{}
+func newLoaderWithPath(path string) *configLoader {
+	loader := &configLoader{}
 	loader.DefaultLoader = *mc.NewWithPath(path)
 	return loader
 }
 
-func MustLoadWithPath(path string, conf interface{}) {
-	d := NewLoaderWithPath(path)
-	d.MustLoad(conf)
+func mustLoadWithPath(path string, conf interface{}) {
+	d := newLoaderWithPath(path)
+	d.mustLoad(conf)
 }
 
-func (c *ConfigLoader) MustLoad(conf interface{}) {
+func (c *configLoader) mustLoad(conf interface{}) {
 	if err := c.Load(conf); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
 	}
 }
 
-func (c *ConfigLoader) MustValidate(conf interface{}) {
+func (c *configLoader) mustValidate(conf interface{}) {
 	c.MustValidate(conf)
 }

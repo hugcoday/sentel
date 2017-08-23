@@ -14,16 +14,32 @@ package db
 
 import (
 	"apiserver/base"
-	"database/sql"
 	"fmt"
+
+	"github.com/go-xorm/xorm"
+	"github.com/golang/glog"
 )
 
 type Registry struct {
-	conn *sql.DB
-	ctx  base.ApiContext
+	ctx base.ApiContext
+	orm *xorm.Engine
 }
 
-func InitializeRegistryStore(c base.ApiConfig) error {
+func InitializeRegistry(c *base.ApiConfig) error {
+	info := fmt.Sprintf("%s:%s@tcp(%s:%s)/registry",
+		c.Registry.User, c.Registry.Password,
+		c.Registry.Server, c.Registry.Port)
+	orm, err := xorm.NewEngine("postgres", info)
+	if err != nil {
+		glog.Error("Create xorm engine failed:%s", err)
+		return err
+	}
+	orm.ShowSQL(true)
+	err = orm.CreateTables(&Tenant{}, &Product{}, &Device{})
+	if err != nil {
+		glog.Error("Created Registry tables failed:%s", err)
+		return err
+	}
 	return nil
 }
 
@@ -31,17 +47,15 @@ func NewRegistry(ctx base.ApiContext) (*Registry, error) {
 	info := fmt.Sprintf("%s:%s@tcp(%s:%s)/registry",
 		ctx.Config.Registry.User, ctx.Config.Registry.Password,
 		ctx.Config.Registry.Server, ctx.Config.Registry.Port)
-
-	conn, err := sql.Open("postgres", info)
+	orm, err := xorm.NewEngine("postgres", info)
 	if err != nil {
+		glog.Error("Create xorm engine failed:%s", err)
 		return nil, err
 	}
-
-	return &Registry{conn: conn, ctx: ctx}, nil
+	return &Registry{orm: orm, ctx: ctx}, nil
 }
 
 func (r *Registry) Release() {
-	r.conn.Close()
 }
 
 // Tenant
