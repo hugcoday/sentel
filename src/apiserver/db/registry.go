@@ -14,6 +14,7 @@ package db
 
 import (
 	"apiserver/base"
+	"errors"
 	"fmt"
 
 	"github.com/go-xorm/xorm"
@@ -78,28 +79,42 @@ func (r *Registry) GetTenant(t *Tenant) error {
 // Product
 // CheckProductNameAvailable check wethere product name is available
 func (r *Registry) CheckProductNameAvailable(p *Product) bool {
-	return true
+	has, _ := r.orm.Exist(p)
+	return has
 }
 
 // RegisterProduct register a product into registry
 func (r *Registry) RegisterProduct(p *Product) error {
-	return nil
+	if has, err := r.orm.Exist(p); err == nil && has == true {
+		return errors.New("product already exist")
+	}
+	_, err := r.orm.Insert(p)
+	return err
 }
 
 // DeleteProduct delete a product from registry
 func (r *Registry) DeleteProduct(id string) error {
-	return nil
+	_, err := r.orm.Delete(&Product{Id: id})
+	return err
 }
 
 // GetProduct retrieve product detail information from registry
 func (r *Registry) GetProduct(id string) (*Product, error) {
-	return nil, nil
+	p := new(Product)
+	p.Id = id
+	_, err := r.orm.Get(p)
+	return p, err
 }
 
 // GetProductDevices get product's device list
 func (r *Registry) GetProductDevices(id string) ([]Device, error) {
 	devices := []Device{}
-	return devices, nil
+	err := r.orm.Iterate(&Device{Id: id}, func(idx int, bean interface{}) error {
+		dev := bean.(*Device)
+		devices = append(devices, *dev)
+		return nil
+	})
+	return devices, err
 }
 
 // UpdateProduct update product detail information in registry
