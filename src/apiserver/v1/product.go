@@ -141,6 +141,14 @@ func updateProduct(c echo.Context) error {
 		rcp.Success = false
 		rcp.ErrorMessage = err.Error()
 	}
+	// Notify kafka
+	base.AsyncProduceMessage(c, util.TopicNameProduct,
+		&util.ProductTopic{
+			ProductId:   req.Id,
+			ProductName: req.Name,
+			Action:      util.ObjectActionUpdate,
+		})
+
 	return c.JSON(http.StatusOK, rcp)
 }
 
@@ -167,6 +175,13 @@ func deleteProduct(c echo.Context) error {
 		rcp.Success = false
 		rcp.ErrorMessage = err.Error()
 	}
+	// Notify kafka
+	base.AsyncProduceMessage(c, util.TopicNameProduct,
+		&util.ProductTopic{
+			ProductId: c.Param("id"),
+			Action:    util.ObjectActionDelete,
+		})
+
 	return c.JSON(http.StatusOK, rcp)
 }
 
