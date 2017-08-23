@@ -24,7 +24,7 @@ type mqttServiceFactory struct{}
 
 // New create mqtt service factory
 func (m *mqttServiceFactory) New(c *base.Config, ch chan struct{}) (base.Service, error) {
-	return &Mqtt{config: c, chn: ch}, nil
+	return &mqtt{config: c, chn: ch}, nil
 }
 
 func init() {

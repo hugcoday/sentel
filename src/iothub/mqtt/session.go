@@ -12,15 +12,4 @@
 
 package mqtt
 
-import (
-	"iothub/base"
-)
-
-type mqtt struct {
-	config *base.Config
-	chn    chan struct{}
-}
-
-func (m *mqtt) Run() error {
-	return nil
-}
+type mqttSession struct{}
