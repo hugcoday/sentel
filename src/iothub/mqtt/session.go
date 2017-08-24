@@ -16,6 +16,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"iothub/base"
 	"net"
 
 	"github.com/golang/glog"
@@ -24,14 +25,14 @@ import (
 type mqttSession struct {
 	mgr           *mqtt
 	conn          net.Conn
-	id            int64
+	id            string
 	state         uint8
 	inpacket      mqttPacket
 	bytesReceived int64
 }
 
 // newMqttSession create new session  for each client connection
-func newMqttSession(m *mqtt, conn net.Conn, id int64) *mqttSession {
+func newMqttSession(m *mqtt, conn net.Conn, id string) *mqttSession {
 	return &mqttSession{
 		mgr:           m,
 		conn:          conn,
@@ -48,26 +49,31 @@ func newMqttSession(m *mqtt, conn net.Conn, id int64) *mqttSession {
 	}
 }
 
+func (s *mqttSession) Identifier() string    { return s.id }
+func (s *mqttSession) Service() base.Service { return s.mgr }
+
 // handleConnection is mainprocessor for iot device client
 // Loop to read packet from conn
-func (s *mqttSession) handleConnection() {
-	defer s.removeConnection()
+func (s *mqttSession) Handle() error {
+	defer s.Destroy()
 	for {
 		if err := s.readPacket(); err != nil {
 			glog.Errorf("Reading packet error occured for connection:%d", s.id)
-			return
+			return err
 		}
 		if err := s.handlePacket(); err != nil {
 			glog.Errorf("Handle packet error occured for connection:%d", s.id)
-			return
+			return err
 		}
 	}
+	return nil
 }
 
 // removeConnection remove current connection from mqttManaager if errors occured
-func (s *mqttSession) removeConnection() {
+func (s *mqttSession) Destroy() error {
 	s.conn.Close()
-	s.mgr.removeSession(s)
+	s.mgr.RemoveSession(s)
+	return nil
 }
 
 // readPacket read a whole mqtt packet from session

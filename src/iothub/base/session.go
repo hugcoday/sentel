@@ -11,4 +11,13 @@
 
 package base
 
-type Session interface{}
+type Session interface {
+	// Identifier get session identifier
+	Identifier() string
+	// GetService get the service ower for current session
+	Service() Service
+	// Handle indicate service to handle the packet
+	Handle() error
+	// Destroy will release current session
+	Destroy() error
+}

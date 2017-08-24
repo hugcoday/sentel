@@ -18,6 +18,7 @@ import (
 	"sync"
 
 	"github.com/golang/glog"
+	"github.com/satori/go.uuid"
 )
 
 const (
@@ -29,7 +30,7 @@ type mqtt struct {
 	config   *base.Config
 	chn      chan int
 	index    int64
-	sessions map[int64]*mqttSession
+	sessions map[string]base.Session
 	mutex    sync.Mutex // Maybe not so good
 	inpacket *mqttPacket
 }
@@ -42,42 +43,42 @@ func (m *mqttFactory) New(c *base.Config, ch chan int) (base.Service, error) {
 	t := &mqtt{config: c,
 		chn:      ch,
 		index:    -1,
-		sessions: make(map[int64]*mqttSession),
+		sessions: make(map[string]base.Session),
 	}
 	return t, nil
 }
 
-// getSessionIndex create a index for new session
-func (m *mqtt) getSessionIndex() int64 {
-	m.mutex.Lock() // Not so good!
-	defer m.mutex.Unlock()
-	m.index++
-	if m.index < maxMqttConnections && m.sessions[m.index] == nil {
-		return m.index
-	}
-	if m.index == maxMqttConnections {
-		m.index = 0
-	}
-	for {
-		if m.sessions[m.index] == nil {
-			return m.index
-		}
-		m.index++
-	}
-	return -1
+// MQTT Service
+
+func (m *mqtt) NewSession(conn net.Conn) (base.Session, error) {
+	id := m.CreateSessionId()
+	session := newMqttSession(m, conn, id)
+	return session, nil
 }
 
-func (m *mqtt) removeSession(s *mqttSession) {
+// CreateSessionId create id for new session
+func (m *mqtt) CreateSessionId() string {
+	return uuid.NewV4().String()
+}
+
+// GetSessionTotalCount get total session count
+func (m *mqtt) GetSessionTotalCount() int64 {
+	return int64(len(m.sessions))
+}
+
+func (m *mqtt) RemoveSession(s base.Session) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	m.sessions[s.id] = nil
+	m.sessions[s.Identifier()] = nil
 }
-func (m *mqtt) addSession(index int64, s *mqttSession) {
+func (m *mqtt) RegisterSession(s base.Session) {
 	m.mutex.Lock()
-	m.sessions[index] = s
+	m.sessions[s.Identifier()] = s
 	m.mutex.Unlock()
 }
 
+// Run is mainloop for mqtt service
+// TODO: Run is very common for each service, it should be moved to ServiceManager
 func (m *mqtt) Run() error {
 	listen, err := net.Listen("tcp", m.config.Mqtt.Host)
 	if err != nil {
@@ -90,15 +91,14 @@ func (m *mqtt) Run() error {
 		if err != nil {
 			continue
 		}
-		index := m.getSessionIndex()
-		if index < 0 {
-			glog.Errorf("Mqtt max connection exceeded, drop connection occured")
-			continue
+		session, err := m.NewSession(conn)
+		if err != nil {
+			glog.Error("Mqtt create session failed")
+			return err
 		}
-		glog.Infof("Mqtt new connection:%s", index)
-		session := newMqttSession(m, conn, index)
-		m.addSession(index, session)
-		go session.handleConnection()
+		glog.Infof("Mqtt new connection:%s", session.Identifier())
+		m.RegisterSession(session)
+		go session.Handle()
 	}
 	// notify main
 	m.chn <- 1

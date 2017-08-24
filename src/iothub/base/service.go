@@ -13,6 +13,7 @@ package base
 
 import (
 	"fmt"
+	"net"
 
 	"github.com/golang/glog"
 )
@@ -22,7 +23,18 @@ var (
 )
 
 type Service interface {
+	// NewSession create a new session
+	NewSession(conn net.Conn) (Session, error)
+	// Run is mainloop of current service
 	Run() error
+	// GetSessionTotalCount get total session count
+	GetSessionTotalCount() int64
+	// CreateSessionId create identifier for new session
+	CreateSessionId() string
+	// RegisterSession register a new session
+	RegisterSession(s Session)
+	// RemoveSession remove session based sessionid
+	RemoveSession(s Session)
 }
 
 type ServiceFactory interface {
