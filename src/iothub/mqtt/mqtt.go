@@ -26,6 +26,11 @@ const (
 	protocolName       = "mqtt3"
 )
 
+// Mqtt state definitions
+const (
+	stateNewConnect = 0
+)
+
 type mqtt struct {
 	config   *base.Config
 	chn      chan int

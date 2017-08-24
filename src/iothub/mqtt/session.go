@@ -18,6 +18,7 @@ import (
 	"io"
 	"iothub/base"
 	"net"
+	"time"
 
 	"github.com/golang/glog"
 )
@@ -29,6 +30,7 @@ type mqttSession struct {
 	state         uint8
 	inpacket      mqttPacket
 	bytesReceived int64
+	pingTime      *time.Time
 }
 
 // newMqttSession create new session  for each client connection
@@ -39,13 +41,7 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) *mqttSession {
 		id:            id,
 		bytesReceived: 0,
 		state:         stateNewConnect,
-		inpacket: mqttPacket{
-			command:        0,
-			pos:            0,
-			length:         0,
-			remainingCount: 0,
-			payload:        []byte{},
-		},
+		inpacket:      newMqttPacket(),
 	}
 }
 
@@ -81,61 +77,12 @@ func (s *mqttSession) Destroy() error {
 func (s *mqttSession) readPacket() error {
 	// Assumption: Read whole packet data in one read calling
 	var buf bytes.Buffer
-	len, err := io.Copy(&buf, s.conn)
-
+	_, err := io.Copy(&buf, s.conn)
 	if err != nil {
 		return fmt.Errorf("read packet error:%s", err)
 	}
-	s.bytesReceived += int64(len)
-	glog.Info("Reading bytes from connection:totoal(%d), current(%d)", s.bytesReceived, len)
-
-	// Start from new packet
-	if s.inpacket.command == 0 {
-		cmd, err := buf.ReadByte()
-		if err != nil {
-			return fmt.Errorf("Reading error occured for connection:%d", s.id)
-		}
-		s.inpacket.command = cmd
-		// Check connection state
-		// Client must send CONNECT as their first command
-		if s.state == stateNewConnect && (cmd&0xF0) != CONNECT {
-			return fmt.Errorf("Connection state error for %d", s.id)
-		}
-	}
-
-	if s.inpacket.remainingCount <= 0 {
-		for {
-			b, err := buf.ReadByte()
-			if err != nil {
-				return fmt.Errorf("Reading error occured for connection:%s", err)
-			}
-			s.bytesReceived++
-			s.inpacket.remainingCount--
-			if s.inpacket.remainingCount == -4 {
-				return fmt.Errorf("Invalid protocol")
-			}
-			s.inpacket.remainingCount += int32(b&127) * s.inpacket.remainingMult
-			s.inpacket.remainingMult *= 128
-			if b&128 != 0 {
-				break
-			}
-		}
-	}
-	// We have finished reading remaining length
-	s.inpacket.remainingCount *= -1
-	if s.inpacket.remainingCount > 0 {
-		var index int32
-		for index = 0; index < s.inpacket.remainingCount; index++ {
-			// Assumption: whole packet had been read into buffer
-			n, err := buf.ReadByte()
-			if err != nil {
-				return fmt.Errorf("Reading remaining packet payload error:%s", err)
-			}
-			s.inpacket.payload = append(s.inpacket.payload, n)
-			s.bytesReceived++
-		}
-	}
-	return nil
+	_, err = s.inpacket.DecodeFromBytes(buf.Bytes(), base.NilDecodeFeedback{})
+	return err
 }
 
 // handlePacket dispatch packet by packet type
@@ -167,11 +114,35 @@ func (s *mqttSession) handlePacket() error {
 
 // handlePingReq handle ping request packet
 func (s *mqttSession) handlePingReq() error {
+	glog.Info("Received PINGREQ from %s", s.Identifier())
+	return s.sendPingRsp()
+}
+
+// sendSimpleCommand send a simple command
+func (s *mqttSession) sendSimpleCommand(cmd uint8) error {
+	p := mqttPacket{
+		command:        cmd,
+		remainingCount: 0,
+	}
+	return s.sendPacket(&p)
+}
+
+// sendPacket send packet to client
+// TODO:
+func (s *mqttSession) sendPacket(p *mqttPacket) error {
 	return nil
+}
+
+// sendPingRsp send ping response to client
+func (s *mqttSession) sendPingRsp() error {
+	glog.Info("Sending PINGRESP to %s", s.Identifier)
+	return s.sendSimpleCommand(PINGRESP)
 }
 
 // handlePingRsp handle ping response packet
 func (s *mqttSession) handlePingRsp() error {
+	glog.Info("Received PINGRSP form %s", s.Identifier())
+	s.pingTime = nil
 	return nil
 }
 

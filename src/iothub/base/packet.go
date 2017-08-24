@@ -15,7 +15,9 @@ type Packet interface {
 	// PacketType return type name of packet
 	PacketType() string
 	// DecodeFromBytes decode given bytes into this protocol layer
-	DecodeFromBytes(data []byte, df DecodeFeedback)
+	DecodeFromBytes(data []byte, df DecodeFeedback) (int, error)
 	// SerializeTo writes the serialized form of the packet into the serialize buffer
-	SerializeTo(buf SerializeBuffer, opts SerializeOptions)
+	SerializeTo(buf SerializeBuffer, opts SerializeOptions) error
+	// Clear clear packet content and payload
+	Clear()
 }
