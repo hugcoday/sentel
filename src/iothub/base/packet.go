@@ -14,10 +14,36 @@ package base
 type Packet interface {
 	// PacketType return type name of packet
 	PacketType() string
+
 	// DecodeFromBytes decode given bytes into this protocol layer
 	DecodeFromBytes(data []byte, df DecodeFeedback) (int, error)
+
 	// SerializeTo writes the serialized form of the packet into the serialize buffer
 	SerializeTo(buf SerializeBuffer, opts SerializeOptions) error
+
 	// Clear clear packet content and payload
 	Clear()
+
+	// Length return length of the packet
+	Length() uint32
+
+	// ReadByte read a byte from packet payload
+	ReadByte() (uint8, error)
+	// WriteByte  write a byte into packet payload
+	WriteByte(byte uint8) error
+
+	// ReadBytes read bytes from packet payload
+	ReadBytes(count uint32) error
+	// WriteBytes write bytes into packet payload
+	WriteBytes(buf []uint8) error
+
+	// ReadString read string from packet payload
+	ReadString() (string, error)
+	// WriteString write string into packet payload
+	WriteString(data string) error
+
+	// ReadUint16 read word from packet payload
+	ReadUint16() (uint16, error)
+	// WriteUint16 write word into packet pyload
+	WriteUint16(data uint16) error
 }
