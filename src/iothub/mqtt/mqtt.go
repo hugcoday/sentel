@@ -24,11 +24,8 @@ import (
 const (
 	maxMqttConnections = 1000000
 	protocolName       = "mqtt3"
-)
-
-// Mqtt state definitions
-const (
-	stateNewConnect = 0
+	protocolVersion311 = 3
+	protocolVersion3   = 2
 )
 
 type mqtt struct {
@@ -38,6 +35,7 @@ type mqtt struct {
 	sessions map[string]base.Session
 	mutex    sync.Mutex // Maybe not so good
 	inpacket *mqttPacket
+	protocol uint8
 }
 
 // MqttFactory
@@ -49,6 +47,7 @@ func (m *mqttFactory) New(c *base.Config, ch chan int) (base.Service, error) {
 		chn:      ch,
 		index:    -1,
 		sessions: make(map[string]base.Session),
+		protocol: 2,
 	}
 	return t, nil
 }

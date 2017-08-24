@@ -11,3 +11,28 @@
 //  under the License.
 
 package mqtt
+
+// handlePubAck handle publish ack packet
+func (s *mqttSession) handlePubAck() error {
+	return nil
+}
+
+// handlePubComp handle publish comp packet
+func (s *mqttSession) handlePubComp() error {
+	return nil
+}
+
+// handlePublish handle publish packet
+func (s *mqttSession) handlePublish() error {
+	return nil
+}
+
+// handlePubRec handle pubrec packet
+func (s *mqttSession) handlePubRec() error {
+	return nil
+}
+
+// handlePubRel handle pubrel packet
+func (s *mqttSession) handlePubRel() error {
+	return nil
+}
