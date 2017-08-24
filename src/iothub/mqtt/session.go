@@ -13,14 +13,12 @@
 package mqtt
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"net"
 
 	"github.com/golang/glog"
-)
-
-const (
-	mqttStateNewConnect = 0
 )
 
 type mqttSession struct {
@@ -38,9 +36,15 @@ func newMqttSession(m *mqtt, conn net.Conn, id int64) *mqttSession {
 		mgr:           m,
 		conn:          conn,
 		id:            id,
-		inpacket:      mqttPacket{},
 		bytesReceived: 0,
-		state:         mqttStateNewConnect,
+		state:         stateNewConnect,
+		inpacket: mqttPacket{
+			command:        0,
+			pos:            0,
+			length:         0,
+			remainingCount: 0,
+			payload:        []byte{},
+		},
 	}
 }
 
@@ -66,33 +70,63 @@ func (s *mqttSession) removeConnection() {
 	s.mgr.removeSession(s)
 }
 
+// readPacket read a whole mqtt packet from session
+// TODO: underlay's read method  should be payed attention
 func (s *mqttSession) readPacket() error {
-	var bytes []byte
-	for {
-		// Read data from client
-		n, err := s.conn.Read(bytes)
-		// Check wether reading error occured, exit mainloop if error occured
-		if err != nil {
-			return err
-		}
-		s.bytesReceived += int64(n)
-		// Start from new packet
-		if s.inpacket.command == 0 {
-			if n > 0 {
-				s.inpacket.command = bytes[0]
-				// Check connection state
-				// Client must send CONNECT as their first command
-				if s.state == mqttStateNewConnect && (bytes[0]&0xF0) != CONNECT {
-					return fmt.Errorf("Connection state error for %d", s.id)
-				}
+	// Assumption: Read whole packet data in one read calling
+	var buf bytes.Buffer
+	len, err := io.Copy(&buf, s.conn)
 
-			} else {
-				return fmt.Errorf("Reading error occured for connection:%d", s.id)
+	if err != nil {
+		return fmt.Errorf("read packet error:%s", err)
+	}
+	s.bytesReceived += int64(len)
+	glog.Info("Reading bytes from connection:totoal(%d), current(%d)", s.bytesReceived, len)
+
+	// Start from new packet
+	if s.inpacket.command == 0 {
+		cmd, err := buf.ReadByte()
+		if err != nil {
+			return fmt.Errorf("Reading error occured for connection:%d", s.id)
+		}
+		s.inpacket.command = cmd
+		// Check connection state
+		// Client must send CONNECT as their first command
+		if s.state == stateNewConnect && (cmd&0xF0) != CONNECT {
+			return fmt.Errorf("Connection state error for %d", s.id)
+		}
+	}
+
+	if s.inpacket.remainingCount <= 0 {
+		for {
+			b, err := buf.ReadByte()
+			if err != nil {
+				return fmt.Errorf("Reading error occured for connection:%s", err)
+			}
+			s.bytesReceived++
+			s.inpacket.remainingCount--
+			if s.inpacket.remainingCount == -4 {
+				return fmt.Errorf("Invalid protocol")
+			}
+			s.inpacket.remainingCount += int32(b&127) * s.inpacket.remainingMult
+			s.inpacket.remainingMult *= 128
+			if b&128 != 0 {
+				break
 			}
 		}
-
-		if s.inpacket.remainingCount <= 0 {
-
+	}
+	// We have finished reading remaining length
+	s.inpacket.remainingCount *= -1
+	if s.inpacket.remainingCount > 0 {
+		var index int32
+		for index = 0; index < s.inpacket.remainingCount; index++ {
+			// Assumption: whole packet had been read into buffer
+			n, err := buf.ReadByte()
+			if err != nil {
+				return fmt.Errorf("Reading remaining packet payload error:%s", err)
+			}
+			s.inpacket.payload = append(s.inpacket.payload, n)
+			s.bytesReceived++
 		}
 	}
 	return nil
@@ -100,7 +134,29 @@ func (s *mqttSession) readPacket() error {
 
 // handlePacket dispatch packet by packet type
 func (s *mqttSession) handlePacket() error {
-	return nil
+	switch s.inpacket.command & 0xF0 {
+	case PINGREQ:
+		return s.handlePingReq()
+	case PINGRESP:
+		return s.handlePingRsp()
+	case PUBACK:
+		return s.handlePubAck()
+	case PUBCOMP:
+		return s.handlePubComp()
+	case PUBLISH:
+		return s.handlePublish()
+	case PUBREC:
+		return s.handlePubRec()
+	case PUBREL:
+		return s.handlePubRel()
+	case CONNACK:
+		return s.handleConnAck()
+	case SUBACK:
+		return s.handleSubAck()
+	case UNSUBACK:
+		return s.handleUnsubAck()
+	}
+	return fmt.Errorf("Unrecognized protocol command:%d", int(s.inpacket.command&0xF0))
 }
 
 // handlePingReq handle ping request packet

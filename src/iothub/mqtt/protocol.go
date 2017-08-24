@@ -22,7 +22,7 @@ const (
 
 	// Message types
 	CONNECT     = 0x10
-	CNNNACK     = 0x20
+	CONNACK     = 0x20
 	PUBLISH     = 0x30
 	PUBACK      = 0x40
 	PUBREC      = 0x50
@@ -49,11 +49,15 @@ const (
 
 type mqttPacket struct {
 	command        uint8
-	remainingCount uint16
 	mid            uint16
 	pos            uint32
 	toprocess      uint32
 	length         uint32
-	remainingMult  uint32
+	remainingCount int32
+	remainingMult  int32
 	payload        []byte
 }
+
+const (
+	stateNewConnect = 0
+)
