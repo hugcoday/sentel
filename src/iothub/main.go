@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	configFileFullPath = flag.String("c", "/etc/sentel/iothub/iothub.conf", "config file")
+	configFileFullPath = flag.String("c", "../etc/sentel/iothub/iothub.conf", "config file")
 	logFileFullPath    = flag.String("l", "/var/log/sentel/iothub.log", "log file")
 )
 
