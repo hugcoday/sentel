@@ -14,6 +14,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/Unknwon/goconfig",
+			"repository": "https://github.com/Unknwon/goconfig",
+			"revision": "87a46d97951ee1ea20ed3b24c25646a79e87ba5d",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/bmizerany/pq",
 			"repository": "https://github.com/bmizerany/pq",
 			"revision": "da2b95e392c172df0be322eadc19a90b0f771548",

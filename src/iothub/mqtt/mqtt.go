@@ -106,8 +106,3 @@ func (m *mqtt) Run() error {
 	m.chn <- 1
 	return nil
 }
-
-func init() {
-	glog.Info("Registering service:%s", protocolName)
-	base.RegisterServiceFactory(protocolName, &mqttFactory{})
-}
