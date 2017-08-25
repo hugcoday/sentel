@@ -14,6 +14,7 @@ package base
 type SessionObserver interface {
 	GetMountpoint(Session) string
 	Authenticate(Session, username string, password string) error
+	UseUserNameAsClientId() bool
 }
 
 type Session interface {

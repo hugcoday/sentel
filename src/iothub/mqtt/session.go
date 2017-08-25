@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"io"
 	"iothub/base"
+	"iothub/util/config"
 	"net"
 	"time"
 
@@ -47,6 +48,7 @@ const (
 
 type mqttSession struct {
 	mgr           *mqtt
+	config        config.Config
 	conn          net.Conn
 	id            string
 	state         uint8
@@ -56,12 +58,15 @@ type mqttSession struct {
 	keepalive     uint16
 	protocol      uint8
 	observer      base.SessionObserver
+	username      string
+	password      string
 }
 
 // newMqttSession create new session  for each client connection
 func newMqttSession(m *mqtt, conn net.Conn, id string) *mqttSession {
 	return &mqttSession{
 		mgr:           m,
+		config:        m.config,
 		conn:          conn,
 		id:            id,
 		bytesReceived: 0,

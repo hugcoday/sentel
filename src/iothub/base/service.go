@@ -13,6 +13,7 @@ package base
 
 import (
 	"fmt"
+	"iothub/plugin"
 	"iothub/util/config"
 	"net"
 
@@ -36,6 +37,8 @@ type Service interface {
 	RegisterSession(s Session)
 	// RemoveSession remove session based sessionid
 	RemoveSession(s Session)
+	// SetAuthPlugin set an authPlugin for this service
+	SetAuthPlugin(p plugin.AuthPlugin)
 }
 
 type ServiceFactory interface {

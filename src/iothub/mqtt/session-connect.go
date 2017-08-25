@@ -162,21 +162,51 @@ func (s *mqttSession) handleConnect() error {
 		}
 
 		if usernameFlag {
-		    if s.observer != nil {
-			err := s.observer.Authenticate(s, username, password)
-			switch err {
-			case nil:
-			case base.IotErrorAuthFailed:
-			default:
+			if s.observer != nil {
+				err := s.observer.Authenticate(s, username, password)
+				switch err {
+				case nil:
+				case base.IotErrorAuthFailed:
+					s.sendConnAck(0, CONNACK_REFUSED_NOT_AUTHORIZED)
+					s.disconnect()
+					return err
+				default:
+					s.disconnect()
+					return err
 
-
+				}
+				// Get username and passowrd sucessfuly
+				s.username = username
+				s.password = password
 			}
-
-		    }
-
+			// Get anonymous allow configuration
+			allowAnonymous, err := s.config.Bool("mqtt", "allow_anonymous")
+			if err != nil {
+				allowAnonymous = false
+			}
+			if !usernameFlag && allowAnonymous == false {
+				// Dont allow anonymous client connection
+				s.sendConnAck(0, CONNACK_REFUSED_NOT_AUTHORIZED)
+				return mqttErrorInvalidProtocol
+			}
 		}
+		// Check wether username will be used as client id,
+		// The connection request will be refused if the option is set
+		if s.observer != nil && s.observer.UserUserNameAsClientId() {
+			if s.username != "" {
+				clientid = s.username
+			} else {
+				s.sendConnAck(0, CONNACK_REFUSED_NOT_AUTHORIZED)
+				return mqttErrorInvalidProtocol
+			}
+		}
+		// Find if the client already has an entry, this must be done after any security check
 	*/
 	return nil
+}
+
+// disconnect will disconnect current connection because of protocol error
+func (s *mqttSession) disconnect() {
 }
 
 // sendConnAck send CONNACK packet to client

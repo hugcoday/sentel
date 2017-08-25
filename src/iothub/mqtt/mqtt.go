@@ -15,6 +15,7 @@ package mqtt
 import (
 	"errors"
 	"iothub/base"
+	"iothub/plugin"
 	"iothub/util/config"
 	"net"
 	"sync"
@@ -29,13 +30,14 @@ const (
 )
 
 type mqtt struct {
-	config   config.Config
-	chn      chan int
-	index    int64
-	sessions map[string]base.Session
-	mutex    sync.Mutex // Maybe not so good
-	inpacket *mqttPacket
-	protocol uint8
+	config     config.Config
+	chn        chan int
+	index      int64
+	sessions   map[string]base.Session
+	mutex      sync.Mutex // Maybe not so good
+	inpacket   *mqttPacket
+	protocol   uint8
+	authPlugin plugin.AuthPlugin
 }
 
 // MqttFactory
@@ -44,10 +46,11 @@ type mqttFactory struct{}
 // New create mqtt service factory
 func (m *mqttFactory) New(c config.Config, ch chan int) (base.Service, error) {
 	t := &mqtt{config: c,
-		chn:      ch,
-		index:    -1,
-		sessions: make(map[string]base.Session),
-		protocol: 2,
+		chn:        ch,
+		index:      -1,
+		sessions:   make(map[string]base.Session),
+		protocol:   2,
+		authPlugin: nil,
 	}
 	return t, nil
 }
@@ -80,6 +83,8 @@ func (m *mqtt) RegisterSession(s base.Session) {
 	m.sessions[s.Identifier()] = s
 	m.mutex.Unlock()
 }
+
+func (m *mqtt) SetAuthPlugin(p plugin.AuthPlugin) { s.authPlugin = p }
 
 // Run is mainloop for mqtt service
 // TODO: Run is very common for each service, it should be moved to ServiceManager
