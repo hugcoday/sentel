@@ -24,8 +24,6 @@ import (
 const (
 	maxMqttConnections = 1000000
 	protocolName       = "mqtt3"
-	protocolVersion311 = 3
-	protocolVersion3   = 2
 )
 
 type mqtt struct {

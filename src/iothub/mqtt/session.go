@@ -25,7 +25,23 @@ import (
 
 // Mqtt session state
 const (
-	mqttStateNew = 0
+	mqttStateNew            = 0
+	mqttStateConnected      = 1
+	mqttStateDisconnecting  = 2
+	mqttStateConnectAsync   = 3
+	mqttStateConnectPending = 4
+	mqttStateConnectSrv     = 5
+	mqttStateDisconnectWs   = 6
+	mqttStateDisconnected   = 7
+	mqttStateExpiring       = 8
+)
+
+// mqtt protocol
+const (
+	protocolMqttInvalid = 0
+	protocolMqtt31      = 1
+	protocolMqtt311     = 2
+	protocolMqtts       = 3
 )
 
 type mqttSession struct {

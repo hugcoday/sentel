@@ -11,3 +11,33 @@
 //  under the License.
 
 package mqtt
+
+// Message state
+const (
+	mqttMessageStateInvalid        = 0
+	mqttMessageStatePublishQos0    = 1
+	mqttMessageStatePublishQos1    = 2
+	mqttMessageStateWaitForPubAck  = 3
+	mqttMessageStatePublishQos2    = 4
+	mqttMessageStateWaitForPubRec  = 5
+	mqttMessageStateResendPubRel   = 6
+	mqttMessageStateWaitForPubRel  = 7
+	mqttMessageStateResendPubComp  = 8
+	mqttMessageStateWaitForPubComp = 9
+	mqttMessateStateSendPubRec     = 10
+	mqttMessateStateQueued         = 11
+)
+
+// Message direction
+const (
+	mqttMessageDirectionIn  = 0
+	mqttMessageDirectionOut = 1
+)
+
+type mqttMessage struct {
+	mid     int
+	topic   string
+	pyaload []uint8
+	qos     int
+	retail  bool
+}

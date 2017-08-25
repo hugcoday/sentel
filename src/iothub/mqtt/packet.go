@@ -26,6 +26,7 @@ const (
 	PROTOCOL_VERSION_V311 = 4
 
 	// Message types
+	INVALID     = 0x00
 	CONNECT     = 0x10
 	CONNACK     = 0x20
 	PUBLISH     = 0x30
