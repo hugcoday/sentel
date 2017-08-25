@@ -13,15 +13,26 @@
 package main
 
 import (
+	"flag"
 	"iothub/base"
+	"iothub/util/config"
 
 	"github.com/golang/glog"
 )
 
+var (
+	configFileFullPath = flag.String("c", "/etc/sentel/iothub/iothub.conf", "config file")
+	logFileFullPath    = flag.String("l", "/var/log/sentel/iothub.log", "log file")
+)
+
 func main() {
+	flag.Parse()
 	// Get configuration
-	config, err := base.NewConfig()
-	defer config.Close()
+	config, err := config.NewWithConfigFile(*configFileFullPath)
+	if err != nil {
+		flag.PrintDefaults()
+		return
+	}
 
 	mgr, err := base.NewServiceManager(config)
 	if err != nil {

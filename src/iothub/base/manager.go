@@ -11,24 +11,36 @@
 
 package base
 
-import "github.com/golang/glog"
+import (
+	"fmt"
+	"iothub/util/config"
+	"strings"
+
+	"github.com/golang/glog"
+)
 
 type ServiceManager struct {
-	config   *Config             // Global config
+	config   config.Config       // Global config
 	services map[string]Service  // All service created by config.Protocols
 	chs      map[string]chan int // Notification channel for each service
 
 }
 
 // NewServiceManager create ServiceManager in main context
-func NewServiceManager(c *Config) (*ServiceManager, error) {
+func NewServiceManager(c config.Config) (*ServiceManager, error) {
 	mgr := &ServiceManager{
 		config:   c,
 		chs:      make(map[string]chan int),
 		services: make(map[string]Service),
 	}
+	// Get supported configs
+	items, err := c.String("iothub", "protocols")
+	if err != nil {
+		return nil, fmt.Errorf("Invalid protocol declaration in config file")
+	}
+	protocols := strings.Split(items, ",")
 	// Create service for each protocol
-	for _, name := range c.Protocols {
+	for _, name := range protocols {
 		ch := make(chan int)
 		service, err := CreateService(name, c, ch)
 		if err != nil {

@@ -13,7 +13,9 @@
 package mqtt
 
 import (
+	"errors"
 	"iothub/base"
+	"iothub/util/config"
 	"net"
 	"sync"
 
@@ -27,7 +29,7 @@ const (
 )
 
 type mqtt struct {
-	config   *base.Config
+	config   config.Config
 	chn      chan int
 	index    int64
 	sessions map[string]base.Session
@@ -40,7 +42,7 @@ type mqtt struct {
 type mqttFactory struct{}
 
 // New create mqtt service factory
-func (m *mqttFactory) New(c *base.Config, ch chan int) (base.Service, error) {
+func (m *mqttFactory) New(c config.Config, ch chan int) (base.Service, error) {
 	t := &mqtt{config: c,
 		chn:      ch,
 		index:    -1,
@@ -82,7 +84,11 @@ func (m *mqtt) RegisterSession(s base.Session) {
 // Run is mainloop for mqtt service
 // TODO: Run is very common for each service, it should be moved to ServiceManager
 func (m *mqtt) Run() error {
-	listen, err := net.Listen("tcp", m.config.Mqtt.Host)
+	host, err := m.config.String("mqtt", "host")
+	if err != nil {
+		return errors.New("Mqtt configuration error without host declaration")
+	}
+	listen, err := net.Listen("tcp", host)
 	if err != nil {
 		glog.Errorf("Mqtt listen failed:%s", err)
 		return err
