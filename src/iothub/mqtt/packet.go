@@ -12,10 +12,7 @@
 
 package mqtt
 
-import (
-	"errors"
-	"iothub/base"
-)
+import "iothub/base"
 
 const (
 	// Protocol version
@@ -93,7 +90,7 @@ func (p *mqttPacket) SerializeTo(buf base.SerializeBuffer, opts base.SerializeOp
 // TODO: underlay's read method  should be payed attention, temporal implementations
 func (p *mqttPacket) DecodeFromBytes(data []byte, df base.DecodeFeedback) (int, error) {
 	if len(data) == 0 {
-		return 0, errors.New("Invalid data packet to decode")
+		return 0, mqttErrorInvalidProtocol
 	}
 	// Start from new packet
 	p.command = data[0]
@@ -104,7 +101,7 @@ func (p *mqttPacket) DecodeFromBytes(data []byte, df base.DecodeFeedback) (int, 
 			index++
 			p.remainingCount--
 			if p.remainingCount == -4 {
-				return 0, errors.New("Invalid protocol")
+				return 0, mqttErrorInvalidProtocol
 			}
 			p.remainingCount += int32(b&127) * p.remainingMult
 			p.remainingMult *= 128
@@ -118,7 +115,7 @@ func (p *mqttPacket) DecodeFromBytes(data []byte, df base.DecodeFeedback) (int, 
 	// Check wether remaining data is validity
 	if int32(len(data[index:])) < p.remainingCount {
 		p.Clear()
-		return 0, errors.New("Packet payload is too shore")
+		return 0, mqttErrorInvalidProtocol
 	}
 	for _, b := range data[index:] {
 		p.payload = append(p.payload, b)
@@ -134,7 +131,7 @@ func (p *mqttPacket) Length() uint32 {
 // ReadByte read a byte from packet payload
 func (p *mqttPacket) ReadByte() (uint8, error) {
 	if p.pos+1 > p.remainingLength {
-		return 0, errors.New("Invalid mqtt packet")
+		return 0, mqttErrorInvalidProtocol
 	}
 	b := p.payload[p.pos]
 	p.pos++
@@ -144,7 +141,7 @@ func (p *mqttPacket) ReadByte() (uint8, error) {
 // WriteByte  write a byte into packet payload
 func (p *mqttPacket) WriteByte(b uint8) error {
 	if p.pos+1 > p.length {
-		return errors.New("Invalid mqtt packet")
+		return mqttErrorInvalidProtocol
 	}
 	p.payload[p.pos] = b
 	p.pos++
@@ -154,7 +151,7 @@ func (p *mqttPacket) WriteByte(b uint8) error {
 // ReadBytes read bytes from packet payload
 func (p *mqttPacket) ReadBytes(count uint32) ([]uint8, error) {
 	if p.pos+count > p.length {
-		return nil, errors.New("Invalid mqtt packet")
+		return nil, mqttErrorInvalidProtocol
 	}
 	p.pos += count
 	return p.payload[p.pos : p.pos+count], nil
@@ -163,7 +160,7 @@ func (p *mqttPacket) ReadBytes(count uint32) ([]uint8, error) {
 // WriteBytes write bytes into packet payload
 func (p *mqttPacket) WriteBytes(buf []uint8) error {
 	if p.pos+uint32(len(buf)) > p.length {
-		return errors.New("Invalid mqtt packet")
+		return mqttErrorInvalidProtocol
 	}
 	for _, b := range buf {
 		p.payload = append(p.payload[p.pos:], b)
@@ -179,7 +176,7 @@ func (p *mqttPacket) ReadString() (string, error) {
 		return "", err
 	}
 	if p.pos+uint32(len) > p.remainingLength {
-		return "", errors.New("Invalid mqtt packet")
+		return "", mqttErrorInvalidProtocol
 	}
 
 	s := string(p.payload[p.pos : p.pos+uint32(len)])
@@ -201,7 +198,7 @@ func (p *mqttPacket) WriteString(data string) error {
 // ReadUint16 read word from packet payload
 func (p *mqttPacket) ReadUint16() (uint16, error) {
 	if p.pos+2 > p.remainingLength {
-		return 0, errors.New("Invalid mqtt packet")
+		return 0, mqttErrorInvalidProtocol
 	}
 	msb := p.payload[p.pos]
 	p.pos++

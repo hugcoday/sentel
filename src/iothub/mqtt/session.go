@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/satori/go.uuid"
 )
 
 // Mqtt session state
@@ -38,10 +39,10 @@ const (
 
 // mqtt protocol
 const (
-	protocolMqttInvalid = 0
-	protocolMqtt31      = 1
-	protocolMqtt311     = 2
-	protocolMqtts       = 3
+	mqttProtocolInvalid = 0
+	mqttProtocol31      = 1
+	mqttProtocol311     = 2
+	mqttProtocolS       = 3
 )
 
 type mqttSession struct {
@@ -53,6 +54,8 @@ type mqttSession struct {
 	bytesReceived int64
 	pingTime      *time.Time
 	keepalive     uint16
+	protocol      uint8
+	observer      base.SessionObserver
 }
 
 // newMqttSession create new session  for each client connection
@@ -64,11 +67,19 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) *mqttSession {
 		bytesReceived: 0,
 		state:         mqttStateNew,
 		inpacket:      newMqttPacket(),
+		protocol:      mqttProtocolInvalid,
+		observer:      nil,
 	}
 }
 
 func (s *mqttSession) Identifier() string    { return s.id }
 func (s *mqttSession) Service() base.Service { return s.mgr }
+func (s *mqttSession) RegisterObserver(o base.SessionObserver) {
+	if s.observer != nil {
+		glog.Error("MqttSession register multiple observer")
+	}
+	s.observer = o
+}
 
 // handle is mainprocessor for iot device client
 // Loop to read packet from conn
@@ -92,6 +103,11 @@ func (s *mqttSession) Destroy() error {
 	s.conn.Close()
 	s.mgr.RemoveSession(s)
 	return nil
+}
+
+// generateId generate id fro session or client
+func (s *mqttSession) generateId() string {
+	return uuid.NewV4().String()
 }
 
 // readPacket read a whole mqtt packet from session

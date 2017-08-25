@@ -11,20 +11,8 @@
 
 package base
 
-type SessionObserver interface {
-	GetMountpoint(Session) string
-	Authenticate(Session, username string, password string) error
-}
+import "errors"
 
-type Session interface {
-	// Identifier get session identifier
-	Identifier() string
-	// GetService get the service ower for current session
-	Service() Service
-	// Handle indicate service to handle the packet
-	Handle() error
-	// Destroy will release current session
-	Destroy() error
-	// RegisterObserver register observer on session
-	RegisterObserver(SessionObserver)
-}
+var (
+	IotErrorAuthFailed = errors.New("Iot authentication failed")
+)

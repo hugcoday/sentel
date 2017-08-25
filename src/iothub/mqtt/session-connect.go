@@ -12,20 +12,15 @@
 
 package mqtt
 
-import (
-	"errors"
-
-	"github.com/golang/glog"
-)
+import "github.com/golang/glog"
 
 // handleConnect handle connect packet
 func (s *mqttSession) handleConnect() error {
 	glog.Info("Handling CONNECT packet...")
-
-	if s.state != mqttStateNew {
-		return errors.New("Invalid session state")
-	}
 	/*
+		if s.state != mqttStateNew {
+			return errors.New("Invalid session state")
+		}
 		// Check protocol name and version
 		protocolName, err := s.inpacket.ReadString()
 		if err != nil {
@@ -38,9 +33,10 @@ func (s *mqttSession) handleConnect() error {
 		if protocolName != PROTOCOL_NAME_V31 {
 			if protocolVersion&0x7F != PROTOCOL_VERSION_V31 {
 				glog.Errorf("Invalid protocol version %d in CONNECT packet", protocolVersion)
+				s.sendConnAck(0, CONNACK_REFUSED_PROTOCOL_VERSION)
+				return errors.New("Invalid protocol version %d in CONNECT packet", protocolVersion)
 			}
-			s.sendConnAck(0, CONNACK_REFUSED_PROTOCOL_VERSION)
-			return errors.New("Invalid protocol version %d in CONNECT packet", protocolVersion)
+			s.protocol = mqttProtocol311
 
 		} else if protocolName != PROTOCOL_NAME_V311 {
 			if protocolVersion&0x7F != PROTOCOL_VERSION_V311 {
@@ -51,13 +47,17 @@ func (s *mqttSession) handleConnect() error {
 			if s.inpacket.command&0x0F != 0x00 {
 				return errors.New("Invalid protocol version %d in CONNECT packet", protocolVersion)
 			}
+			s.protocol = mqttProtocol311
+		} else {
+			return errors.New("Invalid protocol version %d in CONNECT packet", protocolVersion)
 		}
+
 		// Check connect flags
 		cflags, err := s.inpacket.ReadByte()
 		if err != nil {
 			return nil
 		}
-		if s.mgr.protocol == protocolVersion311 {
+		if s.mgr.protocol == mqttProtocol311 {
 			if cflags&0x01 != 0x00 {
 				return errors.New("Invalid protocol version in connect flags")
 			}
@@ -78,9 +78,102 @@ func (s *mqttSession) handleConnect() error {
 		}
 		s.keepalive = keepalive
 
+		// Deal with client identifier
 		clientid, err := s.inpacket.ReadString()
 		if err != nil {
 			return err
+		}
+		if len(clientid) == 0 {
+			if s.protocol == mqttProtocol31 {
+				s.sendConnAck(0, CONNACK_REFUSED_IDENTIFIER_REJECTED)
+			} else {
+				if cleanSession == 0 {
+					s.sendConnAck(0, CONNACk_REFUSED_IDENTIFIER_REJECTED)
+					return errors.New("Invalid mqtt packet with client id")
+				} else {
+					clientid = s.generateId()
+				}
+			}
+		}
+		// Deal with topc
+		var willTopic string = ""
+		var msg *mqttMessage = nil
+		var willTopicPayload []uint8
+
+		if will {
+			// Get topic
+			topic, err := s.inpacket.readString()
+			if err != nil || topic == "" {
+				return nil
+			}
+			willTopic = topic
+			if s.ovserver != nil {
+				willTopic = s.observer.GetMountpoint(s) + topic
+			}
+			if err := checkTopicValidity(willTopic); err != nil {
+				return err
+			}
+			// Get willtopic's payload
+			willPayloadLength, err := s.inpacket.ReadUint16()
+			if err != nil {
+				return err
+			}
+			willToicPayload, err = s.inpacket.ReadBytes(willPayloadLength)
+			if err != nil {
+				return err
+			}
+		} else {
+			if s.protocol == mqttProtocol311 {
+				if willQos != 0 || willRetain != 0 {
+					return mqttErrorInvalidPacket
+				}
+			}
+		} // else will
+
+		var username string
+		if usernameFlag {
+			username, err = s.inpacket.ReadString()
+			if err == nil {
+				if passwordFlag {
+					password, err = s.inpacket.ReadString()
+					if err == mqttErrorInvalidProtocol {
+						if s.protocol == mqttProtocol31 {
+							passwordFlag = 0
+						} else if s.protocol == mqttProtocol311 {
+							return err
+						} else {
+							return err
+						}
+					}
+				}
+			} else {
+				if s.protocol == mqttProtocol31 {
+					usernameFlag = 0
+				} else {
+					return err
+				}
+			}
+		} else { // username flag
+			if s.protocol == mqttProtocol311 {
+				if passwordFlag {
+					return mqttErrorInvalidProtocol
+				}
+			}
+		}
+
+		if usernameFlag {
+		    if s.observer != nil {
+			err := s.observer.Authenticate(s, username, password)
+			switch err {
+			case nil:
+			case base.IotErrorAuthFailed:
+			default:
+
+
+			}
+
+		    }
+
 		}
 	*/
 	return nil
