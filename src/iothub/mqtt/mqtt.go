@@ -84,7 +84,7 @@ func (m *mqtt) RegisterSession(s base.Session) {
 	m.mutex.Unlock()
 }
 
-func (m *mqtt) SetAuthPlugin(p plugin.AuthPlugin) { s.authPlugin = p }
+func (m *mqtt) SetAuthPlugin(p plugin.AuthPlugin) { m.authPlugin = p }
 
 // Run is mainloop for mqtt service
 // TODO: Run is very common for each service, it should be moved to ServiceManager

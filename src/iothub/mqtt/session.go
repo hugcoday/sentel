@@ -47,19 +47,22 @@ const (
 )
 
 type mqttSession struct {
-	mgr           *mqtt
-	config        config.Config
-	conn          net.Conn
-	id            string
-	state         uint8
-	inpacket      mqttPacket
-	bytesReceived int64
-	pingTime      *time.Time
-	keepalive     uint16
-	protocol      uint8
-	observer      base.SessionObserver
-	username      string
-	password      string
+	mgr            *mqtt
+	config         config.Config
+	conn           net.Conn
+	id             string
+	state          uint8
+	inpacket       mqttPacket
+	bytesReceived  int64
+	pingTime       *time.Time
+	address        string
+	keepalive      uint16
+	protocol       uint8
+	observer       base.SessionObserver
+	username       string
+	password       string
+	lastMessageIn  time.Time
+	lastMessageOut time.Time
 }
 
 // newMqttSession create new session  for each client connection
