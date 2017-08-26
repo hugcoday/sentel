@@ -15,6 +15,7 @@ package mqtt
 import (
 	"errors"
 	"iothub/base"
+	"iothub/db"
 	"iothub/plugin"
 	"iothub/util/config"
 	"net"
@@ -38,19 +39,21 @@ type mqtt struct {
 	inpacket   *mqttPacket
 	protocol   uint8
 	authPlugin plugin.AuthPlugin
+	db         db.Database
 }
 
 // MqttFactory
 type mqttFactory struct{}
 
 // New create mqtt service factory
-func (m *mqttFactory) New(c config.Config, ch chan int) (base.Service, error) {
+func (m *mqttFactory) New(c config.Config, ch chan int, d db.Database) (base.Service, error) {
 	t := &mqtt{config: c,
 		chn:        ch,
 		index:      -1,
 		sessions:   make(map[string]base.Session),
 		protocol:   2,
 		authPlugin: nil,
+		db:         d,
 	}
 	return t, nil
 }

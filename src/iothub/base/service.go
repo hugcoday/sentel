@@ -13,6 +13,7 @@ package base
 
 import (
 	"fmt"
+	"iothub/db"
 	"iothub/plugin"
 	"iothub/util/config"
 	"net"
@@ -42,17 +43,17 @@ type Service interface {
 }
 
 type ServiceFactory interface {
-	New(c config.Config, ch chan int) (Service, error)
+	New(c config.Config, ch chan int, d db.Database) (Service, error)
 }
 
 func RegisterServiceFactory(name string, factory ServiceFactory) {
 	serviceFactories[name] = factory
 }
 
-func CreateService(name string, c config.Config, ch chan int) (Service, error) {
+func CreateService(name string, c config.Config, ch chan int, d db.Database) (Service, error) {
 	if serviceFactories[name] == nil {
 		glog.Error("Service %s is not registered", name)
 		return nil, fmt.Errorf("Service %s is not registered", name)
 	}
-	return serviceFactories[name].New(c, ch)
+	return serviceFactories[name].New(c, ch, d)
 }

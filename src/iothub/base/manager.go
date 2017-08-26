@@ -12,7 +12,9 @@
 package base
 
 import (
+	"errors"
 	"fmt"
+	"iothub/db"
 	"iothub/util/config"
 	"strings"
 
@@ -23,7 +25,7 @@ type ServiceManager struct {
 	config   config.Config       // Global config
 	services map[string]Service  // All service created by config.Protocols
 	chs      map[string]chan int // Notification channel for each service
-
+	db       db.Database
 }
 
 // NewServiceManager create ServiceManager in main context
@@ -33,17 +35,32 @@ func NewServiceManager(c config.Config) (*ServiceManager, error) {
 		chs:      make(map[string]chan int),
 		services: make(map[string]Service),
 	}
+	// Create database instance
+	if _, err := c.String("iothub", "database"); err != nil {
+		return nil, errors.New("No database is specified in config file")
+	}
+	database, err := db.NewDatabase(c)
+	if err != nil {
+		return nil, err
+	}
+	if err := database.Open(); err != nil {
+		return nil, err
+	}
+	mgr.db = database
+
 	// Get supported configs
 	items, err := c.String("iothub", "protocols")
 	if err != nil {
+		database.Close()
 		return nil, fmt.Errorf("Invalid protocol declaration in config file")
 	}
 	protocols := strings.Split(items, ",")
 	// Create service for each protocol
 	for _, name := range protocols {
 		ch := make(chan int)
-		service, err := CreateService(name, c, ch)
+		service, err := CreateService(name, c, ch, mgr.db)
 		if err != nil {
+			database.Close()
 			glog.Error("Create service(%s) failed", name)
 			return nil, err
 		}
@@ -56,6 +73,7 @@ func NewServiceManager(c config.Config) (*ServiceManager, error) {
 
 // ServiceManger run all serice and wait to terminate
 func (s *ServiceManager) Start() error {
+	defer s.db.Close()
 	// Run all service
 	for _, service := range s.services {
 		go service.Run()
