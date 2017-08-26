@@ -11,3 +11,8 @@
 //  under the License.
 
 package db
+
+var configs = map[string]string{
+	"repository": "local",
+	"loglevel":   "debug",
+}
