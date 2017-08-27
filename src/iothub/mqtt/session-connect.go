@@ -180,10 +180,7 @@ func (s *mqttSession) handleConnect() error {
 				s.password = password
 			}
 			// Get anonymous allow configuration
-			allowAnonymous, err := s.config.Bool("mqtt", "allow_anonymous")
-			if err != nil {
-				allowAnonymous = false
-			}
+			allowAnonymous, _ := s.config.Bool("mqtt", "allow_anonymous")
 			if !usernameFlag && allowAnonymous == false {
 				// Dont allow anonymous client connection
 				s.sendConnAck(0, CONNACK_REFUSED_NOT_AUTHORIZED)
