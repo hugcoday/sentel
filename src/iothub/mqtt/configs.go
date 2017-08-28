@@ -16,4 +16,5 @@ var configs = map[string]string{
 	"host":               "localhost:4281",
 	"loglevel":           "debug",
 	"message_size_limit": "500",
+	"allow_anonymous":    "true",
 }

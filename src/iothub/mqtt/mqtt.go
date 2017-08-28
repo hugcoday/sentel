@@ -13,7 +13,6 @@
 package mqtt
 
 import (
-	"errors"
 	"iothub/base"
 	"iothub/util/config"
 	"net"
@@ -84,10 +83,8 @@ func (m *mqtt) RegisterSession(s base.Session) {
 // Run is mainloop for mqtt service
 // TODO: Run is very common for each service, it should be moved to ServiceManager
 func (m *mqtt) Run() error {
-	host, err := m.config.String("mqtt", "host")
-	if err != nil {
-		return errors.New("Mqtt configuration error without host declaration")
-	}
+	host, _ := m.config.String("mqtt", "host")
+
 	listen, err := net.Listen("tcp", host)
 	if err != nil {
 		glog.Errorf("Mqtt listen failed:%s", err)
