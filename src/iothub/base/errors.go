@@ -14,5 +14,6 @@ package base
 import "errors"
 
 var (
+	IotErrorNotFound   = errors.New("Resource not found")
 	IotErrorAuthFailed = errors.New("Iot authentication failed")
 )
