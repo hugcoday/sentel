@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"io"
 	"iothub/base"
+	"iothub/db"
 	"iothub/util/config"
 	"net"
 	"time"
@@ -49,6 +50,8 @@ const (
 type mqttSession struct {
 	mgr            *mqtt
 	config         config.Config
+	db             db.Database
+	authplugin     base.AuthPlugin
 	conn           net.Conn
 	id             string
 	state          uint8
@@ -66,8 +69,8 @@ type mqttSession struct {
 }
 
 // newMqttSession create new session  for each client connection
-func newMqttSession(m *mqtt, conn net.Conn, id string) *mqttSession {
-	return &mqttSession{
+func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
+	s := &mqttSession{
 		mgr:           m,
 		config:        m.config,
 		conn:          conn,
@@ -78,6 +81,19 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) *mqttSession {
 		protocol:      mqttProtocolInvalid,
 		observer:      nil,
 	}
+	// Load database and plugin for each session
+	db, err := db.NewDatabase(m.config)
+	if err != nil {
+		return nil, err
+	}
+	plugin, err := base.LoadAuthPluginWithConfig("mqtt", m.config)
+	if err != nil {
+		return nil, err
+	}
+	s.db = db
+	s.authplugin = plugin
+
+	return s, nil
 }
 
 func (s *mqttSession) Identifier() string    { return s.id }

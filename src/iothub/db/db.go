@@ -30,11 +30,12 @@ type Device struct{}
 type Topic struct{}
 type MessageState int
 type Message struct {
-	mid       int
-	direction MessageDirection
-	state     MessageState
-	qos       int
-	retain    bool
+	Id        uint
+	Direction MessageDirection
+	State     MessageState
+	Qos       uint8
+	Retain    bool
+	Payload   []uint8
 }
 
 type Context interface{}
@@ -61,6 +62,8 @@ type Database interface {
 	GetTopicSubscribers(c Context, t Topic) ([]string, error)
 
 	// Message Management
+	FindMessage(clientid string, mid uint) (bool, error)
+	StoreMessage(clientid string, msg Message) error
 	GetMessageTotalCount() int
 	DeleteMessage(mid int, direction MessageDirection) error
 	InsertMessage(mid int, direction MessageDirection, msg Message) error

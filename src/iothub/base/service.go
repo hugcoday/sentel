@@ -14,7 +14,6 @@ package base
 import (
 	"fmt"
 	"iothub/db"
-	"iothub/plugin"
 	"iothub/util/config"
 	"net"
 
@@ -38,12 +37,10 @@ type Service interface {
 	RegisterSession(s Session)
 	// RemoveSession remove session based sessionid
 	RemoveSession(s Session)
-	// SetAuthPlugin set an authPlugin for this service
-	SetAuthPlugin(p plugin.AuthPlugin)
 }
 
 type ServiceFactory interface {
-	New(c config.Config, ch chan int, d db.Database) (Service, error)
+	New(c config.Config, ch chan int) (Service, error)
 }
 
 func RegisterServiceFactory(name string, factory ServiceFactory) {
@@ -55,5 +52,5 @@ func CreateService(name string, c config.Config, ch chan int, d db.Database) (Se
 		glog.Error("Service %s is not registered", name)
 		return nil, fmt.Errorf("Service %s is not registered", name)
 	}
-	return serviceFactories[name].New(c, ch, d)
+	return serviceFactories[name].New(c, ch)
 }

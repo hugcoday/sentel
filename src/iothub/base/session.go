@@ -12,9 +12,10 @@
 package base
 
 type SessionObserver interface {
-	GetMountpoint(Session) string
+	GetMountPoint(Session) string
 	Authenticate(Session, username string, password string) error
 	UseUserNameAsClientId() bool
+	AclCheck(Session, topic string, action int) error
 }
 
 type Session interface {

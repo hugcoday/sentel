@@ -15,8 +15,6 @@ package mqtt
 import (
 	"errors"
 	"iothub/base"
-	"iothub/db"
-	"iothub/plugin"
 	"iothub/util/config"
 	"net"
 	"sync"
@@ -31,29 +29,25 @@ const (
 )
 
 type mqtt struct {
-	config     config.Config
-	chn        chan int
-	index      int64
-	sessions   map[string]base.Session
-	mutex      sync.Mutex // Maybe not so good
-	inpacket   *mqttPacket
-	protocol   uint8
-	authPlugin plugin.AuthPlugin
-	db         db.Database
+	config   config.Config
+	chn      chan int
+	index    int64
+	sessions map[string]base.Session
+	mutex    sync.Mutex // Maybe not so good
+	inpacket *mqttPacket
+	protocol uint8
 }
 
 // MqttFactory
 type mqttFactory struct{}
 
 // New create mqtt service factory
-func (m *mqttFactory) New(c config.Config, ch chan int, d db.Database) (base.Service, error) {
+func (m *mqttFactory) New(c config.Config, ch chan int) (base.Service, error) {
 	t := &mqtt{config: c,
-		chn:        ch,
-		index:      -1,
-		sessions:   make(map[string]base.Session),
-		protocol:   2,
-		authPlugin: nil,
-		db:         d,
+		chn:      ch,
+		index:    -1,
+		sessions: make(map[string]base.Session),
+		protocol: 2,
 	}
 	return t, nil
 }
@@ -62,8 +56,8 @@ func (m *mqttFactory) New(c config.Config, ch chan int, d db.Database) (base.Ser
 
 func (m *mqtt) NewSession(conn net.Conn) (base.Session, error) {
 	id := m.CreateSessionId()
-	session := newMqttSession(m, conn, id)
-	return session, nil
+	s, err := newMqttSession(m, conn, id)
+	return s, err
 }
 
 // CreateSessionId create id for new session
@@ -86,8 +80,6 @@ func (m *mqtt) RegisterSession(s base.Session) {
 	m.sessions[s.Identifier()] = s
 	m.mutex.Unlock()
 }
-
-func (m *mqtt) SetAuthPlugin(p plugin.AuthPlugin) { m.authPlugin = p }
 
 // Run is mainloop for mqtt service
 // TODO: Run is very common for each service, it should be moved to ServiceManager

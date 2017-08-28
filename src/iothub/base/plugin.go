@@ -10,15 +10,27 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package plugin
+package base
 
 import (
+	"errors"
 	"fmt"
+	"iothub/util/config"
 
 	"github.com/golang/glog"
 )
 
 type AuthOption struct{}
+
+const (
+	AclActionNone  = 0
+	AclActionRead  = 1
+	AclActionWrite = 2
+)
+
+var (
+	ErrorAclDenied = errors.New("Acl denied")
+)
 
 var (
 	_authPlugins = make(map[string]AuthPluginFactory)
@@ -56,4 +68,19 @@ func LoadAuthPlugin(name string, options []AuthOption) (AuthPlugin, error) {
 		return nil, fmt.Errorf("AuthPlugin %s does't exist", name)
 	}
 	return _authPlugins[name].New(options)
+}
+
+// LoadAuthPluginWithConfig load a authPlugin with config
+func LoadAuthPluginWithConfig(service string, c config.Config) (AuthPlugin, error) {
+	auth, _ := c.String(service, "authentication")
+	if _authPlugins[auth] == nil {
+		glog.Errorf("AuthPlugin for service %s does't exist", service)
+	} else {
+		auth, _ := c.String("iothub", "authentication")
+		if _authPlugins[auth] == nil {
+			glog.Errorf("AuthPlugin %s are not registered", service)
+			return nil, fmt.Errorf("AuthPlugin %s does't exist", auth)
+		}
+	}
+	return _authPlugins[auth].New(nil)
 }
