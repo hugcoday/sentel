@@ -64,11 +64,12 @@ type Database interface {
 	// Message Management
 	FindMessage(clientid string, mid uint) (bool, error)
 	StoreMessage(clientid string, msg Message) error
-	GetMessageTotalCount() int
-	DeleteMessage(mid int, direction MessageDirection) error
-	InsertMessage(mid int, direction MessageDirection, msg Message) error
-	ReleaseMessage(mid int, direction MessageDirection) error
-	UpdateMessage(mid int, direction MessageDirection, state MessageState)
+	QueueMessage(clientid string, msg Message) error
+	GetMessageTotalCount(clientid string) int
+	DeleteMessage(clientid string, mid int, direction MessageDirection) error
+	InsertMessage(clientid string, mid int, direction MessageDirection, msg Message) error
+	ReleaseMessage(clientid string, mid int, direction MessageDirection) error
+	UpdateMessage(clientid string, mid int, direction MessageDirection, state MessageState)
 }
 
 type databaseFactory interface {

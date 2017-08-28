@@ -32,17 +32,23 @@ func (s *mqttSession) handlePubComp() error {
 
 // handlePublish handle publish packet
 func (s *mqttSession) handlePublish() error {
-	dup := (s.inpacket.command & 0x08) >> 3
-	qos := (s.inpacket.command & 0x06) >> 1
+	var dup, qos, retain uint8
+	var topic string
+	var mid uint16
+	var err error
+	var payload []uint8
+	var stored bool
+
+	dup = (s.inpacket.command & 0x08) >> 3
+	qos = (s.inpacket.command & 0x06) >> 1
 	if qos == 3 {
 		return fmt.Errorf("Invalid Qos in PUBLISH from %s, disconnectiing.", s.id)
 	}
 
-	retain := (s.inpacket.command & 0x01)
+	retain = (s.inpacket.command & 0x01)
 
 	// Topic
-	topic, err := s.inpacket.ReadString()
-	if err != nil || topic == "" {
+	if topic, err = s.inpacket.ReadString(); err != nil || topic == "" {
 		return fmt.Errorf("Invalid topic in PUBLISH from %s", s.id)
 	}
 	if checkTopicValidity(topic) != nil {
@@ -51,10 +57,6 @@ func (s *mqttSession) handlePublish() error {
 	if s.observer != nil && s.observer.GetMountPoint(s) != "" {
 		topic = s.observer.GetMountPoint(s) + topic
 	}
-
-	// Read message from packet
-	var mid uint16 = 0
-	var payload []uint8 = []uint8{}
 
 	if qos > 0 {
 		mid, err = s.inpacket.ReadUint16()
@@ -88,7 +90,6 @@ func (s *mqttSession) handlePublish() error {
 		s.id, dup, qos, retain, mid, topic, payloadlen)
 
 	// Check wether the message has been stored
-	stored := false
 	if qos > 0 {
 		if found, err := s.db.FindMessage(s.id, uint(mid)); err != nil {
 			return err
@@ -96,21 +97,52 @@ func (s *mqttSession) handlePublish() error {
 			stored = found
 		}
 	}
+	msg := db.Message{
+		Id:        uint(mid),
+		Direction: db.MessageDirectionIn,
+		State:     0,
+		Qos:       qos,
+		Retain:    (retain > 0),
+		Payload:   payload,
+	}
+
 	if !stored {
 		dup = 0
-		msg := db.Message{
-			Id:        uint(mid),
-			Direction: db.MessageDirectionIn,
-			State:     0,
-			Qos:       qos,
-			Retain:    (retain > 0),
-			Payload:   payload,
-		}
 		if err := s.db.StoreMessage(s.id, msg); err != nil {
 			return err
 		}
+	} else {
+		dup = 1
 	}
 
+	switch qos {
+	case 0:
+		err = s.db.QueueMessage(s.id, msg)
+	case 1:
+		err = s.db.QueueMessage(s.id, msg)
+		err = s.sendPubAck(mid)
+	case 2:
+		err = nil
+		if dup > 0 {
+			err = s.db.InsertMessage(s.id, int(mid), db.MessageDirectionIn, msg)
+		}
+		if err == nil {
+			err = s.sendPubRec(mid)
+		}
+	default:
+		err = mqttErrorInvalidProtocol
+	}
+
+	return err
+}
+
+// sendPubAck
+func (s *mqttSession) sendPubAck(mid uint16) error {
+	return nil
+}
+
+// sendPubRec
+func (s *mqttSession) sendPubRec(mid uint16) error {
 	return nil
 }
 
