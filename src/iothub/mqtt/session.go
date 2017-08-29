@@ -308,7 +308,7 @@ func (s *mqttSession) handleConnect() error {
 			}
 			willTopic = topic
 			if s.ovserver != nil {
-				willTopic = s.observer.GetMountpoint(s) + topic
+				willTopic = s.observer.OnGetMountPoint(s) + topic
 			}
 			if err := checkTopicValidity(willTopic); err != nil {
 				return err
@@ -469,8 +469,8 @@ func (s *mqttSession) handlePublish() error {
 	if checkTopicValidity(topic) != nil {
 		return fmt.Errorf("Invalid topic in PUBLISH(%s) from %s", topic, s.id)
 	}
-	if s.observer != nil && s.observer.GetMountPoint(s) != "" {
-		topic = s.observer.GetMountPoint(s) + topic
+	if s.observer != nil && s.observer.OnGetMountPoint() != "" {
+		topic = s.observer.OnGetMountPoint() + topic
 	}
 
 	if qos > 0 {

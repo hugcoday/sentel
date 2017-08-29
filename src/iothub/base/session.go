@@ -12,10 +12,13 @@
 package base
 
 type SessionObserver interface {
-	GetMountPoint(Session) string
-	Authenticate(Session, username string, password string) error
-	UseUserNameAsClientId() bool
-	AclCheck(Session, topic string, action int) error
+	OnGetMountPoint() string
+	OnConnect(Session, userdata interface{}) error
+	OnDisconnect(Session, userdta interface{}) error
+	OnPublish(Session, userdata interface{}) error
+	OnMessage(Session, userdata interface{}) error
+	OnSubscribe(Session, userdata interface{}) error
+	OnUnsubscribe(Session, userdata interface{}) error
 }
 
 type Session interface {
