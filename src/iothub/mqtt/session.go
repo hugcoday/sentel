@@ -69,6 +69,8 @@ type mqttSession struct {
 	lastMessageIn  time.Time
 	lastMessageOut time.Time
 	cleanSession   uint8
+	isDroping      bool
+	willMsg        *mqttMessage
 }
 
 // newMqttSession create new session  for each client connection
@@ -300,10 +302,11 @@ func (s *mqttSession) handleConnect() error {
 	}
 	// Deal with topc
 	var willTopic string
-	//	var msg *mqttMessage = nil
-	//	var payload []uint8
+	var willMsg *mqttMessage = nil
+	var payload []uint8
 
 	if will > 0 {
+		willMsg = new(mqttMessage)
 		// Get topic
 		topic, err := s.inpacket.ReadString()
 		if err != nil || topic == "" {
@@ -317,13 +320,15 @@ func (s *mqttSession) handleConnect() error {
 			return err
 		}
 		// Get willtopic's payload
-		//willPayloadLength, err := s.inpacket.ReadUint16()
+		willPayloadLength, err := s.inpacket.ReadUint16()
 		if err != nil {
 			return err
 		}
-		//		payload, err = s.inpacket.ReadBytes(uint32(willPayloadLength))
-		if err != nil {
-			return err
+		if willPayloadLength > 0 {
+			payload, err = s.inpacket.ReadBytes(uint32(willPayloadLength))
+			if err != nil {
+				return err
+			}
 		}
 	} else {
 		if s.protocol == mqttProtocol311 {
@@ -403,7 +408,7 @@ func (s *mqttSession) handleConnect() error {
 	}
 	conack := 0
 	// Find if the client already has an entry, this must be done after any security check
-	if found, _ := s.db.FindSession(s, s.id); found != nil {
+	if found, _ := s.db.FindSession(s, clientid); found != nil {
 		// Found old session
 		if found.State == mqttStateInvalid {
 			glog.Errorf("Invalid session(%s) in store", found.Id)
@@ -417,19 +422,61 @@ func (s *mqttSession) handleConnect() error {
 
 		if s.cleanSession == 0 && found.CleanSession == 0 {
 			// Resume last session
-			s.db.UpdateSession(s, &db.Session{Id: s.id, RefCount: found.RefCount + 1})
+			s.db.UpdateSession(s, &db.Session{Id: clientid, RefCount: found.RefCount + 1})
 			// Notify other mqtt node to release resource
 			base.AsyncProduceMessage(s.config,
 				TopicNameSession,
 				&SessionTopic{
 					Launcher:  s.conn.LocalAddr().String(),
-					SessionId: s.id,
+					SessionId: clientid,
 					Action:    ObjectActionUpdate,
 					State:     mqttStateDisconnecting,
 				})
 		}
 
 	}
+
+	if willMsg != nil {
+		s.willMsg = willMsg
+		s.willMsg.topic = willTopic
+		if len(payload) > 0 {
+			s.willMsg.payload = payload
+		} else {
+			s.willMsg.payload = nil
+		}
+		s.willMsg.qos = willQos
+		s.willMsg.retain = willRetain
+	}
+	s.id = clientid
+	s.cleanSession = cleanSession
+	s.pingTime = nil
+	s.isDroping = false
+
+	// Remove any queued messages that are no longer allowd through ACL
+	// Assuming a possible change of username
+	s.db.DeleteMessageWithValidator(
+		clientid,
+		func(msg db.Message) bool {
+			err := s.authplugin.CheckAcl(s, clientid, username, msg.Topic, base.AclActionRead)
+			if err == base.ErrorAclDenied {
+				return false
+			}
+			return true
+		})
+
+	// Register the session in db
+	s.db.RegisterSession(s, s.id, db.Session{
+		Id:           s.id,
+		Username:     username,
+		Password:     password,
+		Keepalive:    keepalive,
+		State:        mqttStateConnected,
+		CleanSession: cleanSession,
+		Protocol:     s.protocol,
+		RefCount:     1, // TODO
+	})
+
+	s.state = mqttStateConnected
 
 	return nil
 }

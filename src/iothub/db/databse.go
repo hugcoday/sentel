@@ -31,7 +31,7 @@ type Session struct {
 	LastMessageInTime  time.Time
 	LastMessageOutTime time.Time
 	Ping               time.Time
-	CleanSession       uint16
+	CleanSession       uint8
 	SubscribeCount     uint32
 	Protocol           uint8
 	RefCount           uint8
@@ -49,6 +49,7 @@ type Topic struct{}
 type MessageState int
 type Message struct {
 	Id        uint
+	Topic     string
 	Direction MessageDirection
 	State     MessageState
 	Qos       uint8
@@ -68,6 +69,7 @@ type Database interface {
 	FindSession(c Context, id string) (*Session, error)
 	DeleteSession(c Context, id string) error
 	UpdateSession(c Context, s *Session) error
+	RegisterSession(c Context, id string, s Session) error
 
 	// Device
 	AddDevice(c Context, d Device) error
@@ -88,6 +90,7 @@ type Database interface {
 	// Message Management
 	FindMessage(clientid string, mid uint) (bool, error)
 	StoreMessage(clientid string, msg Message) error
+	DeleteMessageWithValidator(clientid string, validator func(msg Message) bool)
 	QueueMessage(clientid string, msg Message) error
 	GetMessageTotalCount(clientid string) int
 	DeleteMessage(clientid string, mid int, direction MessageDirection) error

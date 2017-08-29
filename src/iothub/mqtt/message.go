@@ -37,7 +37,7 @@ const (
 type mqttMessage struct {
 	mid     int
 	topic   string
-	pyaload []uint8
-	qos     int
-	retail  bool
+	payload []uint8
+	qos     uint8
+	retain  bool
 }
