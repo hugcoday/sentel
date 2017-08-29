@@ -15,9 +15,27 @@ package db
 import (
 	"fmt"
 	"iothub/util/config"
+	"time"
 
 	"github.com/golang/glog"
 )
+
+// Session database
+type Session struct {
+	Id                 string
+	Username           string
+	Password           string
+	Keepalive          uint16
+	LastMid            uint16
+	State              uint16
+	LastMessageInTime  time.Time
+	LastMessageOutTime time.Time
+	Ping               time.Time
+	CleanSession       uint16
+	SubscribeCount     uint32
+	Protocol           uint8
+	RefCount           uint8
+}
 
 type MessageDirection int
 
@@ -45,6 +63,12 @@ type Database interface {
 	Close()
 	Backup(shutdown bool) error
 	Restore() error
+
+	// Session
+	FindSession(c Context, id string) (*Session, error)
+	DeleteSession(c Context, id string) error
+	UpdateSession(c Context, s *Session) error
+
 	// Device
 	AddDevice(c Context, d Device) error
 	DeleteDevice(c Context, id string) error

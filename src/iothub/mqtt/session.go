@@ -29,15 +29,16 @@ import (
 
 // Mqtt session state
 const (
-	mqttStateNew            = 0
-	mqttStateConnected      = 1
-	mqttStateDisconnecting  = 2
-	mqttStateConnectAsync   = 3
-	mqttStateConnectPending = 4
-	mqttStateConnectSrv     = 5
-	mqttStateDisconnectWs   = 6
-	mqttStateDisconnected   = 7
-	mqttStateExpiring       = 8
+	mqttStateInvalid        = 0
+	mqttStateNew            = 1
+	mqttStateConnected      = 2
+	mqttStateDisconnecting  = 3
+	mqttStateConnectAsync   = 4
+	mqttStateConnectPending = 5
+	mqttStateConnectSrv     = 6
+	mqttStateDisconnectWs   = 7
+	mqttStateDisconnected   = 8
+	mqttStateExpiring       = 9
 )
 
 // mqtt protocol
@@ -67,6 +68,7 @@ type mqttSession struct {
 	password       string
 	lastMessageIn  time.Time
 	lastMessageOut time.Time
+	cleanSession   uint16
 }
 
 // newMqttSession create new session  for each client connection
@@ -399,7 +401,28 @@ func (s *mqttSession) handleConnect() error {
 			return mqttErrorInvalidProtocol
 		}
 	}
+	conack := 0
 	// Find if the client already has an entry, this must be done after any security check
+	if context, _ := s.db.FindSession(s, s.id); context != nil {
+		// Found old session
+		if context.State == mqttStateInvalid {
+			glog.Errorf("Invalid session(%s) in store", context.Id)
+		}
+		if s.protocol == mqttProtocol311 {
+			if cleanSession == 0 {
+				conack |= 0x01
+			}
+		}
+		s.cleanSession = context.CleanSession
+
+		if s.cleanSession == 0 && context.CleanSession == 0 {
+			// Resume last session
+			s.db.UpdateSession(s, &db.Session{Id: s.id, RefCount: context.RefCount + 1})
+			// Notify other mqtt node to release resource
+			// s.cluster.Publish(SessionUpdatedMessage...
+		}
+	}
+
 	return nil
 }
 
