@@ -13,12 +13,13 @@ package base
 
 type SessionObserver interface {
 	OnGetMountPoint() string
-	OnConnect(Session, userdata interface{}) error
-	OnDisconnect(Session, userdta interface{}) error
-	OnPublish(Session, userdata interface{}) error
-	OnMessage(Session, userdata interface{}) error
-	OnSubscribe(Session, userdata interface{}) error
-	OnUnsubscribe(Session, userdata interface{}) error
+	OnConnect(s Session, userdata interface{}) error
+	OnDisconnect(s Session, userdta interface{}) error
+	OnPublish(s Session, userdata interface{}) error
+	OnMessage(s Session, userdata interface{}) error
+	OnSubscribe(s Session, userdata interface{}) error
+	OnUnsubscribe(s Session, userdata interface{}) error
+	OnAuthenticate(s Session, username string, password string) error
 }
 
 type Session interface {
