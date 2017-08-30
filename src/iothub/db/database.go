@@ -27,7 +27,7 @@ type Session struct {
 	Password           string
 	Keepalive          uint16
 	LastMid            uint16
-	State              uint16
+	State              uint8
 	LastMessageInTime  time.Time
 	LastMessageOutTime time.Time
 	Ping               time.Time

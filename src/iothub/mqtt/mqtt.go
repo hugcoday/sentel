@@ -14,8 +14,10 @@ package mqtt
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"iothub/base"
+	"iothub/db"
 	"iothub/util/config"
 	"net"
 	"strings"
@@ -32,14 +34,16 @@ const (
 )
 
 type mqtt struct {
-	config   config.Config
-	chn      chan int
-	index    int64
-	sessions map[string]base.Session
-	mutex    sync.Mutex // Maybe not so good
-	inpacket *mqttPacket
-	protocol uint8
-	wg       sync.WaitGroup
+	config     config.Config
+	chn        chan int
+	index      int64
+	sessions   map[string]base.Session
+	mutex      sync.Mutex // Maybe not so good
+	inpacket   *mqttPacket
+	protocol   uint8
+	wg         sync.WaitGroup
+	localAddrs []string
+	db         db.Database
 }
 
 // MqttFactory
@@ -47,11 +51,36 @@ type mqttFactory struct{}
 
 // New create mqtt service factory
 func (m *mqttFactory) New(c config.Config, ch chan int) (base.Service, error) {
+	var localAddrs []string = make([]string, 5)
+	// Get all local ip address
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		glog.Errorf("Failed to get local address:%s", err)
+		return nil, err
+	}
+	for _, addr := range addrs {
+		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				localAddrs = append(localAddrs, ipnet.IP.String())
+			}
+		}
+	}
+	if len(localAddrs) == 0 {
+		return nil, errors.New("Failed to get local address")
+	}
+	// Create database
+	db, err := db.NewDatabase(c)
+	if err != nil {
+		return nil, errors.New("Failed to create database in mqtt")
+	}
+
 	t := &mqtt{config: c,
-		chn:      ch,
-		index:    -1,
-		sessions: make(map[string]base.Session),
-		protocol: 2,
+		chn:        ch,
+		index:      -1,
+		sessions:   make(map[string]base.Session),
+		protocol:   2,
+		localAddrs: localAddrs,
+		db:         db,
 	}
 	return t, nil
 }
@@ -171,18 +200,6 @@ func (m *mqtt) handleNotifications(topic string, value []byte) error {
 // handleSessionNotifications handle session notification  from kafka
 func (m *mqtt) handleSessionNotifications(value []byte) error {
 	// Decode value received form other mqtt node
-	// It maybe good to do one time at mqtt entry
-	/*
-		addrs, err := net.InterfaceAddrs()
-		if err != nil {
-			glog.Errorf("Failed to get local address:%s", err)
-			return err
-		}
-		for _, addr := range addrs {
-			if ipnet, ok := addr.(*net.IPNet));
-
-		}
-	*/
 	var topics []SessionTopic
 	if err := json.Unmarshal(value, &topics); err != nil {
 		glog.Errorf("Mqtt session notifications failure:%s", err)
@@ -192,7 +209,13 @@ func (m *mqtt) handleSessionNotifications(value []byte) error {
 	for _, topic := range topics {
 		switch topic.Action {
 		case ObjectActionUpdate:
-
+			// Only deal with notification that is not  launched by myself
+			for _, addr := range m.localAddrs {
+				if addr != topic.Launcher {
+					m.db.UpdateSession(nil,
+						&db.Session{Id: topic.SessionId, State: topic.State})
+				}
+			}
 		case ObjectActionDelete:
 
 		case ObjectActionRegister:
