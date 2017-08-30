@@ -12,7 +12,11 @@
 
 package mqtt
 
-import "github.com/golang/glog"
+import (
+	"fmt"
+
+	"github.com/golang/glog"
+)
 
 // sendSimpleCommand send a simple command
 func (s *mqttSession) sendSimpleCommand(cmd uint8) error {
@@ -40,13 +44,72 @@ func (s *mqttSession) sendPingRsp() error {
 }
 
 // sendConnAck send connection response to client
-func (s *mqttSession) sendConnAck(mid uint16, reason uint16) error {
+func (s *mqttSession) sendConnAck(ack uint8, result uint8) error {
+	glog.Info("Sending CONNACK from %s", s.id)
+
+	packet := &mqttPacket{
+		command:         CONNACK,
+		remainingLength: 2,
+	}
+	packet.payload[packet.pos+0] = ack
+	packet.payload[packet.pos+1] = result
+	if err := s.initializePacket(packet); err != nil {
+		return nil
+	}
+
+	return s.queuePacket(packet)
+}
+
+// initializePacket initialize packet according to preinitialized data
+func (s *mqttSession) initializePacket(p *mqttPacket) error {
+	var remainingBytes = [5]uint8{}
+
+	remainingLength := p.remainingLength
+	p.remainingCount = 0
+	for {
+		b := remainingLength % 128
+		remainingLength = remainingLength / 128
+		if remainingLength > 0 {
+			b = b | 0x80
+		}
+		remainingBytes[p.remainingLength] = uint8(b)
+		p.remainingCount++
+		if remainingLength < 0 || p.remainingCount >= 5 {
+			break
+		}
+		p.length = p.remainingLength + 1 + uint32(p.remainingCount)
+	}
+	if p.remainingCount == 5 {
+		return fmt.Errorf("Invalid packet(%d) payload size", p.command)
+	}
+	p.payload = make([]uint8, p.length)
+	p.payload[0] = p.command
+	for index, b := range remainingBytes {
+		p.payload[index+1] = b
+	}
+	p.pos = 1 + uint32(p.remainingCount)
 	return nil
+}
+
+func (s *mqttSession) queuePacket(p *mqttPacket) error {
+	return nil
+
 }
 
 // sendSubAck send subscription acknowledge to client
 func (s *mqttSession) sendSubAck(mid uint16, payload []uint8) error {
-	return nil
+	packet := new(mqttPacket)
+	packet.command = SUBACK
+	packet.remainingLength = 2 + uint32(len(payload))
+	if err := s.initializePacket(packet); err != nil {
+		return err
+	}
+
+	packet.WriteUint16(mid)
+	if len(payload) > 0 {
+		packet.WriteBytes(payload)
+	}
+	return s.queuePacket(packet)
 }
 
 // sendCommandWithMid send command with message identifier

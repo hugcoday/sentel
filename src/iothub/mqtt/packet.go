@@ -79,6 +79,10 @@ func (p *mqttPacket) PacketType() string {
 func (p *mqttPacket) Clear() {
 	p.command = 0
 	p.length = 0
+	p.toprocess = 0
+	p.remainingCount = 0
+	p.remainingLength = 0
+	p.payload = []uint8{}
 }
 
 // SerializeTo writes the serialized form of the packet into the serialize buffer
