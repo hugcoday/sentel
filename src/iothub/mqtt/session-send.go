@@ -20,21 +20,11 @@ import (
 
 // sendSimpleCommand send a simple command
 func (s *mqttSession) sendSimpleCommand(cmd uint8) error {
-	p := mqttPacket{
+	p := &mqttPacket{
 		command:        cmd,
 		remainingCount: 0,
 	}
-	return s.sendPacket(&p)
-}
-
-// sendPacket send packet to client
-// TODO:
-func (s *mqttSession) sendPacket(p *mqttPacket) error {
-	return nil
-}
-
-func (s *mqttSession) updateOutMessage(mid uint16, state int) error {
-	return nil
+	return s.queuePacket(p)
 }
 
 // sendPingRsp send ping response to client
@@ -91,11 +81,6 @@ func (s *mqttSession) initializePacket(p *mqttPacket) error {
 	return nil
 }
 
-func (s *mqttSession) queuePacket(p *mqttPacket) error {
-	return nil
-
-}
-
 // sendSubAck send subscription acknowledge to client
 func (s *mqttSession) sendSubAck(mid uint16, payload []uint8) error {
 	packet := new(mqttPacket)
@@ -114,19 +99,42 @@ func (s *mqttSession) sendSubAck(mid uint16, payload []uint8) error {
 
 // sendCommandWithMid send command with message identifier
 func (s *mqttSession) sendCommandWithMid(command uint8, mid uint16, dup bool) error {
-	return nil
+	packet := new(mqttPacket)
+	packet.command = command
+	if dup {
+		packet.command |= 8
+	}
+	packet.remainingLength = 2
+	if err := s.initializePacket(packet); err != nil {
+		return err
+	}
+	packet.payload[packet.pos+0] = uint8((mid & 0xFF00) >> 8)
+	packet.payload[packet.pos+1] = uint8(mid & 0xff)
+	return s.queuePacket(packet)
 }
 
 // sendPubAck
 func (s *mqttSession) sendPubAck(mid uint16) error {
-	return nil
+	glog.Info("Sending PUBACK to %s with MID:%d", s.id, mid)
+	return s.sendCommandWithMid(PUBACK, mid, false)
 }
 
 // sendPubRec
 func (s *mqttSession) sendPubRec(mid uint16) error {
-	return nil
+	glog.Info("Sending PUBRREC to %s with MID:%d", s.id, mid)
+	return s.sendCommandWithMid(PUBREC, mid, false)
 }
 
 func (s *mqttSession) sendPubComp(mid uint16) error {
+	glog.Info("Sending PUBCOMP to %s with MID:%d", s.id, mid)
+	return s.sendCommandWithMid(PUBCOMP, mid, false)
+}
+
+func (s *mqttSession) queuePacket(p *mqttPacket) error {
+	return nil
+
+}
+
+func (s *mqttSession) updateOutMessage(mid uint16, state int) error {
 	return nil
 }
