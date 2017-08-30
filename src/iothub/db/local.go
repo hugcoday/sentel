@@ -23,7 +23,7 @@ type localDatabase struct {
 	config   config.Config
 }
 
-// MqttFactory
+// localDatabaseFactory
 type localDatabaseFactory struct{}
 
 
