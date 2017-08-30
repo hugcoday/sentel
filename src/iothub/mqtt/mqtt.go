@@ -13,11 +13,15 @@
 package mqtt
 
 import (
+	"encoding/json"
+	"fmt"
 	"iothub/base"
 	"iothub/util/config"
 	"net"
+	"strings"
 	"sync"
 
+	"github.com/Shopify/sarama"
 	"github.com/golang/glog"
 	"github.com/satori/go.uuid"
 )
@@ -35,6 +39,7 @@ type mqtt struct {
 	mutex    sync.Mutex // Maybe not so good
 	inpacket *mqttPacket
 	protocol uint8
+	wg       sync.WaitGroup
 }
 
 // MqttFactory
@@ -90,6 +95,13 @@ func (m *mqtt) Run() error {
 		glog.Errorf("Mqtt listen failed:%s", err)
 		return err
 	}
+	// Launch montor
+	// TODO:how to wait the monitor to be terminated
+	if err := m.launchMqttMonitor(); err != nil {
+		glog.Errorf("Failed to launch mqtt monitor:%s", err)
+		return err
+	}
+
 	glog.Info("Mqtt server is listening...")
 	for {
 		conn, err := listen.Accept()
@@ -107,5 +119,85 @@ func (m *mqtt) Run() error {
 	}
 	// notify main
 	m.chn <- 1
+	return nil
+}
+
+// launchMqttMonitor
+func (m *mqtt) launchMqttMonitor() error {
+	glog.Info("Luanching mqtt monitor...")
+	//sarama.Logger = glog
+	khosts, _ := m.config.String("iothub", "kafka-hosts")
+	consumer, err := sarama.NewConsumer(strings.Split(khosts, ","), nil)
+	if err != nil {
+		return fmt.Errorf("Connecting with kafka:%s failed", khosts)
+	}
+
+	partitionList, err := consumer.Partitions("iothub-mqtt")
+	if err != nil {
+		return fmt.Errorf("Failed to get list of partions:%v", err)
+		return err
+	}
+
+	for partition := range partitionList {
+		pc, err := consumer.ConsumePartition("iothub", int32(partition), sarama.OffsetNewest)
+		if err != nil {
+			glog.Errorf("Failed  to start consumer for partion %d:%s", partition, err)
+			continue
+		}
+		defer pc.AsyncClose()
+		m.wg.Add(1)
+
+		go func(sarama.PartitionConsumer) {
+			defer m.wg.Done()
+			for msg := range pc.Messages() {
+				m.handleNotifications(string(msg.Topic), msg.Value)
+			}
+		}(pc)
+	}
+	m.wg.Wait()
+	consumer.Close()
+	return nil
+}
+
+// handleNotifications handle notification from kafka
+func (m *mqtt) handleNotifications(topic string, value []byte) error {
+	switch topic {
+	case TopicNameSession:
+		return m.handleSessionNotifications(value)
+	}
+	return nil
+}
+
+// handleSessionNotifications handle session notification  from kafka
+func (m *mqtt) handleSessionNotifications(value []byte) error {
+	// Decode value received form other mqtt node
+	// It maybe good to do one time at mqtt entry
+	/*
+		addrs, err := net.InterfaceAddrs()
+		if err != nil {
+			glog.Errorf("Failed to get local address:%s", err)
+			return err
+		}
+		for _, addr := range addrs {
+			if ipnet, ok := addr.(*net.IPNet));
+
+		}
+	*/
+	var topics []SessionTopic
+	if err := json.Unmarshal(value, &topics); err != nil {
+		glog.Errorf("Mqtt session notifications failure:%s", err)
+		return err
+	}
+	// Get local ip address
+	for _, topic := range topics {
+		switch topic.Action {
+		case ObjectActionUpdate:
+
+		case ObjectActionDelete:
+
+		case ObjectActionRegister:
+		default:
+		}
+	}
 	return nil
 }
