@@ -13,6 +13,7 @@
 package mqtt
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/golang/glog"
@@ -131,8 +132,66 @@ func (s *mqttSession) sendPubComp(mid uint16) error {
 }
 
 func (s *mqttSession) queuePacket(p *mqttPacket) error {
-	return nil
+	p.pos = 0
+	p.toprocess = 0
 
+	s.outPacketMutex.Lock()
+	s.outPackets = append(s.outPackets, p)
+	s.lastOutPacket = p
+	s.outPacketMutex.Unlock()
+	return s.writePacket()
+}
+
+func (s *mqttSession) writePacket() error {
+	s.currentOutPacketMutex.Lock()
+	defer s.currentOutPacketMutex.Unlock()
+
+	s.outPacketMutex.Lock()
+	if len(s.outPackets) > 0 && s.currentOutPacket == nil {
+		s.currentOutPacket = s.outPackets[0]
+		s.outPackets = s.outPackets[1:]
+		if len(s.outPackets) == 0 {
+			s.lastOutPacket = nil
+		}
+	}
+	s.outPacketMutex.Unlock()
+
+	if s.state == mqttStateConnectPending {
+		return errors.New("Write packet in wrong session state")
+	}
+
+	for s.currentOutPacket != nil {
+		packet := s.currentOutPacket
+		for packet.toprocess > 0 {
+			len, err := s.netWrite(packet.payload[packet.pos:packet.toprocess])
+			if err != nil {
+				return nil
+			}
+			if len > 0 {
+				packet.toprocess -= uint32(len)
+				packet.pos += uint32(len)
+			} else {
+				return nil
+			}
+		}
+		// Notify observer
+
+		// Process net packet
+		s.outPacketMutex.Lock()
+		if len(s.outPackets) > 0 {
+			s.currentOutPacket = s.outPackets[0]
+			s.outPackets = s.outPackets[1:]
+		} else {
+			s.currentOutPacket = nil
+			s.lastOutPacket = nil
+		}
+		s.outPacketMutex.Unlock()
+	}
+	return nil
+}
+
+func (s *mqttSession) netWrite(data []uint8) (int, error) {
+	return s.conn.Write(data)
 }
 
 func (s *mqttSession) updateOutMessage(mid uint16, state int) error {

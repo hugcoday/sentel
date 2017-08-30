@@ -21,6 +21,7 @@ import (
 	"iothub/db"
 	"iothub/util/config"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/golang/glog"
@@ -50,27 +51,36 @@ const (
 )
 
 type mqttSession struct {
-	mgr            *mqtt
-	config         config.Config
-	db             db.Database
-	authplugin     base.AuthPlugin
-	conn           net.Conn
-	id             string
-	state          uint8
-	inpacket       mqttPacket
-	bytesReceived  int64
-	pingTime       *time.Time
-	address        string
-	keepalive      uint16
-	protocol       uint8
-	observer       base.SessionObserver
-	username       string
-	password       string
-	lastMessageIn  time.Time
-	lastMessageOut time.Time
-	cleanSession   uint8
-	isDroping      bool
-	willMsg        *mqttMessage
+	mgr                   *mqtt
+	config                config.Config
+	db                    db.Database
+	authplugin            base.AuthPlugin
+	conn                  net.Conn
+	id                    string
+	state                 uint8
+	inpacket              mqttPacket
+	bytesReceived         int64
+	pingTime              *time.Time
+	address               string
+	keepalive             uint16
+	protocol              uint8
+	observer              base.SessionObserver
+	username              string
+	password              string
+	lastMessageIn         time.Time
+	lastMessageOut        time.Time
+	cleanSession          uint8
+	isDroping             bool
+	willMsg               *mqttMessage
+	outPacketMutex        sync.Mutex
+	currentOutPacketMutex sync.Mutex
+	stateMutex            sync.Mutex
+	inMessageMutex        sync.Mutex
+	outMessageMutex       sync.Mutex
+	midMutex              sync.Mutex
+	outPackets            []*mqttPacket
+	currentOutPacket      *mqttPacket
+	lastOutPacket         *mqttPacket
 }
 
 // newMqttSession create new session  for each client connection
