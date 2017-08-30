@@ -181,35 +181,10 @@ func (s *mqttSession) handlePacket() error {
 	return fmt.Errorf("Unrecognized protocol command:%d", int(s.inpacket.command&0xF0))
 }
 
-// sendSimpleCommand send a simple command
-func (s *mqttSession) sendSimpleCommand(cmd uint8) error {
-	p := mqttPacket{
-		command:        cmd,
-		remainingCount: 0,
-	}
-	return s.sendPacket(&p)
-}
-
-// sendPacket send packet to client
-// TODO:
-func (s *mqttSession) sendPacket(p *mqttPacket) error {
-	return nil
-}
-
-func (s *mqttSession) updateOutMessage(mid uint16, state int) error {
-	return nil
-}
-
 // handlePingReq handle ping request packet
 func (s *mqttSession) handlePingReq() error {
 	glog.Info("Received PINGREQ from %s", s.Identifier())
 	return s.sendPingRsp()
-}
-
-// sendPingRsp send ping response to client
-func (s *mqttSession) sendPingRsp() error {
-	glog.Info("Sending PINGRESP to %s", s.Identifier)
-	return s.sendSimpleCommand(PINGRESP)
 }
 
 // handlePingRsp handle ping response packet
@@ -485,10 +460,6 @@ func (s *mqttSession) handleConnect() error {
 func (s *mqttSession) disconnect() {
 }
 
-// sendConnAck send CONNACK packet to client
-func (s *mqttSession) sendConnAck(b uint8, reason uint8) {
-}
-
 // handleDisconnect handle disconnect packet
 func (s *mqttSession) handleDisconnect() error {
 	if s.inpacket.remainingLength != 0 {
@@ -572,11 +543,6 @@ func (s *mqttSession) handleSubscribe() error {
 	return nil
 }
 
-// sendSubAck send subscription acknowledge to client
-func (s *mqttSession) sendSubAck(mid uint16, payload []uint8) error {
-	return nil
-}
-
 // handleUnsubscribe handle unsubscribe packet
 func (s *mqttSession) handleUnsubscribe() error {
 	glog.Info("Received UNSUBSCRIBE from %s", s.id)
@@ -614,11 +580,6 @@ func (s *mqttSession) handlePubAck() error {
 
 // handlePubComp handle publish comp packet
 func (s *mqttSession) handlePubComp() error {
-	return nil
-}
-
-// sendCommandWithMid send command with message identifier
-func (s *mqttSession) sendCommandWithMid(command uint8, mid uint16, dup bool) error {
 	return nil
 }
 
@@ -728,16 +689,6 @@ func (s *mqttSession) handlePublish() error {
 	return err
 }
 
-// sendPubAck
-func (s *mqttSession) sendPubAck(mid uint16) error {
-	return nil
-}
-
-// sendPubRec
-func (s *mqttSession) sendPubRec(mid uint16) error {
-	return nil
-}
-
 // handlePubRec handle pubrec packet
 func (s *mqttSession) handlePubRec() error {
 	mid, err := s.inpacket.ReadUint16()
@@ -756,9 +707,5 @@ func (s *mqttSession) handlePubRec() error {
 
 // handlePubRel handle pubrel packet
 func (s *mqttSession) handlePubRel() error {
-	return nil
-}
-
-func (s *mqttSession) sendPubRel(mid uint16) error {
 	return nil
 }
