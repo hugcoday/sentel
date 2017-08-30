@@ -12,7 +12,16 @@
 
 package db
 
+import (
+	"iothub/base"
+	"iothub/util/config"
+
+	"github.com/golang/glog"
+)
+
 func init() {
-	// registerDatabase("local", localDatabaseFactory{})
+	config.RegisterConfig("database", configs)
+	glog.Info("Registering database:%s", configs["repository"])
+	registerDatabase("local", localDatabaseFactory{})
 	// registerDatabase("etcd", etcdDatabaseFactory{})
 }

@@ -11,3 +11,23 @@
 //  under the License.
 
 package db
+
+import (
+	"iothub/base"
+	"iothub/util/config"
+
+	"github.com/golang/glog"
+)
+
+type localDatabase struct {
+	config   config.Config
+}
+
+// MqttFactory
+type localDatabaseFactory struct{}
+
+
+func (m *localDatabaseFactory) New(c config.Config) (Database, error) {
+	d := &localDatabase{config: c}
+	return d, nil
+}
