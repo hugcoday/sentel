@@ -13,7 +13,6 @@
 package db
 
 import (
-	"iothub/base"
 	"iothub/util/config"
 
 	"github.com/golang/glog"
