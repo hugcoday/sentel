@@ -176,7 +176,7 @@ func (s *mqttSession) handlePacket() error {
 	case SUBSCRIBE:
 		return s.handleSubscribe()
 	case UNSUBSCRIBE:
-		return s.handleUnsubAck()
+		return s.handleUnsubscribe()
 	}
 	return fmt.Errorf("Unrecognized protocol command:%d", int(s.inpacket.command&0xF0))
 }
@@ -491,27 +491,120 @@ func (s *mqttSession) sendConnAck(b uint8, reason uint8) {
 
 // handleDisconnect handle disconnect packet
 func (s *mqttSession) handleDisconnect() error {
+	if s.inpacket.remainingLength != 0 {
+		return mqttErrorInvalidProtocol
+	}
+	glog.Info("Received DISCONNECT from %s", s.id)
+	if s.protocol == mqttProtocol311 {
+		if (s.inpacket.command & 0x0F) != 0x00 {
+			s.disconnect()
+			return mqttErrorInvalidProtocol
+		}
+	}
+	s.disconnect()
 	return nil
 }
 
 // handleSubscribe handle subscribe packet
 func (s *mqttSession) handleSubscribe() error {
+	var payload []uint8 = make([]uint8, 0)
+
+	glog.Info("Received SUBSCRIBE from %s", s.id)
+
+	// Check protocol version
+	if s.protocol == mqttProtocol311 {
+		if (s.inpacket.command & 0x0F) != 0x02 {
+			return mqttErrorInvalidProtocol
+		}
+	}
+	// Get message identifier
+	mid, err := s.inpacket.ReadUint16()
+	if err != nil {
+		return err
+	}
+	// Deal each subscription
+	for {
+		sub, err := s.inpacket.ReadString()
+		if err != nil {
+			return err
+		}
+		if len(sub) == 0 {
+			glog.Errorf("Invalid subscription strint from %s, disconnecting", s.id)
+			return mqttErrorInvalidProtocol
+		}
+		if checkTopicValidity(sub) != nil {
+			glog.Errorf("Invalid subscription topic %s from %s, disconnecting", sub, s.id)
+			return mqttErrorInvalidProtocol
+		}
+		qos, err := s.inpacket.ReadByte()
+		if err != nil {
+			return err
+		}
+
+		if qos > 2 {
+			glog.Errorf("Invalid Qos in subscription %s from %s", sub, s.id)
+			return mqttErrorInvalidProtocol
+		}
+
+		if s.observer != nil {
+			mp := s.observer.OnGetMountPoint()
+			sub = mp + sub
+		}
+		if qos != 0x80 {
+			if err := s.db.AddSubscription(s, sub, qos); err != nil {
+				return err
+			}
+			if err := s.db.RetainSubscription(s, sub, qos); err != nil {
+				return err
+			}
+		}
+		payload = append(payload, qos)
+	}
+
+	if s.protocol == mqttProtocol311 {
+		if len(payload) == 0 {
+			return mqttErrorInvalidProtocol
+		}
+	}
+	if err := s.sendSubAck(mid, payload); err != nil {
+		return err
+	}
+	return nil
+}
+
+// sendSubAck send subscription acknowledge to client
+func (s *mqttSession) sendSubAck(mid uint16, payload []uint8) error {
 	return nil
 }
 
 // handleUnsubscribe handle unsubscribe packet
 func (s *mqttSession) handleUnsubscribe() error {
-	return nil
-}
+	glog.Info("Received UNSUBSCRIBE from %s", s.id)
+	if s.protocol == mqttProtocol311 {
+		if (s.inpacket.command & 0x0f) != 0x02 {
+			return mqttErrorInvalidProtocol
+		}
+	}
+	mid, err := s.inpacket.ReadUint16()
+	if err != nil {
+		return err
+	}
+	// Iterate all subscription
+	for {
+		sub, err := s.inpacket.ReadString()
+		if err != nil {
+			return mqttErrorInvalidProtocol
+		}
+		if sub == "" {
+			break
+		}
+		if err := checkTopicValidity(sub); err != nil {
+			return fmt.Errorf("Invalid unsubscription string from %s, disconnecting", s.id)
+		}
+		s.db.RemoveSubscriber(s, db.Topic{Name: sub}, s.id)
+	}
 
-// handleSubAck handle suback packet
-func (s *mqttSession) handleSubAck() error {
-	return nil
-}
-
-// handleUnsubAck handle unsuback packet
-func (s *mqttSession) handleUnsubAck() error {
-	return nil
+	return s.sendCommandWithMid(UNSUBACK, mid, false)
 }
 
 // handlePubAck handle publish ack packet
@@ -521,6 +614,11 @@ func (s *mqttSession) handlePubAck() error {
 
 // handlePubComp handle publish comp packet
 func (s *mqttSession) handlePubComp() error {
+	return nil
+}
+
+// sendCommandWithMid send command with message identifier
+func (s *mqttSession) sendCommandWithMid(command uint8, mid uint16, dup bool) error {
 	return nil
 }
 

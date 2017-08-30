@@ -45,7 +45,9 @@ const (
 )
 
 type Device struct{}
-type Topic struct{}
+type Topic struct {
+	Name string
+}
 type MessageState int
 type Message struct {
 	Id        uint
@@ -83,9 +85,13 @@ type Database interface {
 	AddTopic(c Context, t Topic) error
 	DeleteTopic(c Context, id string) error
 	UpdateTopic(c Context, t Topic) error
-	AddTopicSubscriber(c Context, t Topic, clientid string) error
-	RemoveTopicSubscriber(c Context, t Topic, clientid string) error
+	AddSubscriber(c Context, t Topic, clientid string) error
+	RemoveSubscriber(c Context, t Topic, clientid string) error
 	GetTopicSubscribers(c Context, t Topic) ([]string, error)
+
+	// Subscription
+	AddSubscription(c Context, sub string, qos uint8) error
+	RetainSubscription(c Context, sub string, qos uint8) error
 
 	// Message Management
 	FindMessage(clientid string, mid uint) (bool, error)
