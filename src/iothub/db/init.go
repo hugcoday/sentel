@@ -21,6 +21,6 @@ import (
 func init() {
 	config.RegisterConfig("database", configs)
 	glog.Info("Registering database:%s", configs["repository"])
-	registerDatabase("local", localDatabaseFactory{})
+	registerDatabase("local", &localDatabaseFactory{})
 	// registerDatabase("etcd", etcdDatabaseFactory{})
 }
