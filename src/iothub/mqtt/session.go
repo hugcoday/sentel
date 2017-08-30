@@ -157,22 +157,14 @@ func (s *mqttSession) handlePacket() error {
 	switch s.inpacket.command & 0xF0 {
 	case PINGREQ:
 		return s.handlePingReq()
-	case PINGRESP:
-		return s.handlePingRsp()
-	case PUBACK:
-		return s.handlePubAck()
-	case PUBCOMP:
-		return s.handlePubComp()
-	case PUBLISH:
-		return s.handlePublish()
-	case PUBREC:
-		return s.handlePubRec()
-	case PUBREL:
-		return s.handlePubRel()
 	case CONNECT:
 		return s.handleConnect()
 	case DISCONNECT:
 		return s.handleDisconnect()
+	case PUBLISH:
+		return s.handlePublish()
+	case PUBREL:
+		return s.handlePubRel()
 	case SUBSCRIBE:
 		return s.handleSubscribe()
 	case UNSUBSCRIBE:
@@ -185,13 +177,6 @@ func (s *mqttSession) handlePacket() error {
 func (s *mqttSession) handlePingReq() error {
 	glog.Info("Received PINGREQ from %s", s.Identifier())
 	return s.sendPingRsp()
-}
-
-// handlePingRsp handle ping response packet
-func (s *mqttSession) handlePingRsp() error {
-	glog.Info("Received PINGRSP form %s", s.Identifier())
-	s.pingTime = nil
-	return nil
 }
 
 // handleConnect handle connect packet
@@ -456,10 +441,6 @@ func (s *mqttSession) handleConnect() error {
 	return nil
 }
 
-// disconnect will disconnect current connection because of protocol error
-func (s *mqttSession) disconnect() {
-}
-
 // handleDisconnect handle disconnect packet
 func (s *mqttSession) handleDisconnect() error {
 	if s.inpacket.remainingLength != 0 {
@@ -474,6 +455,10 @@ func (s *mqttSession) handleDisconnect() error {
 	}
 	s.disconnect()
 	return nil
+}
+
+// disconnect will disconnect current connection because of protocol error
+func (s *mqttSession) disconnect() {
 }
 
 // handleSubscribe handle subscribe packet
@@ -573,16 +558,6 @@ func (s *mqttSession) handleUnsubscribe() error {
 	return s.sendCommandWithMid(UNSUBACK, mid, false)
 }
 
-// handlePubAck handle publish ack packet
-func (s *mqttSession) handlePubAck() error {
-	return nil
-}
-
-// handlePubComp handle publish comp packet
-func (s *mqttSession) handlePubComp() error {
-	return nil
-}
-
 // handlePublish handle publish packet
 func (s *mqttSession) handlePublish() error {
 	var dup, qos, retain uint8
@@ -644,7 +619,7 @@ func (s *mqttSession) handlePublish() error {
 
 	// Check wether the message has been stored
 	if qos > 0 {
-		if found, err := s.db.FindMessage(s.id, uint(mid)); err != nil {
+		if found, err := s.db.FindMessage(s.id, mid); err != nil {
 			return err
 		} else {
 			stored = found
@@ -677,7 +652,7 @@ func (s *mqttSession) handlePublish() error {
 	case 2:
 		err = nil
 		if dup > 0 {
-			err = s.db.InsertMessage(s.id, int(mid), db.MessageDirectionIn, msg)
+			err = s.db.InsertMessage(s.id, mid, db.MessageDirectionIn, msg)
 		}
 		if err == nil {
 			err = s.sendPubRec(mid)
@@ -689,23 +664,20 @@ func (s *mqttSession) handlePublish() error {
 	return err
 }
 
-// handlePubRec handle pubrec packet
-func (s *mqttSession) handlePubRec() error {
+// handlePubRel handle pubrel packet
+func (s *mqttSession) handlePubRel() error {
+	// Check protocol specifal requriement
+	if s.protocol == mqttProtocol311 {
+		if (s.inpacket.command & 0x0F) != 0x02 {
+			return mqttErrorInvalidProtocol
+		}
+	}
+	// Get message identifier
 	mid, err := s.inpacket.ReadUint16()
 	if err != nil {
 		return err
 	}
-	glog.Info("Client %s received PUBRED mid:%d", s.id, mid)
-	err = s.updateOutMessage(mid, mqttMessageStateWaitForPubComp)
-	if err == base.IotErrorNotFound {
-		glog.Errorf("Received  PUBREC from %s for an unknown packet identifier", s.id)
-	} else if err != nil {
-		return err
-	}
-	return s.sendPubRel(mid)
-}
 
-// handlePubRel handle pubrel packet
-func (s *mqttSession) handlePubRel() error {
-	return nil
+	s.db.DeleteMessage(s.id, mid, db.MessageDirectionIn)
+	return s.sendPubComp(mid)
 }

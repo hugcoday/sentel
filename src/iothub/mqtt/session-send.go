@@ -64,6 +64,6 @@ func (s *mqttSession) sendPubRec(mid uint16) error {
 	return nil
 }
 
-func (s *mqttSession) sendPubRel(mid uint16) error {
+func (s *mqttSession) sendPubComp(mid uint16) error {
 	return nil
 }

@@ -94,15 +94,16 @@ type Database interface {
 	RetainSubscription(c Context, sub string, qos uint8) error
 
 	// Message Management
-	FindMessage(clientid string, mid uint) (bool, error)
+	FindMessage(clientid string, mid uint16) (bool, error)
 	StoreMessage(clientid string, msg Message) error
 	DeleteMessageWithValidator(clientid string, validator func(msg Message) bool)
+	DeleteMessage(clientid string, mid uint16, direction MessageDirection) error
+
 	QueueMessage(clientid string, msg Message) error
 	GetMessageTotalCount(clientid string) int
-	DeleteMessage(clientid string, mid int, direction MessageDirection) error
-	InsertMessage(clientid string, mid int, direction MessageDirection, msg Message) error
-	ReleaseMessage(clientid string, mid int, direction MessageDirection) error
-	UpdateMessage(clientid string, mid int, direction MessageDirection, state MessageState)
+	InsertMessage(clientid string, mid uint16, direction MessageDirection, msg Message) error
+	ReleaseMessage(clientid string, mid uint16, direction MessageDirection) error
+	UpdateMessage(clientid string, mid uint16, direction MessageDirection, state MessageState)
 }
 
 type databaseFactory interface {
