@@ -13,7 +13,7 @@
 package mqtt
 
 var configs = map[string]string{
-	"host":               "localhost:4281",
+	"host":               "localhost:1883",
 	"loglevel":           "debug",
 	"message_size_limit": "500",
 	"allow_anonymous":    "true",

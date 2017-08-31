@@ -15,12 +15,9 @@ package mqtt
 import (
 	"iothub/base"
 	"iothub/util/config"
-
-	"github.com/golang/glog"
 )
 
 func init() {
 	config.RegisterConfig("mqtt", configs)
-	glog.Info("Registering service:%s", protocolName)
 	base.RegisterServiceFactory(protocolName, &mqttFactory{})
 }
