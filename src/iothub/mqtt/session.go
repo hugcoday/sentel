@@ -432,7 +432,7 @@ func (s *mqttSession) handleConnect() error {
 		})
 
 	// Register the session in db
-	s.db.RegisterSession(s, s.id, database.Session{
+	s.db.RegisterSession(s, database.Session{
 		Id:           s.id,
 		Username:     username,
 		Password:     password,

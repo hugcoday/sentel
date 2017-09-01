@@ -13,46 +13,79 @@
 package database
 
 import (
+	"errors"
+
 	"github.com/golang/glog"
 )
 
 type localDatabase struct {
-	opt Option
+	opt      Option
+	sessions map[string]Session
 }
 
+// Open local database
 func (l *localDatabase) Open() error {
 	glog.Info("local database Open")
 
 	return nil
 }
 
+// Close local database
 func (l *localDatabase) Close() {
 
 }
 
+// Backup serialize local database
 func (l *localDatabase) Backup(shutdown bool) error {
 	return nil
 }
 
+// Restore recover data from serialization
 func (l *localDatabase) Restore() error {
 	return nil
 }
 
-// Session
+// FindSession find session by id
 func (l *localDatabase) FindSession(c Context, id string) (*Session, error) {
-	return nil, nil
+	v, ok := l.sessions[id]
+	if !ok {
+		return nil, errors.New("Session id does not exist")
+	}
+
+	return &v, nil
 }
 
+// DeleteSession delete session by id
 func (l *localDatabase) DeleteSession(c Context, id string) error {
+	_, ok := l.sessions[id]
+	if !ok {
+		return errors.New("Session id does not exist")
+	}
+
+	delete(l.sessions, id)
+
 	return nil
 }
 
+// UpdateSession update session
 func (l *localDatabase) UpdateSession(c Context, s *Session) error {
+	_, ok := l.sessions[s.Id]
+	if !ok {
+		return errors.New("Session id does not exist")
+	}
+
+	l.sessions[s.Id] = *s
 	return nil
 }
 
-func (l *localDatabase) RegisterSession(c Context, id string, s Session) error {
-	return nil
+// RegisterSession register new session
+func (l *localDatabase) RegisterSession(c Context, s Session) error {
+	if _, ok := l.sessions[s.Id]; ok {
+		return errors.New("Session id already exists")
+	} else {
+		l.sessions[s.Id] = s
+		return nil
+	}
 }
 
 // Device
@@ -155,6 +188,9 @@ func (l *localDatabase) UpdateMessage(clientid string, mid uint16, direction Mes
 type localDatabaseFactory struct{}
 
 func (l *localDatabaseFactory) New(opt Option) (Database, error) {
-	d := &localDatabase{opt: opt}
+	d := &localDatabase{
+		opt:      opt,
+		sessions: make(map[string]Session),
+	}
 	return d, nil
 }
