@@ -53,8 +53,7 @@ func NewServiceManager(c Config) (*ServiceManager, error) {
 		ch := make(chan int)
 		service, err := CreateService(name, c, ch, mgr.db)
 		if err != nil {
-			db.Close()
-			glog.Errorf("Create service '%s' failed", name)
+			glog.Errorf("%s", err)
 			return nil, err
 		}
 		glog.Info("Create service(%s) success", name)

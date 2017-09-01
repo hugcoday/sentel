@@ -15,6 +15,7 @@ package main
 import (
 	"flag"
 	"iothub/base"
+	"iothub/mqtt"
 
 	"github.com/golang/glog"
 )
@@ -42,8 +43,12 @@ func main() {
 
 	mgr, err := base.NewServiceManager(config)
 	if err != nil {
-		glog.Errorf("Failed to launch ServiceManager:%s", err)
+		glog.Error("Failed to launch ServiceManager")
 		return
 	}
 	glog.Error(mgr.Start())
+}
+
+func init() {
+	base.RegisterService("mqtt", mqtt.Configs, &mqtt.MqttFactory{})
 }

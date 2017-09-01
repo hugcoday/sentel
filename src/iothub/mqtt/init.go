@@ -12,9 +12,9 @@
 
 package mqtt
 
-import "iothub/base"
+import "fmt"
 
-var configs = map[string]string{
+var Configs = map[string]string{
 	"host":               "localhost:1883",
 	"loglevel":           "debug",
 	"message_size_limit": "500",
@@ -22,5 +22,6 @@ var configs = map[string]string{
 }
 
 func init() {
-	base.RegisterService(protocolName, configs, &mqttFactory{})
+	fmt.Println("Registering mqtt service")
+	//base.RegisterService(protocolName, configs, &MqttFactory{})
 }

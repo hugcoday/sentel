@@ -46,11 +46,11 @@ type mqtt struct {
 }
 
 // MqttFactory
-type mqttFactory struct{}
+type MqttFactory struct{}
 
 // New create mqtt service factory
-func (m *mqttFactory) New(c base.Config, ch chan int) (base.Service, error) {
-	var localAddrs []string = make([]string, 5)
+func (m *MqttFactory) New(c base.Config, ch chan int) (base.Service, error) {
+	var localAddrs []string = []string{}
 	var db database.Database
 
 	// Get all local ip address
