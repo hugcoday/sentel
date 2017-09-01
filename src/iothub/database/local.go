@@ -10,16 +10,14 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package db
+package database
 
 import (
-	"iothub/util/config"
-
 	"github.com/golang/glog"
 )
 
 type localDatabase struct {
-	config config.Config
+	opt Option
 }
 
 func (l *localDatabase) Open() error {
@@ -156,7 +154,7 @@ func (l *localDatabase) UpdateMessage(clientid string, mid uint16, direction Mes
 // localDatabaseFactory
 type localDatabaseFactory struct{}
 
-func (l *localDatabaseFactory) New(c config.Config) (Database, error) {
-	d := &localDatabase{config: c}
+func (l *localDatabaseFactory) New(opt Option) (Database, error) {
+	d := &localDatabase{opt: opt}
 	return d, nil
 }

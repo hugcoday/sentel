@@ -10,9 +10,10 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package config
+package base
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -21,13 +22,28 @@ import (
 	"github.com/golang/glog"
 )
 
+// Config interface
+type Config interface {
+	Bool(section string, key string) (bool, error)
+	Int(section string, key string) (int, error)
+	String(section string, key string) (string, error)
+	MustBool(section string, key string) bool
+	MustInt(section string, key string) int
+	MustString(section string, key string) string
+	SetValue(section string, key string, val string)
+}
+
 type configSection struct {
 	items map[string]string
 }
 
 type globalConfig struct{}
 
-var _allConfigSections = make(map[string]*configSection)
+var _allConfigSections map[string]*configSection = make(map[string]*configSection)
+
+var (
+	ErrorInvalidConfiguration = errors.New("Invalid configuration")
+)
 
 // globalConfig implementations
 
@@ -111,13 +127,10 @@ func NewWithConfigFile(fileName string, moreFiles ...string) (Config, error) {
 	}
 	// For all config section in _allConfigSections, get section and item to overide
 	for name, section := range _allConfigSections {
-		items, err := cfg.GetSection(name)
-		if err != nil {
-			return nil, fmt.Errorf("Unknown section %s in config file", name)
-		}
-		// overide
-		for key, val := range items {
-			section.items[key] = val
+		if items, err := cfg.GetSection(name); err == nil {
+			for key, val := range items {
+				section.items[key] = val
+			}
 		}
 	}
 	return &globalConfig{}, nil

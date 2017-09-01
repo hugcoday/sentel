@@ -12,16 +12,16 @@
 package base
 
 import (
+	"errors"
 	"fmt"
-	"iothub/db"
-	"iothub/util/config"
+	"iothub/database"
 	"net"
 
 	"github.com/golang/glog"
 )
 
 var (
-	serviceFactories map[string]ServiceFactory = make(map[string]ServiceFactory)
+	_serviceFactories map[string]ServiceFactory = make(map[string]ServiceFactory)
 )
 
 type Service interface {
@@ -40,17 +40,28 @@ type Service interface {
 }
 
 type ServiceFactory interface {
-	New(c config.Config, ch chan int) (Service, error)
+	New(c Config, ch chan int) (Service, error)
 }
 
-func RegisterServiceFactory(name string, factory ServiceFactory) {
-	serviceFactories[name] = factory
+func RegisterServiceFactory(name string, configs map[string]string, factory ServiceFactory) {
+	RegisterConfig(name, configs)
+	_serviceFactories[name] = factory
 }
 
-func CreateService(name string, c config.Config, ch chan int, d db.Database) (Service, error) {
-	if serviceFactories[name] == nil {
-		glog.Error("Service %s is not registered", name)
+func CreateService(name string, c Config, ch chan int, d database.Database) (Service, error) {
+	if _serviceFactories[name] == nil {
+		glog.Errorf("Service '%s' is not registered", name)
 		return nil, fmt.Errorf("Service %s is not registered", name)
 	}
-	return serviceFactories[name].New(c, ch)
+	return _serviceFactories[name].New(c, ch)
+}
+
+func CheckAllRegisteredServices() error {
+	if len(_serviceFactories) == 0 {
+		return errors.New("No service registered")
+	}
+	for name, _ := range _serviceFactories {
+		glog.Info("Service %s is registered", name)
+	}
+	return nil
 }

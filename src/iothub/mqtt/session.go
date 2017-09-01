@@ -18,8 +18,7 @@ import (
 	"fmt"
 	"io"
 	"iothub/base"
-	"iothub/db"
-	"iothub/util/config"
+	"iothub/database"
 	"net"
 	"sync"
 	"time"
@@ -52,8 +51,8 @@ const (
 
 type mqttSession struct {
 	mgr                   *mqtt
-	config                config.Config
-	db                    db.Database
+	config                base.Config
+	db                    database.Database
 	authplugin            base.AuthPlugin
 	conn                  net.Conn
 	id                    string
@@ -85,6 +84,8 @@ type mqttSession struct {
 
 // newMqttSession create new session  for each client connection
 func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
+	var err error = nil
+
 	s := &mqttSession{
 		mgr:           m,
 		config:        m.config,
@@ -97,17 +98,13 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 		observer:      nil,
 	}
 	// Load database and plugin for each session
-	db, err := db.NewDatabase(m.config)
-	if err != nil {
+	name := m.config.MustString("database", "name")
+	if s.db, err = database.New(name, database.Option{}); err != nil {
 		return nil, err
 	}
-	plugin, err := base.LoadAuthPluginWithConfig("mqtt", m.config)
-	if err != nil {
+	if s.authplugin, err = base.LoadAuthPluginWithConfig("mqtt", m.config); err != nil {
 		return nil, err
 	}
-	s.db = db
-	s.authplugin = plugin
-
 	return s, nil
 }
 
@@ -392,7 +389,7 @@ func (s *mqttSession) handleConnect() error {
 
 		if s.cleanSession == 0 && found.CleanSession == 0 {
 			// Resume last session
-			s.db.UpdateSession(s, &db.Session{Id: clientid, RefCount: found.RefCount + 1})
+			s.db.UpdateSession(s, &database.Session{Id: clientid, RefCount: found.RefCount + 1})
 			// Notify other mqtt node to release resource
 			base.AsyncProduceMessage(s.config,
 				TopicNameSession,
@@ -426,7 +423,7 @@ func (s *mqttSession) handleConnect() error {
 	// Assuming a possible change of username
 	s.db.DeleteMessageWithValidator(
 		clientid,
-		func(msg db.Message) bool {
+		func(msg database.Message) bool {
 			err := s.authplugin.CheckAcl(s, clientid, username, msg.Topic, base.AclActionRead)
 			if err == base.ErrorAclDenied {
 				return false
@@ -435,7 +432,7 @@ func (s *mqttSession) handleConnect() error {
 		})
 
 	// Register the session in db
-	s.db.RegisterSession(s, s.id, db.Session{
+	s.db.RegisterSession(s, s.id, database.Session{
 		Id:           s.id,
 		Username:     username,
 		Password:     password,
@@ -562,7 +559,7 @@ func (s *mqttSession) handleUnsubscribe() error {
 		if err := checkTopicValidity(sub); err != nil {
 			return fmt.Errorf("Invalid unsubscription string from %s, disconnecting", s.id)
 		}
-		s.db.RemoveSubscriber(s, db.Topic{Name: sub}, s.id)
+		s.db.RemoveSubscriber(s, database.Topic{Name: sub}, s.id)
 	}
 
 	return s.sendCommandWithMid(UNSUBACK, mid, false)
@@ -635,9 +632,9 @@ func (s *mqttSession) handlePublish() error {
 			stored = found
 		}
 	}
-	msg := db.Message{
+	msg := database.Message{
 		Id:        uint(mid),
-		Direction: db.MessageDirectionIn,
+		Direction: database.MessageDirectionIn,
 		State:     0,
 		Qos:       qos,
 		Retain:    (retain > 0),
@@ -662,7 +659,7 @@ func (s *mqttSession) handlePublish() error {
 	case 2:
 		err = nil
 		if dup > 0 {
-			err = s.db.InsertMessage(s.id, mid, db.MessageDirectionIn, msg)
+			err = s.db.InsertMessage(s.id, mid, database.MessageDirectionIn, msg)
 		}
 		if err == nil {
 			err = s.sendPubRec(mid)
@@ -688,6 +685,6 @@ func (s *mqttSession) handlePubRel() error {
 		return err
 	}
 
-	s.db.DeleteMessage(s.id, mid, db.MessageDirectionIn)
+	s.db.DeleteMessage(s.id, mid, database.MessageDirectionIn)
 	return s.sendPubComp(mid)
 }

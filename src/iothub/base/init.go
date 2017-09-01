@@ -12,8 +12,19 @@
 
 package base
 
-import "iothub/util/config"
+var iothubConfigs = map[string]string{
+	"host":      "localhost:4145",
+	"loglevel":  "debug",
+	"kafka":     "",
+	"protocols": "mqtt,coap",
+}
+
+var dbConfigs = map[string]string{
+	"repository": "local",
+	"loglevel":   "debug",
+}
 
 func init() {
-	config.RegisterConfig("iothub", configs)
+	RegisterConfig("iothub", iothubConfigs)
+	RegisterConfig("database", dbConfigs)
 }

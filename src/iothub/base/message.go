@@ -13,7 +13,6 @@
 package base
 
 import (
-	"iothub/util/config"
 	"strings"
 	"time"
 
@@ -21,7 +20,7 @@ import (
 	"github.com/golang/glog"
 )
 
-func SyncProduceMessage(c config.Config, topic string, value sarama.Encoder) error {
+func SyncProduceMessage(c Config, topic string, value sarama.Encoder) error {
 	//	sarama.Logger = c.Logger()
 
 	config := sarama.NewConfig()
@@ -49,7 +48,7 @@ func SyncProduceMessage(c config.Config, topic string, value sarama.Encoder) err
 	return err
 }
 
-func AsyncProduceMessage(c config.Config, topic string, value sarama.Encoder) error {
+func AsyncProduceMessage(c Config, topic string, value sarama.Encoder) error {
 	//	sarama.Logger = c.Logger()
 
 	config := sarama.NewConfig()

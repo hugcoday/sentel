@@ -10,11 +10,4 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package base
-
-var configs = map[string]string{
-	"host":      "localhost:4145",
-	"loglevel":  "debug",
-	"kafka":     "",
-	"protocols": "mqtt,coap",
-}
+package database

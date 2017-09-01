@@ -10,11 +10,10 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package db
+package database
 
 import (
 	"fmt"
-	"iothub/util/config"
 	"time"
 
 	"github.com/golang/glog"
@@ -60,6 +59,11 @@ type Message struct {
 }
 
 type Context interface{}
+
+// Database option
+type Option struct {
+	Hosts string
+}
 
 type Database interface {
 	Open() error
@@ -107,7 +111,7 @@ type Database interface {
 }
 
 type databaseFactory interface {
-	New(c config.Config) (Database, error)
+	New(opt Option) (Database, error)
 }
 
 var _allDatabase = make(map[string]databaseFactory)
@@ -120,14 +124,15 @@ func registerDatabase(name string, d databaseFactory) {
 	_allDatabase[name] = d
 }
 
-func NewDatabase(c config.Config) (Database, error) {
-	repo, err := c.String("database", "repository")
-	if err != nil {
-		glog.Error("Database configuration has no repository")
-		return nil, err
+// NewDatabase lookup registered database list, create a new database instance
+func New(name string, opt Option) (Database, error) {
+	if _allDatabase[name] == nil {
+		return nil, fmt.Errorf("Database %s is not registered", name)
 	}
-	if _allDatabase[repo] == nil {
-		return nil, fmt.Errorf("Database %s is not registered", repo)
-	}
-	return _allDatabase[repo].New(c)
+	return _allDatabase[name].New(opt)
+}
+
+func init() {
+	registerDatabase("local", &localDatabaseFactory{})
+	// registerDatabase("etcd", etcdDatabaseFactory{})
 }

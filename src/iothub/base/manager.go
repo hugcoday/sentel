@@ -12,56 +12,49 @@
 package base
 
 import (
-	"errors"
-	"fmt"
-	"iothub/db"
-	"iothub/util/config"
+	"iothub/database"
 	"strings"
 
 	"github.com/golang/glog"
 )
 
 type ServiceManager struct {
-	config   config.Config       // Global config
+	config   Config              // Global config
 	services map[string]Service  // All service created by config.Protocols
 	chs      map[string]chan int // Notification channel for each service
-	db       db.Database
+	db       database.Database
 }
 
 // NewServiceManager create ServiceManager in main context
-func NewServiceManager(c config.Config) (*ServiceManager, error) {
+func NewServiceManager(c Config) (*ServiceManager, error) {
 	mgr := &ServiceManager{
 		config:   c,
 		chs:      make(map[string]chan int),
 		services: make(map[string]Service),
 	}
 	// Create database instance
-	if _, err := c.String("iothub", "database"); err != nil {
-		return nil, errors.New("No database is specified in config file")
+	name := c.MustString("database", "backend")
+	opt := database.Option{Hosts: ""}
+	// If 'hosts' is not set, using default local database
+	if hosts, err := c.String("database", "hosts"); err == nil {
+		opt.Hosts = hosts
 	}
-	database, err := db.NewDatabase(c)
-	if err != nil {
+	db, err := database.New(name, opt)
+	if db != nil {
 		return nil, err
 	}
-	if err := database.Open(); err != nil {
-		return nil, err
-	}
-	mgr.db = database
+	mgr.db = db
 
 	// Get supported configs
-	items, err := c.String("iothub", "protocols")
-	if err != nil {
-		database.Close()
-		return nil, fmt.Errorf("Invalid protocol declaration in config file")
-	}
+	items := c.MustString("iothub", "protocols")
 	protocols := strings.Split(items, ",")
 	// Create service for each protocol
 	for _, name := range protocols {
 		ch := make(chan int)
 		service, err := CreateService(name, c, ch, mgr.db)
 		if err != nil {
-			database.Close()
-			glog.Error("Create service(%s) failed", name)
+			db.Close()
+			glog.Errorf("Create service '%s' failed", name)
 			return nil, err
 		}
 		glog.Info("Create service(%s) success", name)

@@ -15,7 +15,6 @@ package base
 import (
 	"errors"
 	"fmt"
-	"iothub/util/config"
 
 	"github.com/golang/glog"
 )
@@ -71,7 +70,7 @@ func LoadAuthPlugin(name string, options []AuthOption) (AuthPlugin, error) {
 }
 
 // LoadAuthPluginWithConfig load a authPlugin with config
-func LoadAuthPluginWithConfig(service string, c config.Config) (AuthPlugin, error) {
+func LoadAuthPluginWithConfig(service string, c Config) (AuthPlugin, error) {
 	auth, _ := c.String(service, "authentication")
 	if _authPlugins[auth] == nil {
 		glog.Errorf("AuthPlugin for service %s does't exist", service)

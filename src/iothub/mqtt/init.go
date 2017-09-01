@@ -12,12 +12,15 @@
 
 package mqtt
 
-import (
-	"iothub/base"
-	"iothub/util/config"
-)
+import "iothub/base"
+
+var configs = map[string]string{
+	"host":               "localhost:1883",
+	"loglevel":           "debug",
+	"message_size_limit": "500",
+	"allow_anonymous":    "true",
+}
 
 func init() {
-	config.RegisterConfig("mqtt", configs)
-	base.RegisterServiceFactory(protocolName, &mqttFactory{})
+	base.RegisterServiceFactory(protocolName, configs, &mqttFactory{})
 }

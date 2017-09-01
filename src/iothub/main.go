@@ -15,20 +15,26 @@ package main
 import (
 	"flag"
 	"iothub/base"
-	"iothub/util/config"
 
 	"github.com/golang/glog"
 )
 
 var (
-	configFileFullPath = flag.String("c", "../etc/sentel/iothub/iothub.conf", "config file")
+	configFileFullPath = flag.String("c", "../etc/sentel/iothub.conf", "config file")
 	logFileFullPath    = flag.String("l", "/var/log/sentel/iothub.log", "log file")
 )
 
 func main() {
 	flag.Parse()
+	glog.Info("Starting iothub server...")
+
+	// Check all registered service
+	if err := base.CheckAllRegisteredServices(); err != nil {
+		glog.Errorf("%s", err)
+		return
+	}
 	// Get configuration
-	config, err := config.NewWithConfigFile(*configFileFullPath)
+	config, err := base.NewWithConfigFile(*configFileFullPath)
 	if err != nil {
 		flag.PrintDefaults()
 		return
@@ -36,7 +42,7 @@ func main() {
 
 	mgr, err := base.NewServiceManager(config)
 	if err != nil {
-		glog.Error("Failed to create ServiceManager")
+		glog.Errorf("Failed to launch ServiceManager:%s", err)
 		return
 	}
 	glog.Error(mgr.Start())
