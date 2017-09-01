@@ -71,7 +71,7 @@ type Database interface {
 	FindSession(c Context, id string) (*Session, error)
 	DeleteSession(c Context, id string) error
 	UpdateSession(c Context, s *Session) error
-	RegisterSession(c Context, id string, s Session) error
+	RegisterSession(c Context, s Session) error
 
 	// Device
 	AddDevice(c Context, d Device) error

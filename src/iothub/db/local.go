@@ -80,11 +80,11 @@ func (l *localDatabase) UpdateSession(c Context, s *Session) error {
 }
 
 // RegisterSession register new session
-func (l *localDatabase) RegisterSession(c Context, id string, s Session) error {
-	if _, ok := l.sessions[id]; ok {
+func (l *localDatabase) RegisterSession(c Context, s Session) error {
+	if _, ok := l.sessions[s.Id]; ok {
 		return errors.New("Session id already exists")
 	} else {
-		l.sessions[id] = s
+		l.sessions[s.Id] = s
 		return nil
 	}
 }
