@@ -22,5 +22,5 @@ var configs = map[string]string{
 }
 
 func init() {
-	base.RegisterServiceFactory(protocolName, configs, &mqttFactory{})
+	base.RegisterService(protocolName, configs, &mqttFactory{})
 }

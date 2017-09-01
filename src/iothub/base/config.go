@@ -142,13 +142,13 @@ func RegisterConfig(sectionName string, items map[string]string) {
 		section := _allConfigSections[sectionName]
 		for key, val := range items {
 			if section.items[key] != "" {
-				glog.Infof("Config item(%s) will overide existed item:%s",
-					key, section.items[key])
+				glog.Infof("Config item(%s) will overide existed item:%s", key, section.items[key])
 			}
 			section.items[key] = val
 		}
 	} else {
-		section := &configSection{items: make(map[string]string)}
+		section := new(configSection)
+		section.items = make(map[string]string)
 		for key, val := range items {
 			section.items[key] = val
 		}

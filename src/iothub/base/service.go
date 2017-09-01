@@ -43,7 +43,7 @@ type ServiceFactory interface {
 	New(c Config, ch chan int) (Service, error)
 }
 
-func RegisterServiceFactory(name string, configs map[string]string, factory ServiceFactory) {
+func RegisterService(name string, configs map[string]string, factory ServiceFactory) {
 	RegisterConfig(name, configs)
 	_serviceFactories[name] = factory
 }
