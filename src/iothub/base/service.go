@@ -60,7 +60,7 @@ func CheckAllRegisteredServices() error {
 		return errors.New("No service registered")
 	}
 	for name, _ := range _serviceFactories {
-		glog.Info("Service %s is registered", name)
+		glog.Infof("Service '%s' is registered", name)
 	}
 	return nil
 }

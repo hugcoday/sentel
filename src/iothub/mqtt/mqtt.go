@@ -128,11 +128,11 @@ func (m *mqtt) Run() error {
 	// Launch montor
 	// TODO:how to wait the monitor to be terminated
 	if err := m.launchMqttMonitor(); err != nil {
-		glog.Errorf("%s", err)
-		return err
+		glog.Errorf("Mqtt monitor failed, reason:%s", err)
+		//return err
 	}
 
-	glog.Info("Mqtt server is listening...")
+	glog.Infof("Mqtt server is listening on '%s'...", host)
 	for {
 		conn, err := listen.Accept()
 		if err != nil {

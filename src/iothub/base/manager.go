@@ -55,7 +55,7 @@ func NewServiceManager(c Config) (*ServiceManager, error) {
 		if err != nil {
 			glog.Errorf("%s", err)
 		} else {
-			glog.Info("Create service(%s) success", name)
+			glog.Infof("Create service '%s' success", name)
 			mgr.services[name] = service
 			mgr.chs[name] = ch
 		}
