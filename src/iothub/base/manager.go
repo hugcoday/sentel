@@ -54,18 +54,20 @@ func NewServiceManager(c Config) (*ServiceManager, error) {
 		service, err := CreateService(name, c, ch, mgr.db)
 		if err != nil {
 			glog.Errorf("%s", err)
-			return nil, err
+		} else {
+			glog.Info("Create service(%s) success", name)
+			mgr.services[name] = service
+			mgr.chs[name] = ch
 		}
-		glog.Info("Create service(%s) success", name)
-		mgr.services[name] = service
-		mgr.chs[name] = ch
 	}
 	return mgr, nil
 }
 
 // ServiceManger run all serice and wait to terminate
 func (s *ServiceManager) Start() error {
-	defer s.db.Close()
+	if s.db != nil {
+		defer s.db.Close()
+	}
 	// Run all service
 	for _, service := range s.services {
 		go service.Run()
