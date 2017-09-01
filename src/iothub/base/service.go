@@ -50,8 +50,7 @@ func RegisterService(name string, configs map[string]string, factory ServiceFact
 
 func CreateService(name string, c Config, ch chan int, d database.Database) (Service, error) {
 	if _serviceFactories[name] == nil {
-		glog.Errorf("Service '%s' is not registered", name)
-		return nil, fmt.Errorf("Service %s is not registered", name)
+		return nil, fmt.Errorf("Service' %s' is not registered", name)
 	}
 	return _serviceFactories[name].New(c, ch)
 }

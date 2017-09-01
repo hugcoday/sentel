@@ -128,7 +128,7 @@ func (m *mqtt) Run() error {
 	// Launch montor
 	// TODO:how to wait the monitor to be terminated
 	if err := m.launchMqttMonitor(); err != nil {
-		glog.Errorf("Failed to launch mqtt monitor:%s", err)
+		glog.Errorf("%s", err)
 		return err
 	}
 
