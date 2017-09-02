@@ -15,6 +15,7 @@ package main
 import (
 	"flag"
 	"iothub/base"
+	"iothub/coap"
 	"iothub/mqtt"
 
 	"github.com/golang/glog"
@@ -51,4 +52,5 @@ func main() {
 
 func init() {
 	base.RegisterService("mqtt", mqtt.Configs, &mqtt.MqttFactory{})
+	base.RegisterService("coap", mqtt.Configs, &coap.CoapFactory{})
 }

@@ -10,10 +10,9 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package mqtt
+package coap
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"iothub/base"
@@ -28,35 +27,33 @@ import (
 )
 
 const (
-	maxMqttConnections = 1000000
-	protocolName       = "mqtt3"
+	protocolName = "coap"
 )
 
-type mqtt struct {
+type coap struct {
 	config     base.Config
 	chn        chan int
 	index      int64
 	sessions   map[string]base.Session
 	mutex      sync.Mutex // Maybe not so good
-	inpacket   *mqttPacket
 	protocol   uint8
 	wg         sync.WaitGroup
 	localAddrs []string
 	db         database.Database
 }
 
-// MqttFactory
-type MqttFactory struct{}
+// CoapFactory
+type CoapFactory struct{}
 
-// New create mqtt service factory
-func (m *MqttFactory) New(c base.Config, ch chan int) (base.Service, error) {
+// New create coap service factory
+func (m *CoapFactory) New(c base.Config, ch chan int) (base.Service, error) {
 	var localAddrs []string = []string{}
 	var db database.Database
 
 	// Get all local ip address
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
-		glog.Errorf("Failed to get local interface:%s", err)
+		glog.Errorf("Failed to get local address:%s", err)
 		return nil, err
 	}
 	for _, addr := range addrs {
@@ -70,10 +67,10 @@ func (m *MqttFactory) New(c base.Config, ch chan int) (base.Service, error) {
 	// Create database
 	name := c.MustString("database", "name")
 	if db, err = database.New(name, database.Option{}); err != nil {
-		return nil, errors.New("Failed to create database in mqtt")
+		return nil, errors.New("Failed to create database in coap")
 	}
 
-	t := &mqtt{config: c,
+	t := &coap{config: c,
 		chn:        ch,
 		index:      -1,
 		sessions:   make(map[string]base.Session),
@@ -86,51 +83,44 @@ func (m *MqttFactory) New(c base.Config, ch chan int) (base.Service, error) {
 
 // MQTT Service
 
-func (m *mqtt) NewSession(conn net.Conn) (base.Session, error) {
+func (m *coap) NewSession(conn net.Conn) (base.Session, error) {
 	id := m.CreateSessionId()
-	s, err := newMqttSession(m, conn, id)
+	s, err := newCoapSession(m, conn, id)
 	return s, err
 }
 
 // CreateSessionId create id for new session
-func (m *mqtt) CreateSessionId() string {
+func (m *coap) CreateSessionId() string {
 	return uuid.NewV4().String()
 }
 
 // GetSessionTotalCount get total session count
-func (m *mqtt) GetSessionTotalCount() int64 {
+func (m *coap) GetSessionTotalCount() int64 {
 	return int64(len(m.sessions))
 }
 
-func (m *mqtt) RemoveSession(s base.Session) {
+func (m *coap) RemoveSession(s base.Session) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	m.sessions[s.Identifier()] = nil
 }
-func (m *mqtt) RegisterSession(s base.Session) {
+func (m *coap) RegisterSession(s base.Session) {
 	m.mutex.Lock()
 	m.sessions[s.Identifier()] = s
 	m.mutex.Unlock()
 }
 
-// Run is mainloop for mqtt service
+// Run is mainloop for coap service
 // TODO: Run is very common for each service, it should be moved to ServiceManager
-func (m *mqtt) Run() error {
-	host, _ := m.config.String("mqtt", "host")
+func (m *coap) Run() error {
+	host, _ := m.config.String("coap", "host")
 
 	listen, err := net.Listen("tcp", host)
 	if err != nil {
-		glog.Errorf("Mqtt listen failed:%s", err)
+		glog.Errorf("Coap listen failed:%s", err)
 		return err
 	}
-	// Launch montor
-	// TODO:how to wait the monitor to be terminated
-	if err := m.launchMqttMonitor(); err != nil {
-		glog.Errorf("Mqtt monitor failed, reason:%s", err)
-		//return err
-	}
-
-	glog.Infof("Mqtt server is listening on '%s'...", host)
+	glog.Infof("Coap server is listening on '%s'...", host)
 	for {
 		conn, err := listen.Accept()
 		if err != nil {
@@ -151,8 +141,8 @@ func (m *mqtt) Run() error {
 }
 
 // launchMqttMonitor
-func (m *mqtt) launchMqttMonitor() error {
-	glog.Info("Luanching mqtt monitor...")
+func (m *coap) launchCoapMonitor() error {
+	glog.Info("Luanching coap monitor...")
 	//sarama.Logger = glog
 	khosts, _ := m.config.String("iothub", "kafka-hosts")
 	consumer, err := sarama.NewConsumer(strings.Split(khosts, ","), nil)
@@ -160,7 +150,7 @@ func (m *mqtt) launchMqttMonitor() error {
 		return fmt.Errorf("Connecting with kafka:%s failed", khosts)
 	}
 
-	partitionList, err := consumer.Partitions("iothub-mqtt")
+	partitionList, err := consumer.Partitions("iothub-coap")
 	if err != nil {
 		return fmt.Errorf("Failed to get list of partions:%v", err)
 		return err
@@ -188,38 +178,11 @@ func (m *mqtt) launchMqttMonitor() error {
 }
 
 // handleNotifications handle notification from kafka
-func (m *mqtt) handleNotifications(topic string, value []byte) error {
-	switch topic {
-	case TopicNameSession:
-		return m.handleSessionNotifications(value)
-	}
+func (m *coap) handleNotifications(topic string, value []byte) error {
 	return nil
 }
 
 // handleSessionNotifications handle session notification  from kafka
-func (m *mqtt) handleSessionNotifications(value []byte) error {
-	// Decode value received form other mqtt node
-	var topics []SessionTopic
-	if err := json.Unmarshal(value, &topics); err != nil {
-		glog.Errorf("Mqtt session notifications failure:%s", err)
-		return err
-	}
-	// Get local ip address
-	for _, topic := range topics {
-		switch topic.Action {
-		case ObjectActionUpdate:
-			// Only deal with notification that is not  launched by myself
-			for _, addr := range m.localAddrs {
-				if addr != topic.Launcher {
-					m.db.UpdateSession(nil,
-						&database.Session{Id: topic.SessionId, State: topic.State})
-				}
-			}
-		case ObjectActionDelete:
-
-		case ObjectActionRegister:
-		default:
-		}
-	}
+func (m *coap) handleSessionNotifications(value []byte) error {
 	return nil
 }

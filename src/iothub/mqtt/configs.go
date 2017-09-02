@@ -12,16 +12,9 @@
 
 package mqtt
 
-import "fmt"
-
 var Configs = map[string]string{
 	"host":               "localhost:1883",
 	"loglevel":           "debug",
 	"message_size_limit": "500",
 	"allow_anonymous":    "true",
-}
-
-func init() {
-	fmt.Println("Registering mqtt service")
-	//base.RegisterService(protocolName, configs, &MqttFactory{})
 }
