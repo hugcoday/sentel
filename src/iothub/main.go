@@ -52,5 +52,5 @@ func main() {
 
 func init() {
 	base.RegisterService("mqtt", mqtt.Configs, &mqtt.MqttFactory{})
-	base.RegisterService("coap", mqtt.Configs, &coap.CoapFactory{})
+	base.RegisterService("coap", coap.Configs, &coap.CoapFactory{})
 }
