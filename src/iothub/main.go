@@ -35,17 +35,18 @@ func main() {
 
 	// Check all registered service
 	if err := base.CheckAllRegisteredServices(); err != nil {
-		glog.Fatal("%s", err)
+		glog.Fatal(err)
 		return
 	}
 	// Get configuration
 	if config, err = base.NewWithConfigFile(*configFileFullPath); err != nil {
+		glog.Fatal(err)
 		flag.PrintDefaults()
 		return
 	}
 	// Create service manager according to the configuration
 	if mgr, err = base.NewServiceManager(config); err != nil {
-		glog.Error("Failed to launch ServiceManager")
+		glog.Fatal("Failed to launch ServiceManager")
 		return
 	}
 	glog.Error(mgr.Start())
