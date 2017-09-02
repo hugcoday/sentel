@@ -10,7 +10,7 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package base
+package security
 
 import (
 	"errors"
@@ -19,7 +19,7 @@ import (
 	"github.com/golang/glog"
 )
 
-type AuthOption struct{}
+type AuthOptions map[string]string
 
 const (
 	AclActionNone  = 0
@@ -38,10 +38,10 @@ var (
 // AuthPlugin interface for security
 type AuthPlugin interface {
 	GetVersion() int
-	Initialize(data interface{}, options []AuthOption) error
-	Cleanup(data interface{}, options []AuthOption) error
-	InitializeSecurity(data interface{}, options []AuthOption) error
-	CleanupSecurity(data interface{}, options []AuthOption) error
+	Initialize(data interface{}, opts AuthOptions) error
+	Cleanup(data interface{}, opts AuthOptions) error
+	InitializeSecurity(data interface{}, opts AuthOptions) error
+	CleanupSecurity(data interface{}, opts AuthOptions) error
 	CheckAcl(data interface{}, clientid string, username string, topic string, access int) error
 	CheckUsernameAndPasswor(data interface{}, username string, password string) error
 	GetPskKey(data interface{}, hint string, identity string) (string, error)
@@ -49,7 +49,7 @@ type AuthPlugin interface {
 
 // AuthPluginFactory
 type AuthPluginFactory interface {
-	New(options []AuthOption) (AuthPlugin, error)
+	New(opts AuthOptions) (AuthPlugin, error)
 }
 
 // RegisterAuthPlugin register a auth plugin
@@ -62,24 +62,9 @@ func RegisterAuthPlugin(name string, factory AuthPluginFactory) {
 }
 
 // LoadAuthPlugin load a authPlugin
-func LoadAuthPlugin(name string, options []AuthOption) (AuthPlugin, error) {
+func LoadAuthPlugin(name string, opts AuthOptions) (AuthPlugin, error) {
 	if _authPlugins[name] == nil {
-		return nil, fmt.Errorf("AuthPlugin %s does't exist", name)
+		return nil, fmt.Errorf("AuthPlugin '%s' is not registered", name)
 	}
-	return _authPlugins[name].New(options)
-}
-
-// LoadAuthPluginWithConfig load a authPlugin with config
-func LoadAuthPluginWithConfig(service string, c Config) (AuthPlugin, error) {
-	auth, _ := c.String(service, "authentication")
-	if _authPlugins[auth] == nil {
-		glog.Errorf("AuthPlugin for service %s does't exist", service)
-	} else {
-		auth, _ := c.String("iothub", "authentication")
-		if _authPlugins[auth] == nil {
-			glog.Errorf("AuthPlugin %s are not registered", service)
-			return nil, fmt.Errorf("AuthPlugin %s does't exist", auth)
-		}
-	}
-	return _authPlugins[auth].New(nil)
+	return _authPlugins[name].New(opts)
 }

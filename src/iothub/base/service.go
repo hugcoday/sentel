@@ -15,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 	"iothub/database"
+	"iothub/security"
 	"net"
 
 	"github.com/golang/glog"
@@ -63,4 +64,19 @@ func CheckAllRegisteredServices() error {
 		glog.Infof("Service '%s' is registered", name)
 	}
 	return nil
+}
+
+// LoadAuthPluginWithConfig load a authPlugin with config
+func LoadAuthPluginWithConfig(service string, c Config) (security.AuthPlugin, error) {
+	// Get authentication for this service, if service's authentication is not
+	// specified, using iothub's authentication
+	auth, err := c.String(service, "authentication")
+	if err != nil {
+		if auth, err = c.String("security", "authentication"); err != nil {
+			return nil, fmt.Errorf("Authentication method is not specified for service '%s'", service)
+		}
+	}
+
+	opts := security.AuthOptions{}
+	return security.LoadAuthPlugin(auth, opts)
 }

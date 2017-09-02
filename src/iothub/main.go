@@ -23,27 +23,28 @@ import (
 
 var (
 	configFileFullPath = flag.String("c", "../etc/sentel/iothub.conf", "config file")
-	logFileFullPath    = flag.String("l", "/var/log/sentel/iothub.log", "log file")
 )
 
 func main() {
+	var mgr *base.ServiceManager
+	var config base.Config
+	var err error
+
 	flag.Parse()
 	glog.Info("Starting iothub server...")
 
 	// Check all registered service
 	if err := base.CheckAllRegisteredServices(); err != nil {
-		glog.Errorf("%s", err)
+		glog.Fatal("%s", err)
 		return
 	}
 	// Get configuration
-	config, err := base.NewWithConfigFile(*configFileFullPath)
-	if err != nil {
+	if config, err = base.NewWithConfigFile(*configFileFullPath); err != nil {
 		flag.PrintDefaults()
 		return
 	}
-
-	mgr, err := base.NewServiceManager(config)
-	if err != nil {
+	// Create service manager according to the configuration
+	if mgr, err = base.NewServiceManager(config); err != nil {
 		glog.Error("Failed to launch ServiceManager")
 		return
 	}

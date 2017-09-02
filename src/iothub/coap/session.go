@@ -15,6 +15,7 @@ package coap
 import (
 	"iothub/base"
 	"iothub/database"
+	"iothub/security"
 	"net"
 
 	"github.com/golang/glog"
@@ -24,7 +25,7 @@ type coapSession struct {
 	mgr        *coap
 	config     base.Config
 	db         database.Database
-	authplugin base.AuthPlugin
+	authplugin security.AuthPlugin
 	conn       net.Conn
 	id         string
 	state      uint8

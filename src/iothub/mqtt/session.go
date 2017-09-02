@@ -19,6 +19,7 @@ import (
 	"io"
 	"iothub/base"
 	"iothub/database"
+	"iothub/security"
 	"net"
 	"sync"
 	"time"
@@ -53,7 +54,7 @@ type mqttSession struct {
 	mgr                   *mqtt
 	config                base.Config
 	db                    database.Database
-	authplugin            base.AuthPlugin
+	authplugin            security.AuthPlugin
 	conn                  net.Conn
 	id                    string
 	state                 uint8
@@ -424,8 +425,8 @@ func (s *mqttSession) handleConnect() error {
 	s.db.DeleteMessageWithValidator(
 		clientid,
 		func(msg database.Message) bool {
-			err := s.authplugin.CheckAcl(s, clientid, username, msg.Topic, base.AclActionRead)
-			if err == base.ErrorAclDenied {
+			err := s.authplugin.CheckAcl(s, clientid, username, msg.Topic, security.AclActionRead)
+			if err == security.ErrorAclDenied {
 				return false
 			}
 			return true
@@ -613,9 +614,9 @@ func (s *mqttSession) handlePublish() error {
 	}
 	// Check for topic access
 	if s.observer != nil {
-		err := s.authplugin.CheckAcl(s, s.id, s.username, topic, base.AclActionWrite)
+		err := s.authplugin.CheckAcl(s, s.id, s.username, topic, security.AclActionWrite)
 		switch err {
-		case base.ErrorAclDenied:
+		case security.ErrorAclDenied:
 			return mqttErrorInvalidProtocol
 		default:
 			return err
