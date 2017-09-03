@@ -126,18 +126,18 @@ func (s *mqttSession) Handle() error {
 	defer s.Destroy()
 	for {
 		if err := s.readPacket(); err != nil {
-			glog.Errorf("Reading packet error occured for connection:%s", s.id)
+			glog.Error(err)
 			return err
 		}
 		if err := s.handlePacket(); err != nil {
-			glog.Errorf("Handle packet error occured for connection:%s", s.id)
+			glog.Error(err)
 			return err
 		}
 	}
 	return nil
 }
 
-// removeConnection remove current connection from mqttManaager if errors occured
+// Destroy will destory the current session
 func (s *mqttSession) Destroy() error {
 	s.conn.Close()
 	s.mgr.RemoveSession(s)
@@ -152,13 +152,18 @@ func (s *mqttSession) generateId() string {
 // readPacket read a whole mqtt packet from session
 // TODO: underlay's read method  should be payed attention
 func (s *mqttSession) readPacket() error {
-	// Assumption: Read whole packet data in one read calling
+	glog.Info("Reading mqtt packet...")
+
 	var buf bytes.Buffer
-	_, err := io.Copy(&buf, s.conn)
-	if err != nil {
-		return fmt.Errorf("read packet error:%s", err)
+
+	if _, err := io.Copy(&buf, s.conn); err != nil {
+		return fmt.Errorf("Reading Mqtt packet failed:%s on session:%s", err, s.id)
+	} else if buf.Len() == 0 {
+		return fmt.Errorf("Null mqtt packet received on session:%s", s.id)
 	}
-	_, err = s.inpacket.DecodeFromBytes(buf.Bytes(), base.NilDecodeFeedback{})
+
+	glog.Infof("Packet length:%d", buf.Len())
+	_, err := s.inpacket.DecodeFromBytes(buf.Bytes(), base.NilDecodeFeedback{})
 	return err
 }
 

@@ -40,8 +40,6 @@ type AuthPlugin interface {
 	GetVersion() int
 	Initialize(data interface{}, opts AuthOptions) error
 	Cleanup(data interface{}, opts AuthOptions) error
-	InitializeSecurity(data interface{}, opts AuthOptions) error
-	CleanupSecurity(data interface{}, opts AuthOptions) error
 	CheckAcl(data interface{}, clientid string, username string, topic string, access int) error
 	CheckUsernameAndPasswor(data interface{}, username string, password string) error
 	GetPskKey(data interface{}, hint string, identity string) (string, error)
@@ -55,7 +53,7 @@ type AuthPluginFactory interface {
 // RegisterAuthPlugin register a auth plugin
 func RegisterAuthPlugin(name string, factory AuthPluginFactory) {
 	if _authPlugins[name] != nil {
-		glog.Fatalf("AluthPlugin %s already registered")
+		glog.Errorf("AuthPlugin '%s' is already registered")
 		return
 	}
 	_authPlugins[name] = factory
@@ -65,6 +63,7 @@ func RegisterAuthPlugin(name string, factory AuthPluginFactory) {
 func LoadAuthPlugin(name string, opts AuthOptions) (AuthPlugin, error) {
 	// Default authentication is 'none'
 	if name == "" {
+		glog.Warning("No authentication method is specified, using none authentication")
 		name = "none"
 	}
 	if _authPlugins[name] == nil {
