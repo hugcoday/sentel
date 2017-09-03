@@ -121,14 +121,16 @@ func (s *mqttSession) RegisterObserver(o base.SessionObserver) {
 // handle is mainprocessor for iot device client
 // Loop to read packet from conn
 func (s *mqttSession) Handle() error {
+	glog.Infof("Handling session:%s", s.id)
+
 	defer s.Destroy()
 	for {
 		if err := s.readPacket(); err != nil {
-			glog.Errorf("Reading packet error occured for connection:%d", s.id)
+			glog.Errorf("Reading packet error occured for connection:%s", s.id)
 			return err
 		}
 		if err := s.handlePacket(); err != nil {
-			glog.Errorf("Handle packet error occured for connection:%d", s.id)
+			glog.Errorf("Handle packet error occured for connection:%s", s.id)
 			return err
 		}
 	}

@@ -76,7 +76,6 @@ func LoadAuthPluginWithConfig(service string, c Config) (security.AuthPlugin, er
 			return nil, fmt.Errorf("Authentication method is not specified for service '%s'", service)
 		}
 	}
-
 	opts := security.AuthOptions{}
 	return security.LoadAuthPlugin(auth, opts)
 }

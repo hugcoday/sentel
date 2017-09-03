@@ -63,6 +63,10 @@ func RegisterAuthPlugin(name string, factory AuthPluginFactory) {
 
 // LoadAuthPlugin load a authPlugin
 func LoadAuthPlugin(name string, opts AuthOptions) (AuthPlugin, error) {
+	// Default authentication is 'none'
+	if name == "" {
+		name = "none"
+	}
 	if _authPlugins[name] == nil {
 		return nil, fmt.Errorf("AuthPlugin '%s' is not registered", name)
 	}
