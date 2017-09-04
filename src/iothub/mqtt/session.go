@@ -429,8 +429,8 @@ func (s *mqttSession) handleConnect() error {
 	})
 
 	s.state = mqttStateConnected
-
-	return nil
+	err = s.sendConnAck(uint8(conack), CONNACK_ACCEPTED)
+	return err
 }
 
 // handleDisconnect handle disconnect packet

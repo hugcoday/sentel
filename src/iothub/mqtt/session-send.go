@@ -36,7 +36,7 @@ func (s *mqttSession) sendPingRsp() error {
 
 // sendConnAck send connection response to client
 func (s *mqttSession) sendConnAck(ack uint8, result uint8) error {
-	glog.Info("Sending CONNACK from %s", s.id)
+	glog.Infof("Sending CONNACK from '%s'", s.id)
 
 	packet := &mqttPacket{
 		command:         CONNACK,

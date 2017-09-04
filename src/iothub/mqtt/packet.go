@@ -211,6 +211,7 @@ func (p *mqttPacket) ReadString() (string, error) {
 	}
 
 	s := string(p.payload[p.pos : p.pos+int(len)])
+	p.pos += int(len)
 	return s, nil
 }
 
