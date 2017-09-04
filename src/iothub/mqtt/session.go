@@ -154,6 +154,10 @@ func (s *mqttSession) Handle() error {
 			glog.Error(err)
 			return err
 		}
+		// Check sesstion state
+		if s.state == mqttStateDisconnected {
+			break
+		}
 		s.inpacket.Clear()
 	}
 	return nil
@@ -161,7 +165,9 @@ func (s *mqttSession) Handle() error {
 
 // Destroy will destory the current session
 func (s *mqttSession) Destroy() error {
-	s.conn.Close()
+	if s.conn != nil {
+		s.conn.Close()
+	}
 	s.mgr.RemoveSession(s)
 	return nil
 }
@@ -446,11 +452,9 @@ func (s *mqttSession) handleDisconnect() error {
 	if s.inpacket.remainingLength != 0 {
 		return mqttErrorInvalidProtocol
 	}
-	if s.protocol == mqttProtocol311 {
-		if (s.inpacket.command & 0x0F) != 0x00 {
-			s.disconnect()
-			return mqttErrorInvalidProtocol
-		}
+	if s.protocol == mqttProtocol311 && (s.inpacket.command&0x0F) != 0x00 {
+		s.disconnect()
+		return mqttErrorInvalidProtocol
 	}
 	s.state = mqttStateDisconnecting
 	s.disconnect()
@@ -462,6 +466,13 @@ func (s *mqttSession) disconnect() {
 	if s.state == mqttStateDisconnected {
 		return
 	}
+	if s.cleanSession > 0 {
+		s.storage.DeleteSession(nil, s.id)
+		s.id = ""
+	}
+	s.state = mqttStateDisconnected
+	s.conn.Close()
+	s.conn = nil
 }
 
 // handleSubscribe handle subscribe packet
@@ -604,7 +615,7 @@ func (s *mqttSession) handlePublish() error {
 			return err
 		}
 	}
-	glog.Infof("Received PUBLISH from %s(d:%d, q:%d r:d%, m%d, '%s',..(%d)bytes",
+	glog.Infof("Received PUBLISH from %s(d:%d, q:%d r:%d, m:%d, '%s',..(%d)bytes",
 		s.id, dup, qos, retain, mid, topic, payloadlen)
 
 	// Check wether the message has been stored
