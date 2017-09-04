@@ -70,8 +70,8 @@ func (s *mqttSession) initializePacket(p *mqttPacket) error {
 	p.length = p.remainingLength + 1 + p.remainingCount
 	p.payload = make([]uint8, p.length)
 	p.payload[0] = p.command
-	for i, b := range remainingBytes {
-		p.payload[i+1] = b
+	for i := 0; i < p.remainingCount; i++ {
+		p.payload[i+1] = remainingBytes[i]
 	}
 	p.pos = 1 + p.remainingCount
 	return nil
