@@ -120,34 +120,39 @@ func (s *mqttSession) RegisterObserver(o base.SessionObserver) {
 	s.observer = o
 }
 
-// handle is mainprocessor for iot device client
-// Loop to read packet from conn
+// Handle is mainprocessor for iot device client
 func (s *mqttSession) Handle() error {
+
 	glog.Infof("Handling session:%s", s.id)
 	defer s.Destroy()
 
 	for {
-		if err := s.inpacket.DecodeFromReader(s.conn, base.NilDecodeFeedback{}); err != nil {
+		var err error
+		if err = s.inpacket.DecodeFromReader(s.conn, base.NilDecodeFeedback{}); err != nil {
 			glog.Error(err)
 			return err
 		}
 		switch s.inpacket.command & 0xF0 {
 		case PINGREQ:
-			return s.handlePingReq()
+			err = s.handlePingReq()
 		case CONNECT:
-			return s.handleConnect()
+			err = s.handleConnect()
 		case DISCONNECT:
-			return s.handleDisconnect()
+			err = s.handleDisconnect()
 		case PUBLISH:
-			return s.handlePublish()
+			err = s.handlePublish()
 		case PUBREL:
-			return s.handlePubRel()
+			err = s.handlePubRel()
 		case SUBSCRIBE:
-			return s.handleSubscribe()
+			err = s.handleSubscribe()
 		case UNSUBSCRIBE:
-			return s.handleUnsubscribe()
+			err = s.handleUnsubscribe()
 		default:
-			return fmt.Errorf("Unrecognized protocol command:%d", int(s.inpacket.command&0xF0))
+			err = fmt.Errorf("Unrecognized protocol command:%d", int(s.inpacket.command&0xF0))
+		}
+		if err != nil {
+			glog.Error(err)
+			return err
 		}
 	}
 	return nil
