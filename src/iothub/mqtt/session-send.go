@@ -55,26 +55,23 @@ func (s *mqttSession) initializePacket(p *mqttPacket) error {
 
 	remainingLength := p.remainingLength
 	p.remainingCount = 0
-	for {
+	for remainingLength > 0 && p.remainingCount < 5 {
 		b := remainingLength % 128
 		remainingLength = remainingLength / 128
 		if remainingLength > 0 {
 			b = b | 0x80
 		}
-		remainingBytes[p.remainingLength] = uint8(b)
+		remainingBytes[p.remainingCount] = uint8(b)
 		p.remainingCount++
-		if remainingLength < 0 || p.remainingCount >= 5 {
-			break
-		}
-		p.length = p.remainingLength + 1 + p.remainingCount
 	}
 	if p.remainingCount == 5 {
 		return fmt.Errorf("Invalid packet(%d) payload size", p.command)
 	}
+	p.length = p.remainingLength + 1 + p.remainingCount
 	p.payload = make([]uint8, p.length)
 	p.payload[0] = p.command
-	for index, b := range remainingBytes {
-		p.payload[index+1] = b
+	for i, b := range remainingBytes {
+		p.payload[i+1] = b
 	}
 	p.pos = 1 + p.remainingCount
 	return nil

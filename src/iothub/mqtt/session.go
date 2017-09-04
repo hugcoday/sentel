@@ -79,6 +79,8 @@ type mqttSession struct {
 	outPackets            []*mqttPacket
 	currentOutPacket      *mqttPacket
 	lastOutPacket         *mqttPacket
+	//	sendStopChannel       chan int
+	//	sendPacketChannel     chan mqttPacket
 }
 
 // newMqttSession create new session  for each client connection
@@ -95,6 +97,8 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 		inpacket:      newMqttPacket(),
 		protocol:      mqttProtocolInvalid,
 		observer:      nil,
+		//		sendStopChannel:   make(chan int),
+		//		sendPacketChannel: make(chan mqttPacket),
 	}
 	// Load database and plugin for each session
 	name := m.config.MustString("database", "name")
