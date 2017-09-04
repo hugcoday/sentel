@@ -78,7 +78,11 @@ type mqttSession struct {
 
 // newMqttSession create new session  for each client connection
 func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
-	var err error = nil
+	// Get session message queue size, if it is not set, default is 10
+	qsize, err := m.config.Int("mqtt", "session_queue_size")
+	if err != nil {
+		qsize = 10
+	}
 
 	s := &mqttSession{
 		mgr:               m,
@@ -91,7 +95,7 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 		protocol:          mqttProtocolInvalid,
 		observer:          nil,
 		sendStopChannel:   make(chan int),
-		sendPacketChannel: make(chan *mqttPacket, 10),
+		sendPacketChannel: make(chan *mqttPacket, qsize),
 	}
 	// Load storage and plugin for each session
 	name := m.config.MustString("storage", "name")
@@ -279,7 +283,7 @@ func (s *mqttSession) handleConnect() error {
 	if err != nil {
 		return err
 	}
-	if len(clientid) == 0 {
+	if clientid == "" {
 		if s.protocol == mqttProtocol31 {
 			s.sendConnAck(0, CONNACK_REFUSED_IDENTIFIER_REJECTED)
 		} else {
@@ -552,10 +556,8 @@ func (s *mqttSession) handleSubscribe() error {
 		payload = append(payload, qos)
 	}
 
-	if s.protocol == mqttProtocol311 {
-		if len(payload) == 0 {
-			return mqttErrorInvalidProtocol
-		}
+	if s.protocol == mqttProtocol311 && len(payload) == 0 {
+		return mqttErrorInvalidProtocol
 	}
 	return s.sendSubAck(mid, payload)
 }
@@ -588,7 +590,7 @@ func (s *mqttSession) handleUnsubscribe() error {
 
 // handlePublish handle publish packet
 func (s *mqttSession) handlePublish() error {
-	glog.Infof("Received PUBLISH on %s", s.id)
+	glog.Infof("Received PUBLISH from %s", s.id)
 
 	var topic string
 	var mid uint16

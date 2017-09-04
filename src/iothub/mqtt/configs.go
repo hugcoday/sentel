@@ -17,4 +17,5 @@ var Configs = map[string]string{
 	"loglevel":           "debug",
 	"message_size_limit": "500",
 	"allow_anonymous":    "true",
+	"session_queue_size": "20",
 }
