@@ -85,11 +85,14 @@ func (p *mqttPacket) PacketType() string {
 }
 func (p *mqttPacket) Clear() {
 	p.command = 0
+	p.pos = 0
 	p.length = 0
 	p.toprocess = 0
 	p.remainingCount = 0
 	p.remainingLength = 0
+	p.remainingMult = 1
 	p.payload = []uint8{}
+	p.buf = []uint8{}
 }
 
 // SerializeTo writes the serialized form of the packet into the serialize buffer
@@ -194,7 +197,7 @@ func (p *mqttPacket) WriteBytes(buf []uint8) error {
 		return mqttErrorInvalidProtocol
 	}
 	for _, b := range buf {
-		p.payload = append(p.payload[p.pos:], b)
+		p.payload = append(p.payload, b)
 		p.pos++
 	}
 	return nil
