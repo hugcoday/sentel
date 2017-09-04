@@ -49,38 +49,31 @@ const (
 )
 
 type mqttSession struct {
-	mgr                   *mqtt
-	config                base.Config
-	storage               storage.Storage
-	authplugin            security.AuthPlugin
-	conn                  net.Conn
-	id                    string
-	state                 uint8
-	inpacket              mqttPacket
-	bytesReceived         int64
-	pingTime              *time.Time
-	address               string
-	keepalive             uint16
-	protocol              uint8
-	observer              base.SessionObserver
-	username              string
-	password              string
-	lastMessageIn         time.Time
-	lastMessageOut        time.Time
-	cleanSession          uint8
-	isDroping             bool
-	willMsg               *mqttMessage
-	outPacketMutex        sync.Mutex
-	currentOutPacketMutex sync.Mutex
-	stateMutex            sync.Mutex
-	inMessageMutex        sync.Mutex
-	outMessageMutex       sync.Mutex
-	midMutex              sync.Mutex
-	outPackets            []*mqttPacket
-	currentOutPacket      *mqttPacket
-	lastOutPacket         *mqttPacket
-	//	sendStopChannel       chan int
-	//	sendPacketChannel     chan mqttPacket
+	mgr               *mqtt
+	config            base.Config
+	storage           storage.Storage
+	authplugin        security.AuthPlugin
+	conn              net.Conn
+	id                string
+	state             uint8
+	inpacket          mqttPacket
+	bytesReceived     int64
+	pingTime          *time.Time
+	address           string
+	keepalive         uint16
+	protocol          uint8
+	observer          base.SessionObserver
+	username          string
+	password          string
+	lastMessageIn     time.Time
+	lastMessageOut    time.Time
+	cleanSession      uint8
+	isDroping         bool
+	willMsg           *mqttMessage
+	stateMutex        sync.Mutex
+	sendStopChannel   chan int
+	sendPacketChannel chan *mqttPacket
+	waitgroup         sync.WaitGroup
 }
 
 // newMqttSession create new session  for each client connection
@@ -88,17 +81,17 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 	var err error = nil
 
 	s := &mqttSession{
-		mgr:           m,
-		config:        m.config,
-		conn:          conn,
-		id:            id,
-		bytesReceived: 0,
-		state:         mqttStateNew,
-		inpacket:      newMqttPacket(),
-		protocol:      mqttProtocolInvalid,
-		observer:      nil,
-		//		sendStopChannel:   make(chan int),
-		//		sendPacketChannel: make(chan mqttPacket),
+		mgr:               m,
+		config:            m.config,
+		conn:              conn,
+		id:                id,
+		bytesReceived:     0,
+		state:             mqttStateNew,
+		inpacket:          newMqttPacket(),
+		protocol:          mqttProtocolInvalid,
+		observer:          nil,
+		sendStopChannel:   make(chan int),
+		sendPacketChannel: make(chan *mqttPacket, 10),
 	}
 	// Load storage and plugin for each session
 	name := m.config.MustString("storage", "name")
@@ -120,12 +113,43 @@ func (s *mqttSession) RegisterObserver(o base.SessionObserver) {
 	s.observer = o
 }
 
+// launchPacketSendHandler launch goroutine to send packet queued for client
+func (s *mqttSession) launchPacketSendHandler() {
+	go func(stopChannel chan int, packetChannel chan *mqttPacket) {
+		defer s.waitgroup.Add(1)
+
+		for {
+			select {
+			case <-stopChannel:
+				return
+			case p := <-packetChannel:
+				for p.toprocess > 0 {
+					len, err := s.conn.Write(p.payload[p.pos:p.toprocess])
+					if err != nil {
+						glog.Fatal("Failed to send packet to '%s:%s'", s.id, err)
+						return
+					}
+					if len > 0 {
+						p.toprocess -= len
+						p.pos += len
+					} else {
+						glog.Fatal("Failed to send packet to '%s'", s.id)
+						return
+					}
+				}
+			}
+
+		}
+	}(s.sendStopChannel, s.sendPacketChannel)
+}
+
 // Handle is mainprocessor for iot device client
 func (s *mqttSession) Handle() error {
 
 	glog.Infof("Handling session:%s", s.id)
 	defer s.Destroy()
 
+	s.launchPacketSendHandler()
 	for {
 		var err error
 		if err = s.inpacket.DecodeFromReader(s.conn, base.NilDecodeFeedback{}); err != nil {
@@ -165,6 +189,9 @@ func (s *mqttSession) Handle() error {
 
 // Destroy will destory the current session
 func (s *mqttSession) Destroy() error {
+	// Stop packet sender goroutine
+	s.sendStopChannel <- 1
+	s.waitgroup.Wait()
 	if s.conn != nil {
 		s.conn.Close()
 	}
@@ -759,15 +786,14 @@ func (s *mqttSession) sendSubAck(mid uint16, payload []uint8) error {
 
 // sendCommandWithMid send command with message identifier
 func (s *mqttSession) sendCommandWithMid(command uint8, mid uint16, dup bool) error {
-	packet := new(mqttPacket)
-	packet.command = command
+	packet := &mqttPacket{
+		command:         command,
+		remainingLength: 2,
+	}
 	if dup {
 		packet.command |= 8
 	}
-	packet.remainingLength = 2
-	if err := s.initializePacket(packet); err != nil {
-		return err
-	}
+	s.initializePacket(packet)
 	packet.payload[packet.pos+0] = uint8((mid & 0xFF00) >> 8)
 	packet.payload[packet.pos+1] = uint8(mid & 0xff)
 	return s.queuePacket(packet)
@@ -793,66 +819,9 @@ func (s *mqttSession) sendPubComp(mid uint16) error {
 func (s *mqttSession) queuePacket(p *mqttPacket) error {
 	p.pos = 0
 	p.toprocess = p.length
-
-	s.outPacketMutex.Lock()
-	s.outPackets = append(s.outPackets, p)
-	s.lastOutPacket = p
-	s.outPacketMutex.Unlock()
-	return s.writePacket()
-}
-
-func (s *mqttSession) writePacket() error {
-	s.currentOutPacketMutex.Lock()
-	defer s.currentOutPacketMutex.Unlock()
-
-	s.outPacketMutex.Lock()
-	if len(s.outPackets) > 0 && s.currentOutPacket == nil {
-		s.currentOutPacket = s.outPackets[0]
-		s.outPackets = s.outPackets[1:]
-		if len(s.outPackets) == 0 {
-			s.lastOutPacket = nil
-		}
-	}
-	s.outPacketMutex.Unlock()
-
-	if s.state == mqttStateConnectPending {
-		return errors.New("Write packet in wrong session state")
-	}
-
-	for s.currentOutPacket != nil {
-		packet := s.currentOutPacket
-		for packet.toprocess > 0 {
-			len, err := s.netWrite(packet.payload[packet.pos:packet.toprocess])
-			if err != nil {
-				return nil
-			}
-			if len > 0 {
-				packet.toprocess -= len
-				packet.pos += len
-			} else {
-				return nil
-			}
-		}
-		// Notify observer
-
-		// Process net packet
-		s.outPacketMutex.Lock()
-		if len(s.outPackets) > 0 {
-			s.currentOutPacket = s.outPackets[0]
-			s.outPackets = s.outPackets[1:]
-		} else {
-			s.currentOutPacket = nil
-			s.lastOutPacket = nil
-		}
-		s.outPacketMutex.Unlock()
-	}
+	s.sendPacketChannel <- p
 	return nil
 }
-
-func (s *mqttSession) netWrite(data []uint8) (int, error) {
-	return s.conn.Write(data)
-}
-
 func (s *mqttSession) updateOutMessage(mid uint16, state int) error {
 	return nil
 }
