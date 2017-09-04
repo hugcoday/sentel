@@ -11,12 +11,17 @@
 
 package base
 
+import "io"
+
 type Packet interface {
 	// PacketType return type name of packet
 	PacketType() string
 
-	// DecodeFromBytes decode given bytes into this protocol layer
-	DecodeFromBytes(data []byte, df DecodeFeedback) (int, error)
+	// DecodeFromReader decode packet from given reader
+	DecodeFromReader(r io.Reader, df DecodeFeedback) error
+
+	// DecodeFromBytes decode packet from given
+	DecodeFromBytes(data []uint8, df DecodeFeedback) error
 
 	// SerializeTo writes the serialized form of the packet into the serialize buffer
 	SerializeTo(buf SerializeBuffer, opts SerializeOptions) error
@@ -25,7 +30,7 @@ type Packet interface {
 	Clear()
 
 	// Length return length of the packet
-	Length() uint32
+	Length() int
 
 	// ReadByte read a byte from packet payload
 	ReadByte() (uint8, error)
@@ -33,7 +38,7 @@ type Packet interface {
 	WriteByte(byte uint8) error
 
 	// ReadBytes read bytes from packet payload
-	ReadBytes(count uint32) error
+	ReadBytes(count int) error
 	// WriteBytes write bytes into packet payload
 	WriteBytes(buf []uint8) error
 

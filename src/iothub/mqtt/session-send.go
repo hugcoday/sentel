@@ -68,7 +68,7 @@ func (s *mqttSession) initializePacket(p *mqttPacket) error {
 		if remainingLength < 0 || p.remainingCount >= 5 {
 			break
 		}
-		p.length = p.remainingLength + 1 + uint32(p.remainingCount)
+		p.length = p.remainingLength + 1 + p.remainingCount
 	}
 	if p.remainingCount == 5 {
 		return fmt.Errorf("Invalid packet(%d) payload size", p.command)
@@ -78,7 +78,7 @@ func (s *mqttSession) initializePacket(p *mqttPacket) error {
 	for index, b := range remainingBytes {
 		p.payload[index+1] = b
 	}
-	p.pos = 1 + uint32(p.remainingCount)
+	p.pos = 1 + p.remainingCount
 	return nil
 }
 
@@ -86,7 +86,7 @@ func (s *mqttSession) initializePacket(p *mqttPacket) error {
 func (s *mqttSession) sendSubAck(mid uint16, payload []uint8) error {
 	packet := new(mqttPacket)
 	packet.command = SUBACK
-	packet.remainingLength = 2 + uint32(len(payload))
+	packet.remainingLength = 2 + int(len(payload))
 	if err := s.initializePacket(packet); err != nil {
 		return err
 	}
@@ -168,8 +168,8 @@ func (s *mqttSession) writePacket() error {
 				return nil
 			}
 			if len > 0 {
-				packet.toprocess -= uint32(len)
-				packet.pos += uint32(len)
+				packet.toprocess -= len
+				packet.pos += len
 			} else {
 				return nil
 			}

@@ -13,10 +13,8 @@
 package mqtt
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"iothub/base"
 	"iothub/database"
 	"iothub/security"
@@ -122,16 +120,30 @@ func (s *mqttSession) RegisterObserver(o base.SessionObserver) {
 // Loop to read packet from conn
 func (s *mqttSession) Handle() error {
 	glog.Infof("Handling session:%s", s.id)
-
 	defer s.Destroy()
+
 	for {
-		if err := s.readPacket(); err != nil {
+		if err := s.inpacket.DecodeFromReader(s.conn, base.NilDecodeFeedback{}); err != nil {
 			glog.Error(err)
 			return err
 		}
-		if err := s.handlePacket(); err != nil {
-			glog.Error(err)
-			return err
+		switch s.inpacket.command & 0xF0 {
+		case PINGREQ:
+			return s.handlePingReq()
+		case CONNECT:
+			return s.handleConnect()
+		case DISCONNECT:
+			return s.handleDisconnect()
+		case PUBLISH:
+			return s.handlePublish()
+		case PUBREL:
+			return s.handlePubRel()
+		case SUBSCRIBE:
+			return s.handleSubscribe()
+		case UNSUBSCRIBE:
+			return s.handleUnsubscribe()
+		default:
+			return fmt.Errorf("Unrecognized protocol command:%d", int(s.inpacket.command&0xF0))
 		}
 	}
 	return nil
@@ -147,45 +159,6 @@ func (s *mqttSession) Destroy() error {
 // generateId generate id fro session or client
 func (s *mqttSession) generateId() string {
 	return uuid.NewV4().String()
-}
-
-// readPacket read a whole mqtt packet from session
-// TODO: underlay's read method  should be payed attention
-func (s *mqttSession) readPacket() error {
-	glog.Info("Reading mqtt packet...")
-
-	var buf bytes.Buffer
-
-	if _, err := io.Copy(&buf, s.conn); err != nil {
-		return fmt.Errorf("Reading Mqtt packet failed:%s on session:%s", err, s.id)
-	} else if buf.Len() == 0 {
-		return fmt.Errorf("Null mqtt packet received on session:%s", s.id)
-	}
-
-	glog.Infof("Packet length:%d", buf.Len())
-	_, err := s.inpacket.DecodeFromBytes(buf.Bytes(), base.NilDecodeFeedback{})
-	return err
-}
-
-// handlePacket dispatch packet by packet type
-func (s *mqttSession) handlePacket() error {
-	switch s.inpacket.command & 0xF0 {
-	case PINGREQ:
-		return s.handlePingReq()
-	case CONNECT:
-		return s.handleConnect()
-	case DISCONNECT:
-		return s.handleDisconnect()
-	case PUBLISH:
-		return s.handlePublish()
-	case PUBREL:
-		return s.handlePubRel()
-	case SUBSCRIBE:
-		return s.handleSubscribe()
-	case UNSUBSCRIBE:
-		return s.handleUnsubscribe()
-	}
-	return fmt.Errorf("Unrecognized protocol command:%d", int(s.inpacket.command&0xF0))
 }
 
 // handlePingReq handle ping request packet
@@ -300,7 +273,7 @@ func (s *mqttSession) handleConnect() error {
 			return err
 		}
 		if willPayloadLength > 0 {
-			payload, err = s.inpacket.ReadBytes(uint32(willPayloadLength))
+			payload, err = s.inpacket.ReadBytes(int(willPayloadLength))
 			if err != nil {
 				return err
 			}
@@ -611,7 +584,7 @@ func (s *mqttSession) handlePublish() error {
 	payloadlen := s.inpacket.remainingLength - s.inpacket.pos
 	if payloadlen > 0 {
 		limitSize, _ := s.config.Int("mqtt", "message_size_limit")
-		if payloadlen > uint32(limitSize) {
+		if payloadlen > limitSize {
 			return mqttErrorInvalidProtocol
 		}
 		payload, err = s.inpacket.ReadBytes(payloadlen)

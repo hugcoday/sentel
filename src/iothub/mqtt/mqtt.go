@@ -143,7 +143,9 @@ func (m *mqtt) Run() error {
 		}
 		glog.Infof("Mqtt new connection:%s", session.Identifier())
 		m.RegisterSession(session)
-		go session.Handle()
+		go func(s base.Session) {
+			s.Handle()
+		}(session)
 	}
 	// notify main
 	m.chn <- 1

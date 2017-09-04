@@ -12,7 +12,11 @@
 
 package mqtt
 
-import "iothub/base"
+import (
+	"errors"
+	"io"
+	"iothub/base"
+)
 
 const (
 	// Protocol version
@@ -53,13 +57,14 @@ const (
 type mqttPacket struct {
 	command         uint8
 	mid             uint16
-	pos             uint32
-	toprocess       uint32
-	length          uint32
-	remainingCount  int32
-	remainingMult   int32
-	remainingLength uint32
+	pos             int
+	toprocess       int
+	length          int
+	remainingCount  int
+	remainingMult   int
+	remainingLength int
 	payload         []uint8
+	buf             []uint8
 }
 
 func newMqttPacket() mqttPacket {
@@ -68,7 +73,8 @@ func newMqttPacket() mqttPacket {
 		pos:            0,
 		length:         0,
 		remainingCount: 0,
-		payload:        []byte{},
+		payload:        []uint8{},
+		buf:            []uint8{},
 	}
 
 }
@@ -90,45 +96,65 @@ func (p *mqttPacket) SerializeTo(buf base.SerializeBuffer, opts base.SerializeOp
 	return nil
 }
 
+// Write implement Writer interface
+func (p *mqttPacket) Write(buf []byte) (int, error) {
+	p.buf = buf
+	return len(p.buf), nil
+}
+
 // DecodeFromBytes decode given bytes into this protocol layer
-// TODO: underlay's read method  should be payed attention, temporal implementations
-func (p *mqttPacket) DecodeFromBytes(data []byte, df base.DecodeFeedback) (int, error) {
-	if len(data) == 0 {
-		return 0, mqttErrorInvalidProtocol
+func (p *mqttPacket) DecodeFromBytes(r io.Reader, df base.DecodeFeedback) (int, error) {
+	return 0, errors.New("Not Implementented")
+}
+
+// DecodeFromReader decode packet from given reader
+func (p *mqttPacket) DecodeFromReader(r io.Reader, df base.DecodeFeedback) error {
+	if p.command != 0 {
+		// Read command
+		if length, err := io.CopyN(p, r, 1); err != nil || length != 1 {
+			return mqttErrorInvalidProtocol
+		}
+		p.command = p.buf[0]
 	}
-	// Start from new packet
-	p.command = data[0]
 	// Compute remaining length
-	var index int = 1
 	if p.remainingCount <= 0 {
-		for _, b := range data[1:] {
-			index++
-			p.remainingCount--
-			if p.remainingCount == -4 {
-				return 0, mqttErrorInvalidProtocol
+		for {
+			// Read length byte
+			if length, err := io.CopyN(p, r, 1); err != nil || length != 1 {
+				return mqttErrorInvalidProtocol
 			}
-			p.remainingCount += int32(b&127) * p.remainingMult
+			p.remainingCount--
+			if p.remainingCount < -4 {
+				return mqttErrorInvalidProtocol
+			}
+			p.remainingLength += int(p.buf[0]&127) * p.remainingMult
 			p.remainingMult *= 128
-			if b&128 != 0 {
+			if p.buf[0]&128 == 0 {
 				break
 			}
 		}
 	}
 	// We have finished reading remaining length
 	p.remainingCount *= -1
-	// Check wether remaining data is validity
-	if int32(len(data[index:])) < p.remainingCount {
-		p.Clear()
-		return 0, mqttErrorInvalidProtocol
+	if p.remainingLength > 0 {
+		p.toprocess = p.remainingLength
+		p.payload = []uint8{}
 	}
-	for _, b := range data[index:] {
-		p.payload = append(p.payload, b)
+
+	if p.toprocess > 0 {
+		length, err := io.CopyN(p, r, int64(p.toprocess))
+		if err != nil || length != int64(p.toprocess) {
+			p.Clear()
+			return mqttErrorInvalidProtocol
+		}
+		p.payload = p.buf
 	}
-	return index + len(p.payload), nil
+	p.pos = 0
+	return nil
 }
 
 // Length return mqtt packet length
-func (p *mqttPacket) Length() uint32 {
+func (p *mqttPacket) Length() int {
 	return p.length
 }
 
@@ -153,7 +179,7 @@ func (p *mqttPacket) WriteByte(b uint8) error {
 }
 
 // ReadBytes read bytes from packet payload
-func (p *mqttPacket) ReadBytes(count uint32) ([]uint8, error) {
+func (p *mqttPacket) ReadBytes(count int) ([]uint8, error) {
 	if p.pos+count > p.length {
 		return nil, mqttErrorInvalidProtocol
 	}
@@ -163,7 +189,7 @@ func (p *mqttPacket) ReadBytes(count uint32) ([]uint8, error) {
 
 // WriteBytes write bytes into packet payload
 func (p *mqttPacket) WriteBytes(buf []uint8) error {
-	if p.pos+uint32(len(buf)) > p.length {
+	if p.pos+len(buf) > p.length {
 		return mqttErrorInvalidProtocol
 	}
 	for _, b := range buf {
@@ -179,11 +205,11 @@ func (p *mqttPacket) ReadString() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if p.pos+uint32(len) > p.remainingLength {
+	if p.pos+int(len) > p.remainingLength {
 		return "", mqttErrorInvalidProtocol
 	}
 
-	s := string(p.payload[p.pos : p.pos+uint32(len)])
+	s := string(p.payload[p.pos : p.pos+int(len)])
 	return s, nil
 }
 
