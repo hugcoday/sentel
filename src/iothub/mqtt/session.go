@@ -183,26 +183,26 @@ func (s *mqttSession) handleConnect() error {
 	if err != nil {
 		return err
 	}
-	if protocolName != PROTOCOL_NAME_V31 {
+	switch protocolName {
+	case PROTOCOL_NAME_V31:
 		if protocolVersion&0x7F != PROTOCOL_VERSION_V31 {
-			glog.Errorf("Invalid protocol version %d in CONNECT packet", protocolVersion)
 			s.sendConnAck(0, CONNACK_REFUSED_PROTOCOL_VERSION)
-			return fmt.Errorf("Invalid protocol version %d in CONNECT packet", protocolVersion)
+			return fmt.Errorf("Invalid protocol version '%d' in CONNECT packet", protocolVersion)
 		}
 		s.protocol = mqttProtocol311
 
-	} else if protocolName != PROTOCOL_NAME_V311 {
+	case PROTOCOL_NAME_V311:
 		if protocolVersion&0x7F != PROTOCOL_VERSION_V311 {
 			s.sendConnAck(0, CONNACK_REFUSED_PROTOCOL_VERSION)
-			return fmt.Errorf("Invalid protocol version %d in CONNECT packet", protocolVersion)
+			return fmt.Errorf("Invalid protocol version '%d' in CONNECT packet", protocolVersion)
 		}
 		// Reserved flags is not set to 0, must disconnect
 		if s.inpacket.command&0x0F != 0x00 {
-			return fmt.Errorf("Invalid protocol version %d in CONNECT packet", protocolVersion)
+			return fmt.Errorf("Invalid protocol version '%d' in CONNECT packet", protocolVersion)
 		}
 		s.protocol = mqttProtocol311
-	} else {
-		return fmt.Errorf("Invalid protocol version %d in CONNECT packet", protocolVersion)
+	default:
+		return fmt.Errorf("Invalid protocol name '%s' in CONNECT packet", protocolName)
 	}
 
 	// Check connect flags

@@ -42,11 +42,9 @@ func (s *mqttSession) sendConnAck(ack uint8, result uint8) error {
 		command:         CONNACK,
 		remainingLength: 2,
 	}
+	s.initializePacket(packet)
 	packet.payload[packet.pos+0] = ack
 	packet.payload[packet.pos+1] = result
-	if err := s.initializePacket(packet); err != nil {
-		return nil
-	}
 
 	return s.queuePacket(packet)
 }

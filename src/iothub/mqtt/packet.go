@@ -73,6 +73,7 @@ func newMqttPacket() mqttPacket {
 		pos:            0,
 		length:         0,
 		remainingCount: 0,
+		remainingMult:  1,
 		payload:        []uint8{},
 		buf:            []uint8{},
 	}
