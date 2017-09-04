@@ -154,6 +154,7 @@ func (s *mqttSession) Handle() error {
 			glog.Error(err)
 			return err
 		}
+		s.inpacket.Clear()
 	}
 	return nil
 }
@@ -172,13 +173,13 @@ func (s *mqttSession) generateId() string {
 
 // handlePingReq handle ping request packet
 func (s *mqttSession) handlePingReq() error {
-	glog.Info("Received PINGREQ from %s", s.Identifier())
+	glog.Infof("Received PINGREQ from %s", s.Identifier())
 	return s.sendPingRsp()
 }
 
 // handleConnect handle connect packet
 func (s *mqttSession) handleConnect() error {
-	glog.Info("Handling CONNECT packet...")
+	glog.Infof("Handling CONNECT packet from %s", s.id)
 
 	if s.state != mqttStateNew {
 		return errors.New("Invalid session state")
@@ -440,6 +441,8 @@ func (s *mqttSession) handleConnect() error {
 
 // handleDisconnect handle disconnect packet
 func (s *mqttSession) handleDisconnect() error {
+	glog.Infof("Received DISCONNECT from %s", s.id)
+
 	if s.inpacket.remainingLength != 0 {
 		return mqttErrorInvalidProtocol
 	}
@@ -462,9 +465,7 @@ func (s *mqttSession) disconnect() {
 func (s *mqttSession) handleSubscribe() error {
 	var payload []uint8 = make([]uint8, 0)
 
-	glog.Info("Received SUBSCRIBE from %s", s.id)
-
-	// Check protocol version
+	glog.Infof("Received SUBSCRIBE from %s", s.id)
 	if s.protocol == mqttProtocol311 {
 		if (s.inpacket.command & 0x0F) != 0x02 {
 			return mqttErrorInvalidProtocol
@@ -476,21 +477,17 @@ func (s *mqttSession) handleSubscribe() error {
 		return err
 	}
 	// Deal each subscription
-	for {
-		sub, err := s.inpacket.ReadString()
-		if err != nil {
+	for s.inpacket.pos < s.inpacket.remainingLength {
+		sub := ""
+		qos := uint8(0)
+		if sub, err = s.inpacket.ReadString(); err != nil {
 			return err
-		}
-		if len(sub) == 0 {
-			glog.Errorf("Invalid subscription strint from %s, disconnecting", s.id)
-			return mqttErrorInvalidProtocol
 		}
 		if checkTopicValidity(sub) != nil {
 			glog.Errorf("Invalid subscription topic %s from %s, disconnecting", sub, s.id)
 			return mqttErrorInvalidProtocol
 		}
-		qos, err := s.inpacket.ReadByte()
-		if err != nil {
+		if qos, err = s.inpacket.ReadByte(); err != nil {
 			return err
 		}
 
@@ -519,15 +516,13 @@ func (s *mqttSession) handleSubscribe() error {
 			return mqttErrorInvalidProtocol
 		}
 	}
-	if err := s.sendSubAck(mid, payload); err != nil {
-		return err
-	}
-	return nil
+	return s.sendSubAck(mid, payload)
 }
 
 // handleUnsubscribe handle unsubscribe packet
 func (s *mqttSession) handleUnsubscribe() error {
-	glog.Info("Received UNSUBSCRIBE from %s", s.id)
+	glog.Infof("Received UNSUBSCRIBE from %s", s.id)
+
 	if s.protocol == mqttProtocol311 {
 		if (s.inpacket.command & 0x0f) != 0x02 {
 			return mqttErrorInvalidProtocol
@@ -557,6 +552,8 @@ func (s *mqttSession) handleUnsubscribe() error {
 
 // handlePublish handle publish packet
 func (s *mqttSession) handlePublish() error {
+	glog.Infof("Received PUBLISH on %s", s.id)
+
 	var dup, qos, retain uint8
 	var topic string
 	var mid uint16
@@ -677,4 +674,178 @@ func (s *mqttSession) handlePubRel() error {
 
 	s.storage.DeleteMessage(s.id, mid, storage.MessageDirectionIn)
 	return s.sendPubComp(mid)
+}
+
+// sendSimpleCommand send a simple command
+func (s *mqttSession) sendSimpleCommand(cmd uint8) error {
+	p := &mqttPacket{
+		command:        cmd,
+		remainingCount: 0,
+	}
+	return s.queuePacket(p)
+}
+
+// sendPingRsp send ping response to client
+func (s *mqttSession) sendPingRsp() error {
+	glog.Infof("Sending PINGRESP to %s", s.Identifier)
+	return s.sendSimpleCommand(PINGRESP)
+}
+
+// sendConnAck send connection response to client
+func (s *mqttSession) sendConnAck(ack uint8, result uint8) error {
+	glog.Infof("Sending CONNACK from %s", s.id)
+
+	packet := &mqttPacket{
+		command:         CONNACK,
+		remainingLength: 2,
+	}
+	s.initializePacket(packet)
+	packet.payload[packet.pos+0] = ack
+	packet.payload[packet.pos+1] = result
+
+	return s.queuePacket(packet)
+}
+
+// initializePacket initialize packet according to preinitialized data
+func (s *mqttSession) initializePacket(p *mqttPacket) error {
+	var remainingBytes = [5]uint8{}
+
+	remainingLength := p.remainingLength
+	p.remainingCount = 0
+	for remainingLength > 0 && p.remainingCount < 5 {
+		b := remainingLength % 128
+		remainingLength = remainingLength / 128
+		if remainingLength > 0 {
+			b = b | 0x80
+		}
+		remainingBytes[p.remainingCount] = uint8(b)
+		p.remainingCount++
+	}
+	if p.remainingCount == 5 {
+		return fmt.Errorf("Invalid packet(%d) payload size", p.command)
+	}
+	p.length = p.remainingLength + 1 + p.remainingCount
+	p.payload = make([]uint8, p.length)
+	p.payload[0] = p.command
+	for i := 0; i < p.remainingCount; i++ {
+		p.payload[i+1] = remainingBytes[i]
+	}
+	p.pos = 1 + p.remainingCount
+	return nil
+}
+
+// sendSubAck send subscription acknowledge to client
+func (s *mqttSession) sendSubAck(mid uint16, payload []uint8) error {
+	glog.Infof("Sending SUBACK on %s", s.id)
+	packet := &mqttPacket{
+		command:         SUBACK,
+		remainingLength: 2 + int(len(payload)),
+	}
+
+	s.initializePacket(packet)
+	packet.WriteUint16(mid)
+	if len(payload) > 0 {
+		packet.WriteBytes(payload)
+	}
+	return s.queuePacket(packet)
+}
+
+// sendCommandWithMid send command with message identifier
+func (s *mqttSession) sendCommandWithMid(command uint8, mid uint16, dup bool) error {
+	packet := new(mqttPacket)
+	packet.command = command
+	if dup {
+		packet.command |= 8
+	}
+	packet.remainingLength = 2
+	if err := s.initializePacket(packet); err != nil {
+		return err
+	}
+	packet.payload[packet.pos+0] = uint8((mid & 0xFF00) >> 8)
+	packet.payload[packet.pos+1] = uint8(mid & 0xff)
+	return s.queuePacket(packet)
+}
+
+// sendPubAck
+func (s *mqttSession) sendPubAck(mid uint16) error {
+	glog.Info("Sending PUBACK to %s with MID:%d", s.id, mid)
+	return s.sendCommandWithMid(PUBACK, mid, false)
+}
+
+// sendPubRec
+func (s *mqttSession) sendPubRec(mid uint16) error {
+	glog.Info("Sending PUBRREC to %s with MID:%d", s.id, mid)
+	return s.sendCommandWithMid(PUBREC, mid, false)
+}
+
+func (s *mqttSession) sendPubComp(mid uint16) error {
+	glog.Info("Sending PUBCOMP to %s with MID:%d", s.id, mid)
+	return s.sendCommandWithMid(PUBCOMP, mid, false)
+}
+
+func (s *mqttSession) queuePacket(p *mqttPacket) error {
+	p.pos = 0
+	p.toprocess = p.length
+
+	s.outPacketMutex.Lock()
+	s.outPackets = append(s.outPackets, p)
+	s.lastOutPacket = p
+	s.outPacketMutex.Unlock()
+	return s.writePacket()
+}
+
+func (s *mqttSession) writePacket() error {
+	s.currentOutPacketMutex.Lock()
+	defer s.currentOutPacketMutex.Unlock()
+
+	s.outPacketMutex.Lock()
+	if len(s.outPackets) > 0 && s.currentOutPacket == nil {
+		s.currentOutPacket = s.outPackets[0]
+		s.outPackets = s.outPackets[1:]
+		if len(s.outPackets) == 0 {
+			s.lastOutPacket = nil
+		}
+	}
+	s.outPacketMutex.Unlock()
+
+	if s.state == mqttStateConnectPending {
+		return errors.New("Write packet in wrong session state")
+	}
+
+	for s.currentOutPacket != nil {
+		packet := s.currentOutPacket
+		for packet.toprocess > 0 {
+			len, err := s.netWrite(packet.payload[packet.pos:packet.toprocess])
+			if err != nil {
+				return nil
+			}
+			if len > 0 {
+				packet.toprocess -= len
+				packet.pos += len
+			} else {
+				return nil
+			}
+		}
+		// Notify observer
+
+		// Process net packet
+		s.outPacketMutex.Lock()
+		if len(s.outPackets) > 0 {
+			s.currentOutPacket = s.outPackets[0]
+			s.outPackets = s.outPackets[1:]
+		} else {
+			s.currentOutPacket = nil
+			s.lastOutPacket = nil
+		}
+		s.outPacketMutex.Unlock()
+	}
+	return nil
+}
+
+func (s *mqttSession) netWrite(data []uint8) (int, error) {
+	return s.conn.Write(data)
+}
+
+func (s *mqttSession) updateOutMessage(mid uint16, state int) error {
+	return nil
 }
