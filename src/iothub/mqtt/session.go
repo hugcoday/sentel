@@ -446,19 +446,22 @@ func (s *mqttSession) handleDisconnect() error {
 	if s.inpacket.remainingLength != 0 {
 		return mqttErrorInvalidProtocol
 	}
-	glog.Infof("Received DISCONNECT from %s", s.id)
 	if s.protocol == mqttProtocol311 {
 		if (s.inpacket.command & 0x0F) != 0x00 {
 			s.disconnect()
 			return mqttErrorInvalidProtocol
 		}
 	}
+	s.state = mqttStateDisconnecting
 	s.disconnect()
 	return nil
 }
 
 // disconnect will disconnect current connection because of protocol error
 func (s *mqttSession) disconnect() {
+	if s.state == mqttStateDisconnected {
+		return
+	}
 }
 
 // handleSubscribe handle subscribe packet
