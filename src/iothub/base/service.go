@@ -14,8 +14,8 @@ package base
 import (
 	"errors"
 	"fmt"
-	"iothub/database"
 	"iothub/security"
+	"iothub/storage"
 	"net"
 
 	"github.com/golang/glog"
@@ -49,7 +49,7 @@ func RegisterService(name string, configs map[string]string, factory ServiceFact
 	_serviceFactories[name] = factory
 }
 
-func CreateService(name string, c Config, ch chan int, d database.Database) (Service, error) {
+func CreateService(name string, c Config, ch chan int, d storage.Storage) (Service, error) {
 	if _serviceFactories[name] == nil {
 		return nil, fmt.Errorf("Service '%s' is not registered", name)
 	}

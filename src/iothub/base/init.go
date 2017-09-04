@@ -19,12 +19,12 @@ var iothubConfigs = map[string]string{
 	"protocols": "mqtt,coap",
 }
 
-var dbConfigs = map[string]string{
+var storageConfigs = map[string]string{
 	"repository": "local",
 	"loglevel":   "debug",
 }
 
 func init() {
 	RegisterConfig("iothub", iothubConfigs)
-	RegisterConfig("database", dbConfigs)
+	RegisterConfig("storage", storageConfigs)
 }

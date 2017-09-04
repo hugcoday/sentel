@@ -17,7 +17,7 @@ import (
 	"errors"
 	"fmt"
 	"iothub/base"
-	"iothub/database"
+	"iothub/storage"
 	"net"
 	"strings"
 	"sync"
@@ -42,7 +42,7 @@ type mqtt struct {
 	protocol   uint8
 	wg         sync.WaitGroup
 	localAddrs []string
-	db         database.Database
+	storage    storage.Storage
 }
 
 // MqttFactory
@@ -51,7 +51,7 @@ type MqttFactory struct{}
 // New create mqtt service factory
 func (m *MqttFactory) New(c base.Config, ch chan int) (base.Service, error) {
 	var localAddrs []string = []string{}
-	var db database.Database
+	var s storage.Storage
 
 	// Get all local ip address
 	addrs, err := net.InterfaceAddrs()
@@ -67,10 +67,10 @@ func (m *MqttFactory) New(c base.Config, ch chan int) (base.Service, error) {
 	if len(localAddrs) == 0 {
 		return nil, errors.New("Failed to get local address")
 	}
-	// Create database
-	name := c.MustString("database", "name")
-	if db, err = database.New(name, database.Option{}); err != nil {
-		return nil, errors.New("Failed to create database in mqtt")
+	// Create storage
+	name := c.MustString("storage", "name")
+	if s, err = storage.New(name, storage.Option{}); err != nil {
+		return nil, errors.New("Failed to create storage in mqtt")
 	}
 
 	t := &mqtt{config: c,
@@ -79,7 +79,7 @@ func (m *MqttFactory) New(c base.Config, ch chan int) (base.Service, error) {
 		sessions:   make(map[string]base.Session),
 		protocol:   2,
 		localAddrs: localAddrs,
-		db:         db,
+		storage:    s,
 	}
 	return t, nil
 }
@@ -215,8 +215,8 @@ func (m *mqtt) handleSessionNotifications(value []byte) error {
 			// Only deal with notification that is not  launched by myself
 			for _, addr := range m.localAddrs {
 				if addr != topic.Launcher {
-					m.db.UpdateSession(nil,
-						&database.Session{Id: topic.SessionId, State: topic.State})
+					m.storage.UpdateSession(nil,
+						&storage.Session{Id: topic.SessionId, State: topic.State})
 				}
 			}
 		case ObjectActionDelete:

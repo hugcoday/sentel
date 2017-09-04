@@ -12,7 +12,7 @@
 package base
 
 import (
-	"iothub/database"
+	"iothub/storage"
 	"strings"
 
 	"github.com/golang/glog"
@@ -22,7 +22,7 @@ type ServiceManager struct {
 	config   Config              // Global config
 	services map[string]Service  // All service created by config.Protocols
 	chs      map[string]chan int // Notification channel for each service
-	db       database.Database
+	storage  storage.Storage
 }
 
 // NewServiceManager create ServiceManager in main context
@@ -32,18 +32,18 @@ func NewServiceManager(c Config) (*ServiceManager, error) {
 		chs:      make(map[string]chan int),
 		services: make(map[string]Service),
 	}
-	// Create database instance
-	name := c.MustString("database", "backend")
-	opt := database.Option{Hosts: ""}
-	// If 'hosts' is not set, using default local database
-	if hosts, err := c.String("database", "hosts"); err == nil {
+	// Create storage instance
+	name := c.MustString("storage", "backend")
+	opt := storage.Option{Hosts: ""}
+	// If 'hosts' is not set, using default local storage
+	if hosts, err := c.String("storage", "hosts"); err == nil {
 		opt.Hosts = hosts
 	}
-	db, err := database.New(name, opt)
-	if db != nil {
+	storage, err := storage.New(name, opt)
+	if storage != nil {
 		return nil, err
 	}
-	mgr.db = db
+	mgr.storage = storage
 
 	// Get supported configs
 	items := c.MustString("iothub", "protocols")
@@ -51,7 +51,7 @@ func NewServiceManager(c Config) (*ServiceManager, error) {
 	// Create service for each protocol
 	for _, name := range protocols {
 		ch := make(chan int)
-		service, err := CreateService(name, c, ch, mgr.db)
+		service, err := CreateService(name, c, ch, mgr.storage)
 		if err != nil {
 			glog.Errorf("%s", err)
 		} else {
@@ -65,8 +65,8 @@ func NewServiceManager(c Config) (*ServiceManager, error) {
 
 // ServiceManger run all serice and wait to terminate
 func (s *ServiceManager) Start() error {
-	if s.db != nil {
-		defer s.db.Close()
+	if s.storage != nil {
+		defer s.storage.Close()
 	}
 	// Run all service
 	for _, service := range s.services {

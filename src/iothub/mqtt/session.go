@@ -16,8 +16,8 @@ import (
 	"errors"
 	"fmt"
 	"iothub/base"
-	"iothub/database"
 	"iothub/security"
+	"iothub/storage"
 	"net"
 	"sync"
 	"time"
@@ -51,7 +51,7 @@ const (
 type mqttSession struct {
 	mgr                   *mqtt
 	config                base.Config
-	db                    database.Database
+	storage               storage.Storage
 	authplugin            security.AuthPlugin
 	conn                  net.Conn
 	id                    string
@@ -100,9 +100,9 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 		//		sendStopChannel:   make(chan int),
 		//		sendPacketChannel: make(chan mqttPacket),
 	}
-	// Load database and plugin for each session
-	name := m.config.MustString("database", "name")
-	if s.db, err = database.New(name, database.Option{}); err != nil {
+	// Load storage and plugin for each session
+	name := m.config.MustString("storage", "name")
+	if s.storage, err = storage.New(name, storage.Option{}); err != nil {
 		return nil, err
 	}
 	if s.authplugin, err = base.LoadAuthPluginWithConfig("mqtt", m.config); err != nil {
@@ -365,7 +365,7 @@ func (s *mqttSession) handleConnect() error {
 	}
 	conack := 0
 	// Find if the client already has an entry, this must be done after any security check
-	if found, _ := s.db.FindSession(s, clientid); found != nil {
+	if found, _ := s.storage.FindSession(s, clientid); found != nil {
 		// Found old session
 		if found.State == mqttStateInvalid {
 			glog.Errorf("Invalid session(%s) in store", found.Id)
@@ -379,7 +379,7 @@ func (s *mqttSession) handleConnect() error {
 
 		if s.cleanSession == 0 && found.CleanSession == 0 {
 			// Resume last session
-			s.db.UpdateSession(s, &database.Session{Id: clientid, RefCount: found.RefCount + 1})
+			s.storage.UpdateSession(s, &storage.Session{Id: clientid, RefCount: found.RefCount + 1})
 			// Notify other mqtt node to release resource
 			base.AsyncProduceMessage(s.config,
 				TopicNameSession,
@@ -411,9 +411,9 @@ func (s *mqttSession) handleConnect() error {
 
 	// Remove any queued messages that are no longer allowd through ACL
 	// Assuming a possible change of username
-	s.db.DeleteMessageWithValidator(
+	s.storage.DeleteMessageWithValidator(
 		clientid,
-		func(msg database.Message) bool {
+		func(msg storage.Message) bool {
 			err := s.authplugin.CheckAcl(s, clientid, username, msg.Topic, security.AclActionRead)
 			if err == security.ErrorAclDenied {
 				return false
@@ -421,8 +421,8 @@ func (s *mqttSession) handleConnect() error {
 			return true
 		})
 
-	// Register the session in db
-	s.db.RegisterSession(s, database.Session{
+	// Register the session in storage
+	s.storage.RegisterSession(s, storage.Session{
 		Id:           s.id,
 		Username:     username,
 		Password:     password,
@@ -504,10 +504,10 @@ func (s *mqttSession) handleSubscribe() error {
 			sub = mp + sub
 		}
 		if qos != 0x80 {
-			if err := s.db.AddSubscription(s, sub, qos); err != nil {
+			if err := s.storage.AddSubscription(s, sub, qos); err != nil {
 				return err
 			}
-			if err := s.db.RetainSubscription(s, sub, qos); err != nil {
+			if err := s.storage.RetainSubscription(s, sub, qos); err != nil {
 				return err
 			}
 		}
@@ -549,7 +549,7 @@ func (s *mqttSession) handleUnsubscribe() error {
 		if err := checkTopicValidity(sub); err != nil {
 			return fmt.Errorf("Invalid unsubscription string from %s, disconnecting", s.id)
 		}
-		s.db.RemoveSubscriber(s, database.Topic{Name: sub}, s.id)
+		s.storage.RemoveSubscriber(s, storage.Topic{Name: sub}, s.id)
 	}
 
 	return s.sendCommandWithMid(UNSUBACK, mid, false)
@@ -616,15 +616,15 @@ func (s *mqttSession) handlePublish() error {
 
 	// Check wether the message has been stored
 	if qos > 0 {
-		if found, err := s.db.FindMessage(s.id, mid); err != nil {
+		if found, err := s.storage.FindMessage(s.id, mid); err != nil {
 			return err
 		} else {
 			stored = found
 		}
 	}
-	msg := database.Message{
+	msg := storage.Message{
 		Id:        uint(mid),
-		Direction: database.MessageDirectionIn,
+		Direction: storage.MessageDirectionIn,
 		State:     0,
 		Qos:       qos,
 		Retain:    (retain > 0),
@@ -633,7 +633,7 @@ func (s *mqttSession) handlePublish() error {
 
 	if !stored {
 		dup = 0
-		if err := s.db.StoreMessage(s.id, msg); err != nil {
+		if err := s.storage.StoreMessage(s.id, msg); err != nil {
 			return err
 		}
 	} else {
@@ -642,14 +642,14 @@ func (s *mqttSession) handlePublish() error {
 
 	switch qos {
 	case 0:
-		err = s.db.QueueMessage(s.id, msg)
+		err = s.storage.QueueMessage(s.id, msg)
 	case 1:
-		err = s.db.QueueMessage(s.id, msg)
+		err = s.storage.QueueMessage(s.id, msg)
 		err = s.sendPubAck(mid)
 	case 2:
 		err = nil
 		if dup > 0 {
-			err = s.db.InsertMessage(s.id, mid, database.MessageDirectionIn, msg)
+			err = s.storage.InsertMessage(s.id, mid, storage.MessageDirectionIn, msg)
 		}
 		if err == nil {
 			err = s.sendPubRec(mid)
@@ -675,6 +675,6 @@ func (s *mqttSession) handlePubRel() error {
 		return err
 	}
 
-	s.db.DeleteMessage(s.id, mid, database.MessageDirectionIn)
+	s.storage.DeleteMessage(s.id, mid, storage.MessageDirectionIn)
 	return s.sendPubComp(mid)
 }

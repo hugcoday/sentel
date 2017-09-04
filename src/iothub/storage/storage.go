@@ -10,7 +10,7 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package database
+package storage
 
 import (
 	"fmt"
@@ -19,7 +19,7 @@ import (
 	"github.com/golang/glog"
 )
 
-// Session database
+// Session storage
 type Session struct {
 	Id                 string
 	Username           string
@@ -60,12 +60,12 @@ type Message struct {
 
 type Context interface{}
 
-// Database option
+// Storage option
 type Option struct {
 	Hosts string
 }
 
-type Database interface {
+type Storage interface {
 	Open() error
 	Close()
 	Backup(shutdown bool) error
@@ -110,29 +110,29 @@ type Database interface {
 	UpdateMessage(clientid string, mid uint16, direction MessageDirection, state MessageState)
 }
 
-type databaseFactory interface {
-	New(opt Option) (Database, error)
+type storageFactory interface {
+	New(opt Option) (Storage, error)
 }
 
-var _allDatabase = make(map[string]databaseFactory)
+var _allStorage = make(map[string]storageFactory)
 
-func registerDatabase(name string, d databaseFactory) {
-	if _allDatabase[name] != nil {
-		glog.Fatalf("Database %s already registered", name)
+func registerStorage(name string, s storageFactory) {
+	if _allStorage[name] != nil {
+		glog.Fatalf("Storage %s already registered", name)
 		return
 	}
-	_allDatabase[name] = d
+	_allStorage[name] = s
 }
 
-// NewDatabase lookup registered database list, create a new database instance
-func New(name string, opt Option) (Database, error) {
-	if _allDatabase[name] == nil {
-		return nil, fmt.Errorf("Database %s is not registered", name)
+// New storage lookup registered storage list, create a new storage instance
+func New(name string, opt Option) (Storage, error) {
+	if _allStorage[name] == nil {
+		return nil, fmt.Errorf("Storage %s is not registered", name)
 	}
-	return _allDatabase[name].New(opt)
+	return _allStorage[name].New(opt)
 }
 
 func init() {
-	registerDatabase("local", &localDatabaseFactory{})
-	// registerDatabase("etcd", etcdDatabaseFactory{})
+	registerStorage("local", &localStorageFactory{})
+	// registerStorage("etcd", etcdStorageFactory{})
 }
