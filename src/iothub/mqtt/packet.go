@@ -109,7 +109,7 @@ func (p *mqttPacket) DecodeFromBytes(r io.Reader, df base.DecodeFeedback) (int, 
 
 // DecodeFromReader decode packet from given reader
 func (p *mqttPacket) DecodeFromReader(r io.Reader, df base.DecodeFeedback) error {
-	if p.command != 0 {
+	if p.command == 0 {
 		// Read command
 		if length, err := io.CopyN(p, r, 1); err != nil || length != 1 {
 			return mqttErrorInvalidProtocol
