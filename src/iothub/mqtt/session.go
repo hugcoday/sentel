@@ -446,7 +446,7 @@ func (s *mqttSession) handleDisconnect() error {
 	if s.inpacket.remainingLength != 0 {
 		return mqttErrorInvalidProtocol
 	}
-	glog.Info("Received DISCONNECT from %s", s.id)
+	glog.Infof("Received DISCONNECT from %s", s.id)
 	if s.protocol == mqttProtocol311 {
 		if (s.inpacket.command & 0x0F) != 0x00 {
 			s.disconnect()
@@ -523,23 +523,18 @@ func (s *mqttSession) handleSubscribe() error {
 func (s *mqttSession) handleUnsubscribe() error {
 	glog.Infof("Received UNSUBSCRIBE from %s", s.id)
 
-	if s.protocol == mqttProtocol311 {
-		if (s.inpacket.command & 0x0f) != 0x02 {
-			return mqttErrorInvalidProtocol
-		}
+	if s.protocol == mqttProtocol311 && (s.inpacket.command&0x0f) != 0x02 {
+		return mqttErrorInvalidProtocol
 	}
 	mid, err := s.inpacket.ReadUint16()
 	if err != nil {
 		return err
 	}
 	// Iterate all subscription
-	for {
+	for s.inpacket.pos < s.inpacket.remainingLength {
 		sub, err := s.inpacket.ReadString()
 		if err != nil {
 			return mqttErrorInvalidProtocol
-		}
-		if sub == "" {
-			break
 		}
 		if err := checkTopicValidity(sub); err != nil {
 			return fmt.Errorf("Invalid unsubscription string from %s, disconnecting", s.id)
@@ -554,23 +549,21 @@ func (s *mqttSession) handleUnsubscribe() error {
 func (s *mqttSession) handlePublish() error {
 	glog.Infof("Received PUBLISH on %s", s.id)
 
-	var dup, qos, retain uint8
 	var topic string
 	var mid uint16
 	var err error
 	var payload []uint8
 	var stored bool
 
-	dup = (s.inpacket.command & 0x08) >> 3
-	qos = (s.inpacket.command & 0x06) >> 1
+	dup := (s.inpacket.command & 0x08) >> 3
+	qos := (s.inpacket.command & 0x06) >> 1
 	if qos == 3 {
 		return fmt.Errorf("Invalid Qos in PUBLISH from %s, disconnectiing.", s.id)
 	}
-
-	retain = (s.inpacket.command & 0x01)
+	retain := (s.inpacket.command & 0x01)
 
 	// Topic
-	if topic, err = s.inpacket.ReadString(); err != nil || topic == "" {
+	if topic, err = s.inpacket.ReadString(); err != nil {
 		return fmt.Errorf("Invalid topic in PUBLISH from %s", s.id)
 	}
 	if checkTopicValidity(topic) != nil {
@@ -608,7 +601,7 @@ func (s *mqttSession) handlePublish() error {
 			return err
 		}
 	}
-	glog.Info("MQTT received PUBLISH from %s(d%d, q%d r%, m%d, '%s',..(%d)bytes",
+	glog.Infof("Received PUBLISH from %s(d:%d, q:%d r:d%, m%d, '%s',..(%d)bytes",
 		s.id, dup, qos, retain, mid, topic, payloadlen)
 
 	// Check wether the message has been stored
@@ -687,7 +680,7 @@ func (s *mqttSession) sendSimpleCommand(cmd uint8) error {
 
 // sendPingRsp send ping response to client
 func (s *mqttSession) sendPingRsp() error {
-	glog.Infof("Sending PINGRESP to %s", s.Identifier)
+	glog.Infof("Sending PINGRESP to %s", s.id)
 	return s.sendSimpleCommand(PINGRESP)
 }
 

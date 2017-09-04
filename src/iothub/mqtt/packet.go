@@ -184,7 +184,7 @@ func (p *mqttPacket) WriteByte(b uint8) error {
 
 // ReadBytes read bytes from packet payload
 func (p *mqttPacket) ReadBytes(count int) ([]uint8, error) {
-	if p.pos+count > p.length {
+	if p.pos+count > p.remainingLength {
 		return nil, mqttErrorInvalidProtocol
 	}
 	p.pos += count
