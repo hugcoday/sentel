@@ -53,6 +53,9 @@ func main() {
 }
 
 func init() {
+	for group, values := range allDefaultConfigs {
+		base.RegisterConfig(group, values)
+	}
 	base.RegisterService("mqtt", mqtt.Configs, &mqtt.MqttFactory{})
 	base.RegisterService("coap", coap.Configs, &coap.CoapFactory{})
 }

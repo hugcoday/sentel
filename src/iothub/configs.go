@@ -10,21 +10,24 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package base
+package main
 
-var iothubConfigs = map[string]string{
-	"host":      "localhost:4145",
-	"loglevel":  "debug",
-	"kafka":     "",
-	"protocols": "mqtt,coap",
-}
-
-var storageConfigs = map[string]string{
-	"repository": "local",
-	"loglevel":   "debug",
-}
-
-func init() {
-	RegisterConfig("iothub", iothubConfigs)
-	RegisterConfig("storage", storageConfigs)
+var allDefaultConfigs = map[string]map[string]string{
+	"iothub": {
+		"host":      "localhost:4145",
+		"loglevel":  "debug",
+		"kafka":     "",
+		"protocols": "mqtt,coap",
+	},
+	"storage": {
+		"repository": "local",
+		"loglevel":   "debug",
+	},
+	"security": {
+		"catfile":             "",
+		"catpath":             "",
+		"certfile":            "",
+		"keyfile":             "",
+		"require_certificate": "false",
+	},
 }
