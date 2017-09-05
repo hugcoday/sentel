@@ -12,6 +12,7 @@
 package base
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"iothub/security"
@@ -77,5 +78,5 @@ func LoadAuthPluginWithConfig(service string, c Config) (security.AuthPlugin, er
 		}
 	}
 	opts := security.AuthOptions{}
-	return security.LoadAuthPlugin(auth, opts)
+	return security.LoadAuthPlugin(context.Background(), auth, opts)
 }

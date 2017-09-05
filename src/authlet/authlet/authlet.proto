@@ -1,0 +1,32 @@
+// Interface exported by the server
+syntax = "proto3";
+package authlet;
+
+service Authlet {
+    // Get version of Authlet service
+    rpc GetVersion(AuthRequest) returns (AuthReply) {}
+
+    // Check acl based on client id, user name and topic
+    rpc CheckAcl(AuthRequest)  returns (AuthReply){}
+
+    // Check user name and password
+    rpc CheckUserNameAndPassword(AuthRequest) returns (AuthReply) {}
+
+    // Get PSK key
+    rpc GetPskKey(AuthRequest) returns (AuthReply){}
+}
+
+message AuthRequest {
+    string clientid = 1;
+    string username =2;
+    string password = 3;
+    string topic = 4;
+    string hint = 5;
+    string access = 6;
+}
+
+message AuthReply {
+    bool result = 1;
+    string key = 2;
+    string version = 3;
+}

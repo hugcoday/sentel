@@ -13,6 +13,7 @@
 package mqtt
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"iothub/base"
@@ -452,7 +453,7 @@ func (s *mqttSession) handleConnect() error {
 	s.storage.DeleteMessageWithValidator(
 		clientid,
 		func(msg storage.Message) bool {
-			err := s.authplugin.CheckAcl(s, clientid, username, msg.Topic, security.AclActionRead)
+			err := s.authplugin.CheckAcl(context.Background(), clientid, username, msg.Topic, security.AclActionRead)
 			if err == security.ErrorAclDenied {
 				return false
 			}
@@ -636,7 +637,7 @@ func (s *mqttSession) handlePublish() error {
 	}
 	// Check for topic access
 	if s.observer != nil {
-		err := s.authplugin.CheckAcl(s, s.id, s.username, topic, security.AclActionWrite)
+		err := s.authplugin.CheckAcl(context.Background(), s.id, s.username, topic, security.AclActionWrite)
 		switch err {
 		case security.ErrorAclDenied:
 			return mqttErrorInvalidProtocol
