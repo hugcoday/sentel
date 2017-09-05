@@ -14,27 +14,27 @@ package security
 
 import "context"
 
-type noneAuthPlugin struct{}
+type remoteAuthPlugin struct{}
 
-func (n *noneAuthPlugin) GetVersion() int {
+func (n *remoteAuthPlugin) GetVersion() int {
 	return 0
 }
-func (n *noneAuthPlugin) Cleanup(ctx context.Context) error {
+func (n *remoteAuthPlugin) Cleanup(ctx context.Context) error {
 	return nil
 }
-func (n *noneAuthPlugin) CheckAcl(ctx context.Context, clientid string, username string, topic string, access int) error {
+func (n *remoteAuthPlugin) CheckAcl(ctx context.Context, clientid string, username string, topic string, access int) error {
 	return nil
 }
-func (n *noneAuthPlugin) CheckUsernameAndPasswor(ctx context.Context, username string, password string) error {
+func (n *remoteAuthPlugin) CheckUsernameAndPasswor(ctx context.Context, username string, password string) error {
 	return nil
 }
-func (n *noneAuthPlugin) GetPskKey(ctx context.Context, hint string, identity string) (string, error) {
+func (n *remoteAuthPlugin) GetPskKey(ctx context.Context, hint string, identity string) (string, error) {
 	return "", nil
 }
 
 // AuthPluginFactory
-type noneAuthPluginFactory struct{}
+type remoteAuthPluginFactory struct{}
 
-func (n noneAuthPluginFactory) New(ctx context.Context, opts AuthOptions) (AuthPlugin, error) {
-	return &noneAuthPlugin{}, nil
+func (n remoteAuthPluginFactory) New(ctx context.Context, opts AuthOptions) (AuthPlugin, error) {
+	return &remoteAuthPlugin{}, nil
 }

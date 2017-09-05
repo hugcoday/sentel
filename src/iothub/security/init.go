@@ -14,4 +14,6 @@ package security
 
 func init() {
 	RegisterAuthPlugin("none", noneAuthPluginFactory{})
+	RegisterAuthPlugin("authlet", authletAuthPluginFactory{})
+	RegisterAuthPlugin("remote", remoteAuthPluginFactory{})
 }

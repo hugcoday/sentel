@@ -14,27 +14,27 @@ package security
 
 import "context"
 
-type noneAuthPlugin struct{}
+type authletAuthPlugin struct{}
 
-func (n *noneAuthPlugin) GetVersion() int {
+func (n *authletAuthPlugin) GetVersion() int {
 	return 0
 }
-func (n *noneAuthPlugin) Cleanup(ctx context.Context) error {
+func (n *authletAuthPlugin) Cleanup(ctx context.Context) error {
 	return nil
 }
-func (n *noneAuthPlugin) CheckAcl(ctx context.Context, clientid string, username string, topic string, access int) error {
+func (n *authletAuthPlugin) CheckAcl(ctx context.Context, clientid string, username string, topic string, access int) error {
 	return nil
 }
-func (n *noneAuthPlugin) CheckUsernameAndPasswor(ctx context.Context, username string, password string) error {
+func (n *authletAuthPlugin) CheckUsernameAndPasswor(ctx context.Context, username string, password string) error {
 	return nil
 }
-func (n *noneAuthPlugin) GetPskKey(ctx context.Context, hint string, identity string) (string, error) {
+func (n *authletAuthPlugin) GetPskKey(ctx context.Context, hint string, identity string) (string, error) {
 	return "", nil
 }
 
 // AuthPluginFactory
-type noneAuthPluginFactory struct{}
+type authletAuthPluginFactory struct{}
 
-func (n noneAuthPluginFactory) New(ctx context.Context, opts AuthOptions) (AuthPlugin, error) {
-	return &noneAuthPlugin{}, nil
+func (n authletAuthPluginFactory) New(ctx context.Context, opts AuthOptions) (AuthPlugin, error) {
+	return &authletAuthPlugin{}, nil
 }

@@ -24,8 +24,8 @@ var allDefaultConfigs = map[string]map[string]string{
 		"loglevel":   "debug",
 	},
 	"security": {
-		"catfile":             "",
-		"catpath":             "",
+		"cafile":              "",
+		"capath":              "",
 		"certfile":            "",
 		"keyfile":             "",
 		"require_certificate": "false",

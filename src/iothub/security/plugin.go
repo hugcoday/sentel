@@ -13,6 +13,7 @@
 package security
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -38,16 +39,15 @@ var (
 // AuthPlugin interface for security
 type AuthPlugin interface {
 	GetVersion() int
-	Initialize(data interface{}, opts AuthOptions) error
-	Cleanup(data interface{}, opts AuthOptions) error
-	CheckAcl(data interface{}, clientid string, username string, topic string, access int) error
-	CheckUsernameAndPasswor(data interface{}, username string, password string) error
-	GetPskKey(data interface{}, hint string, identity string) (string, error)
+	CheckAcl(ctx context.Context, clientid string, username string, topic string, access int) error
+	CheckUsernameAndPasswor(ctx context.Context, username string, password string) error
+	GetPskKey(ctx context.Context, hint string, identity string) (string, error)
+	Cleanup(ctx context.Context) error
 }
 
 // AuthPluginFactory
 type AuthPluginFactory interface {
-	New(opts AuthOptions) (AuthPlugin, error)
+	New(ctx context.Context, opts AuthOptions) (AuthPlugin, error)
 }
 
 // RegisterAuthPlugin register a auth plugin
@@ -60,7 +60,7 @@ func RegisterAuthPlugin(name string, factory AuthPluginFactory) {
 }
 
 // LoadAuthPlugin load a authPlugin
-func LoadAuthPlugin(name string, opts AuthOptions) (AuthPlugin, error) {
+func LoadAuthPlugin(ctx context.Context, name string, opts AuthOptions) (AuthPlugin, error) {
 	// Default authentication is 'none'
 	if name == "" {
 		glog.Warning("No authentication method is specified, using none authentication")
@@ -69,5 +69,5 @@ func LoadAuthPlugin(name string, opts AuthOptions) (AuthPlugin, error) {
 	if _authPlugins[name] == nil {
 		return nil, fmt.Errorf("AuthPlugin '%s' is not registered", name)
 	}
-	return _authPlugins[name].New(opts)
+	return _authPlugins[name].New(ctx, opts)
 }
