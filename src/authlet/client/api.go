@@ -14,6 +14,7 @@ package client
 
 import (
 	pb "authlet/authlet"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -36,6 +37,7 @@ const (
 type AuthletApi struct {
 	opts   AuthOptions
 	client pb.AuthletClient
+	conn   *grpc.ClientConn
 }
 
 func (auth *AuthletApi) GetVersion(ctx context.Context) int {
@@ -44,18 +46,57 @@ func (auth *AuthletApi) GetVersion(ctx context.Context) int {
 	return version
 }
 func (auth *AuthletApi) CheckAcl(ctx context.Context, clientid string, username string, topic string, access int) error {
+	action := ""
+	switch access {
+	case AclActionNone:
+	case AclActionRead:
+		action = "read"
+	case AclActionWrite:
+		action = "write"
+	}
+
+	reply, err := auth.client.CheckAcl(ctx, &pb.AuthRequest{
+		Clientid: clientid,
+		Username: username,
+		Topic:    topic,
+		Access:   action,
+	})
+	if err != nil {
+		return err
+	}
+	if reply.Result != true {
+		return errors.New("Acl denied")
+	}
 	return nil
 }
 
-func (auth *AuthletApi) CheckUsernameAndPasswor(ctx context.Context, username string, password string) error {
+func (auth *AuthletApi) CheckUserNameAndPasswor(ctx context.Context, username string, password string) error {
+	reply, err := auth.client.CheckUserNameAndPassword(ctx, &pb.AuthRequest{
+		Username: username,
+		Password: password,
+	})
+	if err != nil {
+		return err
+	}
+	if reply.Result != true {
+		return errors.New("Acl denied")
+	}
 	return nil
 }
+
 func (auth *AuthletApi) GetPskKey(ctx context.Context, hint string, identity string) (string, error) {
-	return "", nil
+	reply, err := auth.client.GetPskKey(ctx, &pb.AuthRequest{
+		Hint:     hint,
+		Username: identity,
+	})
+	if err != nil {
+		return "", err
+	}
+	return reply.Key, nil
 }
 
-func (auth *AuthletApi) Cleanup(ctx context.Context) error {
-	return nil
+func (auth *AuthletApi) Close() {
+	auth.conn.Close()
 }
 
 func New(opts AuthOptions) (*AuthletApi, error) {
@@ -70,8 +111,7 @@ func New(opts AuthOptions) (*AuthletApi, error) {
 		glog.Fatalf("Failed to connect with authlet:%s", err)
 		return nil, err
 	}
-	defer conn.Close()
-	c := pb.NewAuthletClient(conn)
-	api.client = c
+	api.client = pb.NewAuthletClient(conn)
+	api.conn = conn
 	return api, nil
 }
