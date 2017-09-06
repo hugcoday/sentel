@@ -10,10 +10,9 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package client
+package authlet
 
 import (
-	pb "authlet/authlet"
 	"errors"
 	"fmt"
 	"strconv"
@@ -28,26 +27,26 @@ import (
 type AuthOptions map[string]string
 
 const (
-	AclActionNameNone  = ""
-	AclActionNameRead  = "r"
-	AclActionNameWrite = "w"
+	AclActionNone  = ""
+	AclActionead   = "r"
+	AclActionWrite = "w"
 )
 
 // AuthPlugin interface for security
 type AuthletApi struct {
 	opts   AuthOptions
-	client pb.AuthletClient
+	client AuthletClient
 	conn   *grpc.ClientConn
 }
 
 func (auth *AuthletApi) GetVersion(ctx context.Context) int {
-	reply, _ := auth.client.GetVersion(ctx, &pb.AuthRequest{})
+	reply, _ := auth.client.GetVersion(ctx, &AuthRequest{})
 	version, _ := strconv.Atoi(reply.Version)
 	return version
 }
 
 func (auth *AuthletApi) CheckAcl(ctx context.Context, clientid string, username string, topic string, access string) error {
-	reply, err := auth.client.CheckAcl(ctx, &pb.AuthRequest{
+	reply, err := auth.client.CheckAcl(ctx, &AuthRequest{
 		Clientid: clientid,
 		Username: username,
 		Topic:    topic,
@@ -60,7 +59,7 @@ func (auth *AuthletApi) CheckAcl(ctx context.Context, clientid string, username 
 }
 
 func (auth *AuthletApi) CheckUserNameAndPasswor(ctx context.Context, username string, password string) error {
-	reply, err := auth.client.CheckUserNameAndPassword(ctx, &pb.AuthRequest{
+	reply, err := auth.client.CheckUserNameAndPassword(ctx, &AuthRequest{
 		Username: username,
 		Password: password,
 	})
@@ -74,7 +73,7 @@ func (auth *AuthletApi) CheckUserNameAndPasswor(ctx context.Context, username st
 }
 
 func (auth *AuthletApi) GetPskKey(ctx context.Context, hint string, identity string) (string, error) {
-	reply, err := auth.client.GetPskKey(ctx, &pb.AuthRequest{
+	reply, err := auth.client.GetPskKey(ctx, &AuthRequest{
 		Hint:     hint,
 		Username: identity,
 	})
@@ -97,7 +96,7 @@ func New(opts AuthOptions) (*AuthletApi, error) {
 		glog.Fatalf("Failed to connect with authlet:%s", err)
 		return nil, err
 	}
-	api.client = pb.NewAuthletClient(conn)
+	api.client = NewAuthletClient(conn)
 	api.conn = conn
 	return api, nil
 }

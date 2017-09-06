@@ -20,14 +20,6 @@ import (
 	"github.com/golang/glog"
 )
 
-type AuthOptions map[string]string
-
-const (
-	AclActionNone  = 0
-	AclActionRead  = 1
-	AclActionWrite = 2
-)
-
 var (
 	ErrorAclDenied = errors.New("Acl denied")
 )
