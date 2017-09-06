@@ -106,6 +106,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/golang/protobuf",
+			"repository": "https://github.com/golang/protobuf",
+			"revision": "17ce1425424ab154092bbb43af630bd647f3bb0d",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/golang/protobuf/proto",
 			"repository": "https://github.com/golang/protobuf",
 			"revision": "1909bc2f63dc92bb931deace8b8312c4db72d12f",
