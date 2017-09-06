@@ -24,11 +24,17 @@ import (
 )
 
 type AuthServer struct {
-	config libs.Config
+	config   libs.Config
+	wg       sync.WaitGroup
+	listener net.Listener
+	srv      *grpc.Server
 }
 
-func LaunchAuthServer(c libs.Config, wg sync.WaitGroup) error {
+// NewAuthServer create authentication server
+func NewAuthServer(c libs.Config) (*AuthServer, error) {
 	address := ":50051"
+	server := &AuthServer{config: c, wg: sync.WaitGroup{}}
+
 	if addr, err := c.String("authlet", "address"); err == nil && address != "" {
 		address = addr
 	}
@@ -36,12 +42,32 @@ func LaunchAuthServer(c libs.Config, wg sync.WaitGroup) error {
 	lis, err := net.Listen("tcp", address)
 	if err != nil {
 		glog.Fatal("Failed to listen: %v", err)
-		return err
+		return nil, err
 	}
-	s := grpc.NewServer()
-	RegisterAuthletServer(s, &AuthServer{})
-	reflection.Register(s)
-	return s.Serve(lis)
+	server.listener = lis
+	server.srv = grpc.NewServer()
+	RegisterAuthletServer(server.srv, server)
+	reflection.Register(server.srv)
+	return server, nil
+}
+
+// Start
+func (s *AuthServer) Start() {
+	go func(s *AuthServer) {
+		s.srv.Serve(s.listener)
+		s.wg.Add(1)
+	}(s)
+}
+
+// Stop
+func (s *AuthServer) Stop() {
+	s.listener.Close()
+	s.wg.Wait()
+}
+
+// Wait
+func (s *AuthServer) Wait() {
+	s.wg.Wait()
 }
 
 // Get version of Authlet service

@@ -16,7 +16,6 @@ import (
 	"authlet/authlet"
 	"flag"
 	"libs"
-	"sync"
 
 	"github.com/golang/glog"
 )
@@ -27,7 +26,6 @@ var (
 
 func main() {
 	var config libs.Config
-	var wg sync.WaitGroup
 	var err error
 
 	flag.Parse()
@@ -40,9 +38,12 @@ func main() {
 		return
 	}
 
-	if err := authlet.LaunchAuthServer(config, wg); err != nil {
+	if server, err := authlet.NewAuthServer(config); err != nil {
 		glog.Fatal("Failed to launch Authlet Server")
 		return
+	} else {
+		server.Start()
+		//server.Stop()
+		server.Wait()
 	}
-	wg.Wait()
 }

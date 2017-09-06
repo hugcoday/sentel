@@ -46,7 +46,7 @@ func main() {
 		return
 	}
 	// Create service manager according to the configuration
-	if mgr, err = base.NewServiceManager(config); err != nil {
+	if mgr, err = base.NewProtocolServiceManager(config); err != nil {
 		glog.Fatal("Failed to launch ServiceManager")
 		return
 	}

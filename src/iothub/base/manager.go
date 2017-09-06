@@ -26,8 +26,8 @@ type ServiceManager struct {
 	storage  storage.Storage
 }
 
-// NewServiceManager create ServiceManager in main context
-func NewServiceManager(c libs.Config) (*ServiceManager, error) {
+// NewProtocolServiceManager create ServiceManager in main context
+func NewProtocolServiceManager(c libs.Config) (*ServiceManager, error) {
 	mgr := &ServiceManager{
 		config:   c,
 		chs:      make(map[string]chan int),
