@@ -28,9 +28,9 @@ import (
 type AuthOptions map[string]string
 
 const (
-	AclActionNone  = 0
-	AclActionRead  = 1
-	AclActionWrite = 2
+	AclActionNameNone  = ""
+	AclActionNameRead  = "r"
+	AclActionNameWrite = "w"
 )
 
 // AuthPlugin interface for security
@@ -45,26 +45,15 @@ func (auth *AuthletApi) GetVersion(ctx context.Context) int {
 	version, _ := strconv.Atoi(reply.Version)
 	return version
 }
-func (auth *AuthletApi) CheckAcl(ctx context.Context, clientid string, username string, topic string, access int) error {
-	action := ""
-	switch access {
-	case AclActionNone:
-	case AclActionRead:
-		action = "read"
-	case AclActionWrite:
-		action = "write"
-	}
 
+func (auth *AuthletApi) CheckAcl(ctx context.Context, clientid string, username string, topic string, access string) error {
 	reply, err := auth.client.CheckAcl(ctx, &pb.AuthRequest{
 		Clientid: clientid,
 		Username: username,
 		Topic:    topic,
-		Access:   action,
+		Access:   access,
 	})
-	if err != nil {
-		return err
-	}
-	if reply.Result != true {
+	if err != nil || reply.Result != true {
 		return errors.New("Acl denied")
 	}
 	return nil
@@ -89,10 +78,7 @@ func (auth *AuthletApi) GetPskKey(ctx context.Context, hint string, identity str
 		Hint:     hint,
 		Username: identity,
 	})
-	if err != nil {
-		return "", err
-	}
-	return reply.Key, nil
+	return reply.Key, err
 }
 
 func (auth *AuthletApi) Close() {
