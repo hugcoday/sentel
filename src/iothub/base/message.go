@@ -13,6 +13,7 @@
 package base
 
 import (
+	"libs"
 	"strings"
 	"time"
 
@@ -20,7 +21,7 @@ import (
 	"github.com/golang/glog"
 )
 
-func SyncProduceMessage(c Config, topic string, value sarama.Encoder) error {
+func SyncProduceMessage(c libs.Config, topic string, value sarama.Encoder) error {
 	//	sarama.Logger = c.Logger()
 
 	config := sarama.NewConfig()
@@ -48,7 +49,7 @@ func SyncProduceMessage(c Config, topic string, value sarama.Encoder) error {
 	return err
 }
 
-func AsyncProduceMessage(c Config, topic string, value sarama.Encoder) error {
+func AsyncProduceMessage(c libs.Config, topic string, value sarama.Encoder) error {
 	//	sarama.Logger = c.Logger()
 
 	config := sarama.NewConfig()

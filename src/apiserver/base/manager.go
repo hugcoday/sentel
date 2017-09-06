@@ -14,6 +14,8 @@ package base
 
 import (
 	"apiserver/middleware"
+	"fmt"
+	"libs"
 
 	echo "github.com/labstack/echo"
 )
@@ -26,7 +28,7 @@ type apiDescriptor struct {
 
 type ApiManager struct {
 	Version  string
-	Config   *ApiConfig
+	config   libs.Config
 	handlers []apiDescriptor
 	ech      *echo.Echo
 }
@@ -43,10 +45,10 @@ var (
 	apiManagers map[string]*ApiManager = make(map[string]*ApiManager)
 )
 
-func NewApiManager(version string) *ApiManager {
+func NewApiManager(version string, c libs.Config) *ApiManager {
 	m := &ApiManager{
 		Version:  version,
-		Config:   nil,
+		config:   c,
 		handlers: []apiDescriptor{},
 		ech:      echo.New(),
 	}
@@ -72,7 +74,10 @@ func (m *ApiManager) RegisterApi(action int, url string, handler echo.HandlerFun
 }
 
 func (m *ApiManager) Start() error {
-	address := m.Config.Host + ":" + m.Config.Port
+	address := ":1385"
+	if addr, err := m.config.String("apiserver", "address"); err == nil && addr != "" {
+		address = addr
+	}
 	return m.ech.Start(address)
 }
 
@@ -80,17 +85,25 @@ func RegisterApiManager(api *ApiManager) {
 	apiManagers[api.Version] = api
 }
 
-func CreateApiManager(c *ApiConfig) (*ApiManager, error) {
-	m := apiManagers[c.Version]
-	m.Config = c
+func CreateApiManager(c libs.Config) (*ApiManager, error) {
+	version, err := c.String("apiserver", "version")
+	if err != nil {
+		return nil, err
+	}
+	if _, ok := apiManagers[version]; !ok {
+		return nil, fmt.Errorf("There isn't manager for '%s'", version)
+	}
+
+	m := apiManagers[version]
+	m.config = c
 
 	m.ech.Use(func(h echo.HandlerFunc) echo.HandlerFunc {
 		return func(e echo.Context) error {
-			cc := &ApiContext{Context: e, Config: m.Config}
+			cc := &ApiContext{Context: e, Config: c}
 			return h(cc)
 		}
 	})
-	m.ech.Use(middleware.ApiVersion(c.Version))
+	m.ech.Use(middleware.ApiVersion(version))
 	//m.ech.Use(mw.KeyAuthWithConfig(middleware.DefaultKeyAuthConfig))
 	//	m.ech.Use(middleware.Logger())
 	//	m.ech.Use(middleware.Recover())

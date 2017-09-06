@@ -13,20 +13,21 @@ package base
 
 import (
 	"iothub/storage"
+	"libs"
 	"strings"
 
 	"github.com/golang/glog"
 )
 
 type ServiceManager struct {
-	config   Config              // Global config
+	config   libs.Config         // Global config
 	services map[string]Service  // All service created by config.Protocols
 	chs      map[string]chan int // Notification channel for each service
 	storage  storage.Storage
 }
 
 // NewServiceManager create ServiceManager in main context
-func NewServiceManager(c Config) (*ServiceManager, error) {
+func NewServiceManager(c libs.Config) (*ServiceManager, error) {
 	mgr := &ServiceManager{
 		config:   c,
 		chs:      make(map[string]chan int),

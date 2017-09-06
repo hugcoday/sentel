@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"iothub/security"
 	"iothub/storage"
+	"libs"
 	"net"
 
 	"github.com/golang/glog"
@@ -42,15 +43,15 @@ type Service interface {
 }
 
 type ServiceFactory interface {
-	New(c Config, ch chan int) (Service, error)
+	New(c libs.Config, ch chan int) (Service, error)
 }
 
 func RegisterService(name string, configs map[string]string, factory ServiceFactory) {
-	RegisterConfig(name, configs)
+	libs.RegisterConfig(name, configs)
 	_serviceFactories[name] = factory
 }
 
-func CreateService(name string, c Config, ch chan int, d storage.Storage) (Service, error) {
+func CreateService(name string, c libs.Config, ch chan int, d storage.Storage) (Service, error) {
 	if _serviceFactories[name] == nil {
 		return nil, fmt.Errorf("Service '%s' is not registered", name)
 	}
@@ -68,7 +69,7 @@ func CheckAllRegisteredServices() error {
 }
 
 // LoadAuthPluginWithConfig load a authPlugin with config
-func LoadAuthPluginWithConfig(service string, c Config) (security.AuthPlugin, error) {
+func LoadAuthPluginWithConfig(service string, c libs.Config) (security.AuthPlugin, error) {
 	// Get authentication for this service, if service's authentication is not
 	// specified, using iothub's authentication
 	auth, err := c.String(service, "authentication")
@@ -77,6 +78,5 @@ func LoadAuthPluginWithConfig(service string, c Config) (security.AuthPlugin, er
 			return nil, fmt.Errorf("Authentication method is not specified for service '%s'", service)
 		}
 	}
-	opts := security.AuthOptions{}
-	return security.LoadAuthPlugin(context.Background(), auth, opts)
+	return security.LoadAuthPlugin(context.Background(), auth, c)
 }

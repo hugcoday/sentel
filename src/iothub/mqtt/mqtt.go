@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"iothub/base"
 	"iothub/storage"
+	"libs"
 	"net"
 	"strings"
 	"sync"
@@ -33,7 +34,7 @@ const (
 )
 
 type mqtt struct {
-	config     base.Config
+	config     libs.Config
 	chn        chan int
 	index      int64
 	sessions   map[string]base.Session
@@ -49,7 +50,7 @@ type mqtt struct {
 type MqttFactory struct{}
 
 // New create mqtt service factory
-func (m *MqttFactory) New(c base.Config, ch chan int) (base.Service, error) {
+func (m *MqttFactory) New(c libs.Config, ch chan int) (base.Service, error) {
 	var localAddrs []string = []string{}
 	var s storage.Storage
 

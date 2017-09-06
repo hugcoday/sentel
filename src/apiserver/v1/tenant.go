@@ -25,8 +25,8 @@ func addTenant(c echo.Context) error {
 	// Make security check, for add content, no security policy
 
 	// Get registry store instance by context
-	ctx := *c.(*base.ApiContext)
-	r, _ := db.NewRegistry(ctx)
+	config := c.(*base.ApiContext).Config
+	r, _ := db.NewRegistry(config)
 	defer r.Release()
 
 	//id := c.Param("id")

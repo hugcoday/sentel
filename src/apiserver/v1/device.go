@@ -47,8 +47,9 @@ func registerDevice(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return err
 	}
+	config := c.(*base.ApiContext).Config
 	// Connect with registry
-	r, err := db.NewRegistry(*c.(*base.ApiContext))
+	r, err := db.NewRegistry(config)
 	if err != nil {
 		logFatal(c, "Registry connection failed")
 		return err
@@ -95,7 +96,8 @@ func getDevice(c echo.Context) error {
 		return err
 	}
 	// Connect with registry
-	registry, err := db.NewRegistry(*c.(*base.ApiContext))
+	config := c.(*base.ApiContext).Config
+	registry, err := db.NewRegistry(config)
 	if err != nil {
 		logFatal(c, "Registry connection failed")
 		return err
@@ -137,7 +139,8 @@ func deleteDevice(c echo.Context) error {
 		return err
 	}
 	// Connect with registry
-	registry, err := db.NewRegistry(*c.(*base.ApiContext))
+	config := c.(*base.ApiContext).Config
+	registry, err := db.NewRegistry(config)
 	if err != nil {
 		logFatal(c, "Registry connection failed")
 		return err
@@ -187,7 +190,8 @@ func updateDevice(c echo.Context) error {
 		return err
 	}
 	// Connect with registry
-	r, err := db.NewRegistry(*c.(*base.ApiContext))
+	config := c.(*base.ApiContext).Config
+	r, err := db.NewRegistry(config)
 	if err != nil {
 		logFatal(c, "Registry connection failed")
 		return err

@@ -12,7 +12,10 @@
 
 package security
 
-import "context"
+import (
+	"context"
+	"libs"
+)
 
 type remoteAuthPlugin struct{}
 
@@ -35,6 +38,6 @@ func (n *remoteAuthPlugin) GetPskKey(ctx context.Context, hint string, identity 
 // AuthPluginFactory
 type remoteAuthPluginFactory struct{}
 
-func (n remoteAuthPluginFactory) New(ctx context.Context, opts AuthOptions) (AuthPlugin, error) {
+func (n remoteAuthPluginFactory) New(ctx context.Context, c libs.Config) (AuthPlugin, error) {
 	return &remoteAuthPlugin{}, nil
 }

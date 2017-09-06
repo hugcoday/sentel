@@ -13,6 +13,7 @@
 package base
 
 import (
+	"errors"
 	"strings"
 	"time"
 
@@ -22,6 +23,12 @@ import (
 
 func SyncProduceMessage(c echo.Context, topic string, value sarama.Encoder) error {
 	ctx := *c.(*ApiContext)
+
+	// Get kafka server
+	kafka, err := ctx.Config.String("kafka", "hosts")
+	if err != nil || kafka == "" {
+		return errors.New("Invalid kafka configuration")
+	}
 
 	//	sarama.Logger = c.Logger()
 
@@ -36,7 +43,7 @@ func SyncProduceMessage(c echo.Context, topic string, value sarama.Encoder) erro
 		Value: value,
 	}
 
-	producer, err := sarama.NewSyncProducer(strings.Split(ctx.Config.Kafka, ","), config)
+	producer, err := sarama.NewSyncProducer(strings.Split(kafka, ","), config)
 	if err != nil {
 		c.Logger().Error("Failed to produce message:%s", err)
 		return err
@@ -51,6 +58,11 @@ func SyncProduceMessage(c echo.Context, topic string, value sarama.Encoder) erro
 
 func AsyncProduceMessage(c echo.Context, topic string, value sarama.Encoder) error {
 	ctx := *c.(*ApiContext)
+	// Get kafka server
+	kafka, err := ctx.Config.String("kafka", "hosts")
+	if err != nil || kafka == "" {
+		return errors.New("Invalid kafka configuration")
+	}
 
 	//	sarama.Logger = c.Logger()
 
@@ -66,7 +78,7 @@ func AsyncProduceMessage(c echo.Context, topic string, value sarama.Encoder) err
 		Value: value,
 	}
 
-	producer, err := sarama.NewAsyncProducer(strings.Split(ctx.Config.Kafka, ","), config)
+	producer, err := sarama.NewAsyncProducer(strings.Split(kafka, ","), config)
 	if err != nil {
 		c.Logger().Error("Failed to produce message:%s", err)
 		return err

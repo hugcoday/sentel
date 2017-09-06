@@ -13,6 +13,7 @@
 package authlet
 
 import (
+	"libs"
 	"net"
 	"sync"
 
@@ -23,13 +24,16 @@ import (
 )
 
 type AuthServer struct {
-	opts AuthOptions
+	config libs.Config
 }
 
-const port = ":50051"
+func LaunchAuthServer(c libs.Config, wg sync.WaitGroup) error {
+	address := ":50051"
+	if addr, err := c.String("authlet", "address"); err == nil && address != "" {
+		address = addr
+	}
 
-func LaunchAuthServer(opts AuthOptions, wg sync.WaitGroup) error {
-	lis, err := net.Listen("tcp", opts["port"])
+	lis, err := net.Listen("tcp", address)
 	if err != nil {
 		glog.Fatal("Failed to listen: %v", err)
 		return err

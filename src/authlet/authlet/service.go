@@ -16,6 +16,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"libs"
 
 	"github.com/golang/glog"
 )
@@ -39,7 +40,7 @@ type AuthService interface {
 
 // AuthServiceFactory
 type AuthServiceFactory interface {
-	New(opts AuthOptions) (AuthService, error)
+	New(c libs.Config) (AuthService, error)
 }
 
 // RegisterAuthService register a auth plugin
@@ -52,7 +53,7 @@ func RegisterAuthService(name string, factory AuthServiceFactory) {
 }
 
 // LoadAuthService load a authService
-func LoadAuthService(name string, opts AuthOptions) (AuthService, error) {
+func LoadAuthService(name string, c libs.Config) (AuthService, error) {
 	// Default authentication is 'none'
 	if name == "" {
 		glog.Warning("No authentication method is specified, using none authentication")
@@ -61,5 +62,5 @@ func LoadAuthService(name string, opts AuthOptions) (AuthService, error) {
 	if _authServices[name] == nil {
 		return nil, fmt.Errorf("AuthService '%s' is not registered", name)
 	}
-	return _authServices[name].New(opts)
+	return _authServices[name].New(c)
 }

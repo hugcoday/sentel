@@ -15,10 +15,11 @@ package v1
 import (
 	"apiserver/base"
 	"apiserver/middleware"
+	"libs"
 )
 
-func newApi() *base.ApiManager {
-	m := base.NewApiManager("v1")
+func NewApi(c libs.Config) *base.ApiManager {
+	m := base.NewApiManager("v1", c)
 
 	// Tenant Api
 	m.RegisterApi(base.POST, "/tenants/:id", addTenant)
@@ -141,8 +142,4 @@ func newApi() *base.ApiManager {
 	m.RegisterApi(base.GET, "/jobs/v2/query", queryJobs, middleware.DefaultKeyAuth)
 
 	return m
-}
-
-func init() {
-	base.RegisterApiManager(newApi())
 }
