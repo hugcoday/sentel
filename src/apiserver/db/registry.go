@@ -27,21 +27,11 @@ type Registry struct {
 }
 
 func InitializeRegistry(c libs.Config) error {
-	var user, pwd, server, port string
-	var err error
+	user := c.MustString("registry", "user")
+	pwd := c.MustString("registry", "password")
+	server := c.MustString("registry", "server")
+	port := c.MustString("registry", "port")
 
-	if user, err = c.String("registry", "user"); err != nil {
-		return err
-	}
-	if pwd, err = c.String("registry", "password"); err != nil {
-		return err
-	}
-	if server, err = c.String("registry", "server"); err != nil {
-		return err
-	}
-	if port, err = c.String("registry", "port"); err != nil {
-		return err
-	}
 	info := fmt.Sprintf("%s:%s@tcp(%s:%s)/registry", user, pwd, server, port)
 	orm, err := xorm.NewEngine("postgres", info)
 	if err != nil {
@@ -58,21 +48,11 @@ func InitializeRegistry(c libs.Config) error {
 }
 
 func NewRegistry(c libs.Config) (*Registry, error) {
-	var user, pwd, server, port string
-	var err error
+	user := c.MustString("registry", "user")
+	pwd := c.MustString("registry", "password")
+	server := c.MustString("registry", "server")
+	port := c.MustString("registry", "port")
 
-	if user, err = c.String("registry", "user"); err != nil {
-		return nil, err
-	}
-	if pwd, err = c.String("registry", "password"); err != nil {
-		return nil, err
-	}
-	if server, err = c.String("registry", "server"); err != nil {
-		return nil, err
-	}
-	if port, err = c.String("registry", "port"); err != nil {
-		return nil, err
-	}
 	info := fmt.Sprintf("%s:%s@tcp(%s:%s)/registry", user, pwd, server, port)
 	orm, err := xorm.NewEngine("postgres", info)
 	if err != nil {
