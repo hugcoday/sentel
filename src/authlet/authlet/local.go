@@ -17,6 +17,7 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"libs"
 )
 
 const localAuthVersion = 1
@@ -29,7 +30,7 @@ type acl struct {
 }
 
 type localAuthPlugin struct {
-	opts        AuthOptions
+	config      libs.Config
 	pwdFile     string
 	aclFile     string
 	pskFile     string
@@ -42,7 +43,7 @@ type localAuthPlugin struct {
 // AuthPluginFactory
 type localAuthPluginFactory struct{}
 
-func (l localAuthPluginFactory) New(opts AuthOptions) (AuthPlugin, error) {
+func (l localAuthPluginFactory) New(c libs.Config) (AuthPlugin, error) {
 	plugin := &localAuthPlugin{
 		opts:        opts,
 		aclUsers:    make(map[string][]*acl),
@@ -61,7 +62,7 @@ func (l *localAuthPlugin) GetVersion() int {
 }
 
 // Initialize initialize plugin, for example, load local psk file...
-func (l *localAuthPlugin) initialize(opts AuthOptions) error {
+func (l *localAuthPlugin) initialize(c libs.Config) error {
 	if cafile, ok := opts["cafile"]; ok && cafile != "" {
 		l.caFile = cafile
 	}
@@ -143,7 +144,7 @@ func (l *localAuthPlugin) addAclPattern(topic string, access int) error {
 	return nil
 }
 
-func (l *localAuthPlugin) Cleanup(ctx context.Context, opts AuthOptions) error {
+func (l *localAuthPlugin) Cleanup(ctx context.Context, config libs.Config) error {
 	return nil
 }
 

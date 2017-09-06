@@ -16,11 +16,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"libs"
 
 	"github.com/golang/glog"
 )
-
-type AuthOptions map[string]string
 
 const (
 	AclActionNone  = 0
@@ -47,7 +46,7 @@ type AuthPlugin interface {
 
 // AuthPluginFactory
 type AuthPluginFactory interface {
-	New(ctx context.Context, opts AuthOptions) (AuthPlugin, error)
+	New(ctx context.Context, c libs.Config) (AuthPlugin, error)
 }
 
 // RegisterAuthPlugin register a auth plugin
@@ -60,7 +59,7 @@ func RegisterAuthPlugin(name string, factory AuthPluginFactory) {
 }
 
 // LoadAuthPlugin load a authPlugin
-func LoadAuthPlugin(ctx context.Context, name string, opts AuthOptions) (AuthPlugin, error) {
+func LoadAuthPlugin(ctx context.Context, name string, c libs.Config) (AuthPlugin, error) {
 	// Default authentication is 'none'
 	if name == "" {
 		glog.Warning("No authentication method is specified, using none authentication")
@@ -69,5 +68,5 @@ func LoadAuthPlugin(ctx context.Context, name string, opts AuthOptions) (AuthPlu
 	if _authPlugins[name] == nil {
 		return nil, fmt.Errorf("AuthPlugin '%s' is not registered", name)
 	}
-	return _authPlugins[name].New(ctx, opts)
+	return _authPlugins[name].New(ctx, c)
 }

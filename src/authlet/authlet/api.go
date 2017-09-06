@@ -15,6 +15,7 @@ package authlet
 import (
 	"errors"
 	"fmt"
+	"libs"
 	"strconv"
 
 	"github.com/golang/glog"
@@ -24,8 +25,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-type AuthOptions map[string]string
-
 const (
 	AclActionNone  = ""
 	AclActionead   = "r"
@@ -34,7 +33,7 @@ const (
 
 // AuthPlugin interface for security
 type AuthletApi struct {
-	opts   AuthOptions
+	config libs.Config
 	client AuthletClient
 	conn   *grpc.ClientConn
 }
@@ -84,11 +83,11 @@ func (auth *AuthletApi) Close() {
 	auth.conn.Close()
 }
 
-func New(opts AuthOptions) (*AuthletApi, error) {
+func New(c libs.Config) (*AuthletApi, error) {
 	address := ""
-	api := &AuthletApi{}
+	api := &AuthletApi{config: c}
 
-	if address, ok := opts["address"]; !ok || address == "" {
+	if address, err := c.String("authlet", "address"); err != nil || address == "" {
 		return nil, fmt.Errorf("Invalid autlet address:'%s'", address)
 	}
 	conn, err := grpc.Dial(address, grpc.WithInsecure())

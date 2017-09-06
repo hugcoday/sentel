@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"iothub/base"
 	"iothub/storage"
+	"libs"
 	"net"
 	"strings"
 	"sync"
@@ -31,7 +32,7 @@ const (
 )
 
 type coap struct {
-	config     base.Config
+	config     libs.Config
 	chn        chan int
 	index      int64
 	sessions   map[string]base.Session
@@ -46,7 +47,7 @@ type coap struct {
 type CoapFactory struct{}
 
 // New create coap service factory
-func (m *CoapFactory) New(c base.Config, ch chan int) (base.Service, error) {
+func (m *CoapFactory) New(c libs.Config, ch chan int) (base.Service, error) {
 	var localAddrs []string = []string{}
 	var s storage.Storage
 

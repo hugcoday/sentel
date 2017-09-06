@@ -12,7 +12,10 @@
 
 package security
 
-import "context"
+import (
+	"context"
+	"libs"
+)
 
 type authletAuthPlugin struct{}
 
@@ -35,6 +38,6 @@ func (n *authletAuthPlugin) GetPskKey(ctx context.Context, hint string, identity
 // AuthPluginFactory
 type authletAuthPluginFactory struct{}
 
-func (n authletAuthPluginFactory) New(ctx context.Context, opts AuthOptions) (AuthPlugin, error) {
+func (n authletAuthPluginFactory) New(ctx context.Context, c libs.Config) (AuthPlugin, error) {
 	return &authletAuthPlugin{}, nil
 }

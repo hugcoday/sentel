@@ -17,6 +17,7 @@ import (
 	"iothub/base"
 	"iothub/coap"
 	"iothub/mqtt"
+	"libs"
 
 	"github.com/golang/glog"
 )
@@ -27,7 +28,7 @@ var (
 
 func main() {
 	var mgr *base.ServiceManager
-	var config base.Config
+	var config libs.Config
 	var err error
 
 	flag.Parse()
@@ -39,7 +40,7 @@ func main() {
 		return
 	}
 	// Get configuration
-	if config, err = base.NewWithConfigFile(*configFileFullPath); err != nil {
+	if config, err = libs.NewWithConfigFile(*configFileFullPath); err != nil {
 		glog.Fatal(err)
 		flag.PrintDefaults()
 		return
@@ -54,7 +55,7 @@ func main() {
 
 func init() {
 	for group, values := range allDefaultConfigs {
-		base.RegisterConfig(group, values)
+		libs.RegisterConfig(group, values)
 	}
 	base.RegisterService("mqtt", mqtt.Configs, &mqtt.MqttFactory{})
 	base.RegisterService("coap", coap.Configs, &coap.CoapFactory{})
