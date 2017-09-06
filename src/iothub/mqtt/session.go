@@ -548,10 +548,10 @@ func (s *mqttSession) handleSubscribe() error {
 			sub = mp + sub
 		}
 		if qos != 0x80 {
-			if err := s.storage.AddSubscription(s, sub, qos); err != nil {
+			if err := s.storage.AddSubscription(s, s.id, sub, qos); err != nil {
 				return err
 			}
-			if err := s.storage.RetainSubscription(s, sub, qos); err != nil {
+			if err := s.storage.RetainSubscription(s, s.id, sub, qos); err != nil {
 				return err
 			}
 		}
@@ -584,7 +584,7 @@ func (s *mqttSession) handleUnsubscribe() error {
 		if err := checkTopicValidity(sub); err != nil {
 			return fmt.Errorf("Invalid unsubscription string from %s, disconnecting", s.id)
 		}
-		s.storage.RemoveSubscriber(s, storage.Topic{Name: sub}, s.id)
+		s.storage.RemoveSubscription(s, s.id, sub)
 	}
 
 	return s.sendCommandWithMid(UNSUBACK, mid, false)

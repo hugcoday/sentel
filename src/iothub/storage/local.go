@@ -18,9 +18,15 @@ import (
 	"github.com/golang/glog"
 )
 
+type subNode struct {
+	id  string
+	qos uint8
+}
+
 type localStorage struct {
 	opt      Option
 	sessions map[string]Session
+	subs     map[string][]subNode
 }
 
 // Open local storage
@@ -89,6 +95,7 @@ func (l *localStorage) RegisterSession(c Context, s Session) error {
 }
 
 // Device
+// AddDevice
 func (l *localStorage) AddDevice(c Context, d Device) error {
 	return nil
 }
@@ -139,11 +146,39 @@ func (l *localStorage) GetTopicSubscribers(c Context, t Topic) ([]string, error)
 }
 
 // Subscription
-func (l *localStorage) AddSubscription(c Context, sub string, qos uint8) error {
+func (l *localStorage) AddSubscription(c Context, clientid string, sub string, qos uint8) error {
+	var node subNode
+	node.id = clientid
+	node.qos = qos
+	if _, ok := l.subs[sub]; ok {
+		l.subs[sub] = append(l.subs[sub], node)
+	} else {
+		l.subs[sub] = make([]subNode, 1)
+		l.subs[sub][0] = node
+	}
 	return nil
 }
 
-func (l *localStorage) RetainSubscription(c Context, sub string, qos uint8) error {
+func (l *localStorage) RetainSubscription(c Context, clientid string, sub string, qos uint8) error {
+	return nil
+}
+
+func (l *localStorage) RemoveSubscription(c Context, clientid string, sub string) error {
+	if _, ok := l.subs[sub]; ok {
+		var index int
+		var value subNode
+		for index, value = range l.subs[sub] {
+			if value.id == clientid {
+				break
+			}
+		}
+
+		copy(l.subs[sub][index:], l.subs[sub][index+1:])
+		l.subs[sub] = l.subs[sub][:len(l.subs[sub])-1]
+	} else {
+		return errors.New("Topic name is not exists")
+	}
+
 	return nil
 }
 
@@ -191,6 +226,7 @@ func (l *localStorageFactory) New(opt Option) (Storage, error) {
 	d := &localStorage{
 		opt:      opt,
 		sessions: make(map[string]Session),
+		subs:     make(map[string][]subNode),
 	}
 	return d, nil
 }
