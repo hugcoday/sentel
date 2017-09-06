@@ -94,8 +94,9 @@ type Storage interface {
 	GetTopicSubscribers(c Context, t Topic) ([]string, error)
 
 	// Subscription
-	AddSubscription(c Context, sub string, qos uint8) error
-	RetainSubscription(c Context, sub string, qos uint8) error
+	AddSubscription(c Context, clientid string, sub string, qos uint8) error
+	RetainSubscription(c Context, clientid string, sub string, qos uint8) error
+	RemoveSubscription(c Context, clientid string, sub string) error
 
 	// Message Management
 	FindMessage(clientid string, mid uint16) (bool, error)
