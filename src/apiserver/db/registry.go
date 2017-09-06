@@ -13,23 +13,36 @@
 package db
 
 import (
-	"apiserver/base"
 	"errors"
 	"fmt"
+	"libs"
 
 	"github.com/go-xorm/xorm"
 	"github.com/golang/glog"
 )
 
 type Registry struct {
-	ctx base.ApiContext
-	orm *xorm.Engine
+	orm    *xorm.Engine
+	config libs.Config
 }
 
-func InitializeRegistry(c *base.ApiConfig) error {
-	info := fmt.Sprintf("%s:%s@tcp(%s:%s)/registry",
-		c.Registry.User, c.Registry.Password,
-		c.Registry.Server, c.Registry.Port)
+func InitializeRegistry(c libs.Config) error {
+	var user, pwd, server, port string
+	var err error
+
+	if user, err = c.String("registry", "user"); err != nil {
+		return err
+	}
+	if pwd, err = c.String("registry", "password"); err != nil {
+		return err
+	}
+	if server, err = c.String("registry", "server"); err != nil {
+		return err
+	}
+	if port, err = c.String("registry", "port"); err != nil {
+		return err
+	}
+	info := fmt.Sprintf("%s:%s@tcp(%s:%s)/registry", user, pwd, server, port)
 	orm, err := xorm.NewEngine("postgres", info)
 	if err != nil {
 		glog.Error("Create xorm engine failed:%s", err)
@@ -44,16 +57,29 @@ func InitializeRegistry(c *base.ApiConfig) error {
 	return nil
 }
 
-func NewRegistry(ctx base.ApiContext) (*Registry, error) {
-	info := fmt.Sprintf("%s:%s@tcp(%s:%s)/registry",
-		ctx.Config.Registry.User, ctx.Config.Registry.Password,
-		ctx.Config.Registry.Server, ctx.Config.Registry.Port)
+func NewRegistry(c libs.Config) (*Registry, error) {
+	var user, pwd, server, port string
+	var err error
+
+	if user, err = c.String("registry", "user"); err != nil {
+		return nil, err
+	}
+	if pwd, err = c.String("registry", "password"); err != nil {
+		return nil, err
+	}
+	if server, err = c.String("registry", "server"); err != nil {
+		return nil, err
+	}
+	if port, err = c.String("registry", "port"); err != nil {
+		return nil, err
+	}
+	info := fmt.Sprintf("%s:%s@tcp(%s:%s)/registry", user, pwd, server, port)
 	orm, err := xorm.NewEngine("postgres", info)
 	if err != nil {
 		glog.Error("Create xorm engine failed:%s", err)
 		return nil, err
 	}
-	return &Registry{orm: orm, ctx: ctx}, nil
+	return &Registry{orm: orm, config: c}, nil
 }
 
 func (r *Registry) Release() {

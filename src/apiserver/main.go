@@ -15,23 +15,42 @@ package main
 import (
 	"apiserver/base"
 	"apiserver/db"
+	"apiserver/v1"
+	"flag"
+	"libs"
 
 	"github.com/golang/glog"
 )
 
-func main() {
-	// Get configuration
-	apiconfig, err := base.NewApiConfig()
-	defer apiconfig.Close()
+var (
+	configFileFullPath = flag.String("c", "../etc/sentel/apiserver.conf", "config file")
+)
 
-	// Initialize registry store
-	if err := db.InitializeRegistry(apiconfig); err != nil {
+func main() {
+	var config libs.Config
+	var err error
+
+	flag.Parse()
+	glog.Info("Starting api server...")
+
+	// Get configuration
+	if config, err = libs.NewWithConfigFile(*configFileFullPath); err != nil {
+		glog.Fatal(err)
+		flag.PrintDefaults()
+		return
+	}
+
+	// Register Api Manager
+	base.RegisterApiManager(v1.NewApi(config))
+
+	// Initialize registry
+	if err := db.InitializeRegistry(config); err != nil {
 		glog.Error("Registry initialization failed:%v", err)
 		return
 	}
 
 	// Create api manager using configuration
-	apiManager, err := base.CreateApiManager(apiconfig)
+	apiManager, err := base.CreateApiManager(config)
 	if err != nil {
 		glog.Error("ApiManager creation failed:%v", err)
 		return

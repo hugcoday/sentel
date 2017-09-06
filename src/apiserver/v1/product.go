@@ -50,8 +50,8 @@ func registerProduct(c echo.Context) error {
 		return err
 	}
 	// Connect with registry
-	ctx := *c.(*base.ApiContext)
-	r, err := db.NewRegistry(ctx)
+	config := c.(*base.ApiContext).Config
+	r, err := db.NewRegistry(config)
 	if err != nil {
 		logFatal(c, "Registry connection failed")
 		return err
@@ -116,7 +116,8 @@ func updateProduct(c echo.Context) error {
 		return err
 	}
 	// Connect with registry
-	registry, err := db.NewRegistry(*c.(*base.ApiContext))
+	config := c.(*base.ApiContext).Config
+	registry, err := db.NewRegistry(config)
 	if err != nil {
 		return err
 	}
@@ -157,7 +158,8 @@ func deleteProduct(c echo.Context) error {
 	logInfo(c, "deleteProduct:%s", c.Param("id"))
 
 	// Connect with registry
-	registry, err := db.NewRegistry(*c.(*base.ApiContext))
+	config := c.(*base.ApiContext).Config
+	registry, err := db.NewRegistry(config)
 	if err != nil {
 		logFatal(c, "Registry connection failed")
 		return err
@@ -194,7 +196,8 @@ type getProductResponse struct {
 func getProduct(c echo.Context) error {
 	logInfo(c, "getProduct:%s", c.Param("id"))
 	// Connect with registry
-	registry, err := db.NewRegistry(*c.(*base.ApiContext))
+	config := c.(*base.ApiContext).Config
+	registry, err := db.NewRegistry(config)
 	if err != nil {
 		logFatal(c, "Registry connection failed")
 		return err
@@ -240,7 +243,8 @@ func getProductDevices(c echo.Context) error {
 	logInfo(c, "getProductDevices:%s", c.Param("id"))
 
 	// Connect with registry
-	registry, err := db.NewRegistry(*c.(*base.ApiContext))
+	config := c.(*base.ApiContext).Config
+	registry, err := db.NewRegistry(config)
 	if err != nil {
 		logFatal(c, "Registry connection failed")
 		return err

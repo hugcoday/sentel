@@ -12,9 +12,13 @@
 
 package base
 
-import echo "github.com/labstack/echo"
+import (
+	"libs"
+
+	echo "github.com/labstack/echo"
+)
 
 type ApiContext struct {
 	echo.Context
-	Config *ApiConfig
+	Config libs.Config
 }
