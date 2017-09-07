@@ -57,3 +57,9 @@ func main() {
 	}
 	glog.Error(apiManager.Start())
 }
+
+func init() {
+	for group, values := range allDefaultConfigs {
+		libs.RegisterConfig(group, values)
+	}
+}
