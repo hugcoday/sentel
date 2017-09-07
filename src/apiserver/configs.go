@@ -14,10 +14,9 @@ package main
 
 var allDefaultConfigs = map[string]map[string]string{
 	"apiserver": {
-		"host":      "localhost:4145",
-		"loglevel":  "debug",
-		"kafka":     "",
-		"protocols": "mqtt,coap",
+		"host":     "localhost:4145",
+		"loglevel": "debug",
+		"kafka":    "",
 	},
 	"storage": {
 		"repository": "local",
