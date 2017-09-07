@@ -12,47 +12,39 @@
 package base
 
 import (
-	"iothub/storage"
 	"libs"
 	"strings"
 
 	"github.com/golang/glog"
 )
 
+type ServiceCommand int
+
+const (
+	ServiceCommandStart = 0
+	ServiceCommandStop  = 1
+)
+
 type ServiceManager struct {
-	config   libs.Config         // Global config
-	services map[string]Service  // All service created by config.Protocols
-	chs      map[string]chan int // Notification channel for each service
-	storage  storage.Storage
+	config   libs.Config                    // Global config
+	services map[string]Service             // All service created by config.Protocols
+	chs      map[string]chan ServiceCommand // Notification channel for each service
 }
 
 // NewProtocolServiceManager create ServiceManager in main context
-func NewProtocolServiceManager(c libs.Config) (*ServiceManager, error) {
+func NewServiceManager(c libs.Config) (*ServiceManager, error) {
 	mgr := &ServiceManager{
 		config:   c,
-		chs:      make(map[string]chan int),
+		chs:      make(map[string]chan ServiceCommand),
 		services: make(map[string]Service),
 	}
-	// Create storage instance
-	name := c.MustString("storage", "backend")
-	opt := storage.Option{Hosts: ""}
-	// If 'hosts' is not set, using default local storage
-	if hosts, err := c.String("storage", "hosts"); err == nil {
-		opt.Hosts = hosts
-	}
-	storage, err := storage.New(name, opt)
-	if storage != nil {
-		return nil, err
-	}
-	mgr.storage = storage
-
 	// Get supported configs
-	items := c.MustString("iothub", "protocols")
-	protocols := strings.Split(items, ",")
+	items := c.MustString("iothub", "services")
+	services := strings.Split(items, ",")
 	// Create service for each protocol
-	for _, name := range protocols {
-		ch := make(chan int)
-		service, err := CreateService(name, c, ch, mgr.storage)
+	for _, name := range services {
+		ch := make(chan ServiceCommand)
+		service, err := CreateService(name, c, ch)
 		if err != nil {
 			glog.Errorf("%s", err)
 		} else {
@@ -66,9 +58,6 @@ func NewProtocolServiceManager(c libs.Config) (*ServiceManager, error) {
 
 // ServiceManger run all serice and wait to terminate
 func (s *ServiceManager) Start() error {
-	if s.storage != nil {
-		defer s.storage.Close()
-	}
 	// Run all service
 	for _, service := range s.services {
 		go service.Run()

@@ -259,11 +259,13 @@ func (s *mqttSession) handleConnect() error {
 	if err != nil {
 		return nil
 	}
-	if s.mgr.protocol == mqttProtocol311 {
-		if cflags&0x01 != 0x00 {
-			return errors.New("Invalid protocol version in connect flags")
+	/*
+		if s.mgr.protocol == mqttProtocol311 {
+			if cflags&0x01 != 0x00 {
+				return errors.New("Invalid protocol version in connect flags")
+			}
 		}
-	}
+	*/
 	cleanSession := (cflags & 0x02) >> 1
 	will := cflags & 0x04
 	willQos := (cflags & 0x18) >> 3

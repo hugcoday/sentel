@@ -16,9 +16,9 @@ import (
 	"errors"
 	"fmt"
 	"iothub/security"
-	"iothub/storage"
 	"libs"
 	"net"
+	"strings"
 
 	"github.com/golang/glog"
 )
@@ -43,19 +43,24 @@ type Service interface {
 }
 
 type ServiceFactory interface {
-	New(c libs.Config, ch chan int) (Service, error)
+	New(protocol string, c libs.Config, ch chan ServiceCommand) (Service, error)
 }
 
-func RegisterService(name string, configs map[string]string, factory ServiceFactory) {
-	libs.RegisterConfig(name, configs)
-	_serviceFactories[name] = factory
+func RegisterService(name string, protocol string, configs map[string]string, factory ServiceFactory) {
+	s := name + ":" + protocol
+	libs.RegisterConfig(s, configs)
+	_serviceFactories[s] = factory
 }
 
-func CreateService(name string, c libs.Config, ch chan int, d storage.Storage) (Service, error) {
+func CreateService(name string, c libs.Config, ch chan ServiceCommand) (Service, error) {
 	if _serviceFactories[name] == nil {
 		return nil, fmt.Errorf("Service '%s' is not registered", name)
 	}
-	return _serviceFactories[name].New(c, ch)
+	ps := strings.Split(name, ":")
+	if len(ps) != 2 {
+		return nil, fmt.Errorf("Service '%s' is not rightly configured", name)
+	}
+	return _serviceFactories[name].New(ps[1], c, ch)
 }
 
 func CheckAllRegisteredServices() error {

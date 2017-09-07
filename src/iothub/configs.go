@@ -14,10 +14,10 @@ package main
 
 var allDefaultConfigs = map[string]map[string]string{
 	"iothub": {
-		"host":      "localhost:4145",
-		"loglevel":  "debug",
-		"kafka":     "",
-		"protocols": "mqtt,coap",
+		"host":     "localhost:4145",
+		"loglevel": "debug",
+		"kafka":    "",
+		"services": "mqtt:tcp,coap:udp, mqtt:ws, mqtt:ssl, mqtt:api",
 	},
 	"storage": {
 		"repository": "local",
@@ -29,5 +29,11 @@ var allDefaultConfigs = map[string]map[string]string{
 		"certfile":            "",
 		"keyfile":             "",
 		"require_certificate": "false",
+	},
+	"mqttp:tcp": {
+		"listen": "localhost:1883",
+	},
+	"mqttp:api": {
+		"listen": "localhost:55001",
 	},
 }

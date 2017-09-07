@@ -46,7 +46,7 @@ func main() {
 		return
 	}
 	// Create service manager according to the configuration
-	if mgr, err = base.NewProtocolServiceManager(config); err != nil {
+	if mgr, err = base.NewServiceManager(config); err != nil {
 		glog.Fatal("Failed to launch ServiceManager")
 		return
 	}
@@ -57,6 +57,8 @@ func init() {
 	for group, values := range allDefaultConfigs {
 		libs.RegisterConfig(group, values)
 	}
-	base.RegisterService("mqtt", mqtt.Configs, &mqtt.MqttFactory{})
-	base.RegisterService("coap", coap.Configs, &coap.CoapFactory{})
+	base.RegisterService("mqtt", "tcp", mqtt.Configs, &mqtt.MqttFactory{})
+	base.RegisterService("coap", "udp", coap.Configs, &coap.CoapFactory{})
+	//	base.RegisterService("api", "rpc", coap.Configs, &api.apiFactory{})
+	//	base.RegisterService("dashboard", "http", dashboard.Configs, &dashboard.dashboardFactory{})
 }

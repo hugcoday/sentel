@@ -35,22 +35,22 @@ const (
 
 type mqtt struct {
 	config     libs.Config
-	chn        chan int
+	chn        chan base.ServiceCommand
 	index      int64
 	sessions   map[string]base.Session
 	mutex      sync.Mutex // Maybe not so good
 	inpacket   *mqttPacket
-	protocol   uint8
 	wg         sync.WaitGroup
 	localAddrs []string
 	storage    storage.Storage
+	protocol   string
 }
 
 // MqttFactory
 type MqttFactory struct{}
 
 // New create mqtt service factory
-func (m *MqttFactory) New(c libs.Config, ch chan int) (base.Service, error) {
+func (m *MqttFactory) New(protocol string, c libs.Config, ch chan base.ServiceCommand) (base.Service, error) {
 	var localAddrs []string = []string{}
 	var s storage.Storage
 
@@ -78,7 +78,7 @@ func (m *MqttFactory) New(c libs.Config, ch chan int) (base.Service, error) {
 		chn:        ch,
 		index:      -1,
 		sessions:   make(map[string]base.Session),
-		protocol:   2,
+		protocol:   protocol,
 		localAddrs: localAddrs,
 		storage:    s,
 	}

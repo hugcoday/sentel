@@ -16,8 +16,9 @@ package authlet
 import (
 	"context"
 	"errors"
-	"strings"
+	"fmt"
 	"libs"
+	"strings"
 )
 
 const localAuthVersion = 1
@@ -144,7 +145,10 @@ func (l *localAuthPlugin) addAclPattern(topic string, access int) error {
 	return nil
 }
 
-func (l *localAuthPlugin) Cleanup(ctx context.Context, config libs.Config) error {
+func (l *localAuthPlugin) Cleanup(ctx context.Context) {
+	l.aclUsers = nil
+	l.aclList = nil
+	l.aclPatterns = nil
 	return nil
 }
 
@@ -165,8 +169,10 @@ func (n *localAuthPlugin) CheckAcl(ctx context.Context, clientid string, usernam
 	}
 
 	// Check all acl patterns
-	if len(l.aclPatterns) {
-
+	if len(l.aclPatterns) > 0 {
+		if username != "" && strings.IndexAny("+#") > 0 {
+			return fmt.Errorf("ACL denying access to client with dangurous username :%s", username)
+		}
 	}
 
 	return nil
