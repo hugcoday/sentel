@@ -76,6 +76,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/fsnotify/fsnotify",
+			"repository": "https://github.com/fsnotify/fsnotify",
+			"revision": "4da3e2cfbabc9f751898f250b49f2439785783a1",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/go-sql-driver/mysql",
 			"repository": "https://github.com/go-sql-driver/mysql",
 			"revision": "21d7e97c9f760ca685a01ecea202e1c84276daa1",
@@ -146,6 +152,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/hashicorp/hcl",
+			"repository": "https://github.com/hashicorp/hcl",
+			"revision": "8f6b1344a92ff8877cf24a5de9177bf7d0a2a187",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/koding/multiconfig",
 			"repository": "https://github.com/koding/multiconfig",
 			"revision": "7ab5923ac43fc173d0c21e5e91da559469fa04f8",
@@ -192,6 +204,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/magiconair/properties",
+			"repository": "https://github.com/magiconair/properties",
+			"revision": "8d7837e64d3c1ee4e54a880c5a920ab4316fc90a",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/mattn/go-colorable",
 			"repository": "https://github.com/mattn/go-colorable",
 			"revision": "6df6d4d004b64986bbb0d1b25945f42b44787e90",
@@ -207,6 +225,24 @@
 			"importpath": "github.com/mattn/go-sqlite3",
 			"repository": "https://github.com/mattn/go-sqlite3",
 			"revision": "6654e412c3c7eabb310d920cf73a2102dbf8c632",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/mitchellh/go-homedir",
+			"repository": "https://github.com/mitchellh/go-homedir",
+			"revision": "b8bc1bf767474819792c23f32d8286a45736f1c6",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/mitchellh/mapstructure",
+			"repository": "https://github.com/mitchellh/mapstructure",
+			"revision": "d0303fe809921458f417bcf828397a65db30a7e4",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/pelletier/go-toml",
+			"repository": "https://github.com/pelletier/go-toml",
+			"revision": "1d6b12b7cb290426e27e6b4e38b89fcda3aeef03",
 			"branch": "master"
 		},
 		{
@@ -248,6 +284,49 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/spf13/afero",
+			"repository": "https://github.com/spf13/afero",
+			"revision": "ee1bd8ee15a1306d1f9201acc41ef39cd9f99a1b",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/spf13/cast",
+			"repository": "https://github.com/spf13/cast",
+			"revision": "acbeb36b902d72a7a4c18e8f3241075e7ab763e4",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/spf13/cobra",
+			"repository": "https://github.com/spf13/cobra",
+			"revision": "b78744579491c1ceeaaa3b40205e56b0591b93a3",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/spf13/cobra/cobra",
+			"repository": "https://github.com/spf13/cobra",
+			"revision": "b78744579491c1ceeaaa3b40205e56b0591b93a3",
+			"branch": "master",
+			"path": "/cobra"
+		},
+		{
+			"importpath": "github.com/spf13/jwalterweatherman",
+			"repository": "https://github.com/spf13/jwalterweatherman",
+			"revision": "12bd96e66386c1960ab0f74ced1362f66f552f7b",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/spf13/pflag",
+			"repository": "https://github.com/spf13/pflag",
+			"revision": "7aff26db30c1be810f9de5038ec5ef96ac41fd7c",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/spf13/viper",
+			"repository": "https://github.com/spf13/viper",
+			"revision": "25b30aa063fc18e48662b86996252eabdcf2f0c7",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/valyala/bytebufferpool",
 			"repository": "https://github.com/valyala/bytebufferpool",
 			"revision": "e746df99fe4a3986f4d4f79e13c1e0117ce9c2f7",
@@ -274,10 +353,37 @@
 			"path": "/websocket"
 		},
 		{
+			"importpath": "golang.org/x/sys/unix",
+			"repository": "https://go.googlesource.com/sys",
+			"revision": "9aade4d3a3b7e6d876cd3823ad20ec45fc035402",
+			"branch": "master",
+			"path": "/unix"
+		},
+		{
+			"importpath": "golang.org/x/text/transform",
+			"repository": "https://go.googlesource.com/text",
+			"revision": "bd91bbf73e9a4a801adbfb97133c992678533126",
+			"branch": "master",
+			"path": "/transform"
+		},
+		{
+			"importpath": "golang.org/x/text/unicode/norm",
+			"repository": "https://go.googlesource.com/text",
+			"revision": "bd91bbf73e9a4a801adbfb97133c992678533126",
+			"branch": "master",
+			"path": "/unicode/norm"
+		},
+		{
 			"importpath": "gopkg.in/olivere/elastic.v5",
 			"repository": "https://gopkg.in/olivere/elastic.v5",
 			"revision": "edbef41beaacc2ee95e61af8faff04e67c01e268",
 			"branch": "master"
+		},
+		{
+			"importpath": "gopkg.in/yaml.v2",
+			"repository": "https://gopkg.in/yaml.v2",
+			"revision": "eb3733d160e74a9c7e442f435eb3bea458e1d19f",
+			"branch": "v2"
 		}
 	]
 }
