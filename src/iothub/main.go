@@ -14,6 +14,7 @@ package main
 
 import (
 	"flag"
+	"iothub/api"
 	"iothub/base"
 	"iothub/coap"
 	"iothub/mqtt"
@@ -59,6 +60,6 @@ func init() {
 	}
 	base.RegisterService("mqtt", "tcp", mqtt.Configs, &mqtt.MqttFactory{})
 	base.RegisterService("coap", "udp", coap.Configs, &coap.CoapFactory{})
-	//	base.RegisterService("api", "rpc", coap.Configs, &api.apiFactory{})
+	base.RegisterService("api", "rpc", api.Configs, &api.ApiServiceFactory{})
 	//	base.RegisterService("dashboard", "http", dashboard.Configs, &dashboard.dashboardFactory{})
 }

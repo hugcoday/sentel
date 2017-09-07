@@ -1,0 +1,43 @@
+// Interface exported by the server
+syntax = "proto3";
+package api;
+
+service Api {
+    rpc Version(VersionRequest) returns (VersionReply){}
+    rpc Admins(AdminsRequest) returns (AdminsReply){}
+    rpc Cluster(ClusterRequest) returns (ClusterReply){}
+    rpc Routes(RoutesRequest) returns (RoutesReply){}
+    rpc Status(StatusRequest) returns (StatusReply){}
+    rpc Broker(BrokerRequest) returns (BrokerReply){}
+    rpc Plugins(PluginsRequest) returns (PluginsReply){}
+    rpc Services(ServicesRequest) returns (ServicesReply){}
+    rpc Subscriptions(SubscriptionsRequest) returns (SubscriptionsReply){}
+    rpc Clients(ClientsRequest) returns (ClientsReply) {}
+    rpc Sessions(SessionsRequest) returns (SessionsReply){}
+    rpc Topics(TopicsRequest) returns (TopicsReply){}
+}
+
+message VersionRequest { }
+message VersionReply{}
+message AdminsRequest{}
+message AdminsReply{}
+message ClusterRequest{}
+message ClusterReply{}
+message RoutesRequest{}
+message RoutesReply{}
+message StatusRequest{}
+message StatusReply{}
+message BrokerRequest{}
+message BrokerReply{}
+message PluginsRequest{}
+message PluginsReply{}
+message ServicesRequest{}
+message ServicesReply{}
+message SubscriptionsRequest{}
+message SubscriptionsReply{}
+message ClientsRequest{}
+message ClientsReply{}
+message SessionsRequest{}
+message SessionsReply{}
+message TopicsRequest{}
+message TopicsReply{}
