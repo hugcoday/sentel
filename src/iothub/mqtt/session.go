@@ -16,8 +16,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"iothub/authlet"
 	"iothub/base"
-	"iothub/security"
 	"iothub/storage"
 	"libs"
 	"net"
@@ -54,7 +54,7 @@ type mqttSession struct {
 	mgr               *mqtt
 	config            libs.Config
 	storage           storage.Storage
-	authplugin        security.AuthPlugin
+	authapi           *authlet.AuthletApi
 	conn              net.Conn
 	id                string
 	state             uint8
@@ -85,6 +85,10 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 	if err != nil {
 		qsize = 10
 	}
+	authapi, err := authlet.New(m.config)
+	if err != nil {
+		return nil, err
+	}
 
 	s := &mqttSession{
 		mgr:               m,
@@ -98,13 +102,11 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 		observer:          nil,
 		sendStopChannel:   make(chan int),
 		sendPacketChannel: make(chan *mqttPacket, qsize),
+		authapi:           authapi,
 	}
 	// Load storage and plugin for each session
 	name := m.config.MustString("storage", "name")
 	if s.storage, err = storage.New(name, storage.Option{}); err != nil {
-		return nil, err
-	}
-	if s.authplugin, err = base.LoadAuthPluginWithConfig("mqtt", m.config); err != nil {
 		return nil, err
 	}
 	return s, nil
@@ -456,8 +458,8 @@ func (s *mqttSession) handleConnect() error {
 	s.storage.DeleteMessageWithValidator(
 		clientid,
 		func(msg storage.Message) bool {
-			err := s.authplugin.CheckAcl(context.Background(), clientid, username, msg.Topic, security.AclActionRead)
-			if err == security.ErrorAclDenied {
+			err := s.authapi.CheckAcl(context.Background(), clientid, username, msg.Topic, authlet.AclActionRead)
+			if err != nil {
 				return false
 			}
 			return true
@@ -640,9 +642,9 @@ func (s *mqttSession) handlePublish() error {
 	}
 	// Check for topic access
 	if s.observer != nil {
-		err := s.authplugin.CheckAcl(context.Background(), s.id, s.username, topic, security.AclActionWrite)
+		err := s.authapi.CheckAcl(context.Background(), s.id, s.username, topic, authlet.AclActionWrite)
 		switch err {
-		case security.ErrorAclDenied:
+		case authlet.ErrorAclDenied:
 			return mqttErrorInvalidProtocol
 		default:
 			return err

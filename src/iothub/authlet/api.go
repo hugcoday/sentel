@@ -27,7 +27,7 @@ import (
 
 const (
 	AclActionNone  = ""
-	AclActionead   = "r"
+	AclActionRead  = "r"
 	AclActionWrite = "w"
 )
 

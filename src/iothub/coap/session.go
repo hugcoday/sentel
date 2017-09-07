@@ -14,7 +14,6 @@ package coap
 
 import (
 	"iothub/base"
-	"iothub/security"
 	"iothub/storage"
 	"libs"
 	"net"
@@ -23,14 +22,13 @@ import (
 )
 
 type coapSession struct {
-	mgr        *coap
-	config     libs.Config
-	storage    storage.Storage
-	authplugin security.AuthPlugin
-	conn       net.Conn
-	id         string
-	state      uint8
-	observer   base.SessionObserver
+	mgr      *coap
+	config   libs.Config
+	storage  storage.Storage
+	conn     net.Conn
+	id       string
+	state    uint8
+	observer base.SessionObserver
 }
 
 // newCoapSession create new session  for each client connection
@@ -45,8 +43,6 @@ func newCoapSession(m *coap, conn net.Conn, id string) (*coapSession, error) {
 	return s, nil
 }
 
-func (s *coapSession) Identifier() string    { return s.id }
-func (s *coapSession) Service() base.Service { return s.mgr }
 func (s *coapSession) RegisterObserver(o base.SessionObserver) {
 	if s.observer != nil {
 		glog.Error("MqttSession register multiple observer")
@@ -62,5 +58,13 @@ func (s *coapSession) Handle() error {
 
 // removeConnection remove current connection from coapManaager if errors occured
 func (s *coapSession) Destroy() error {
+	return nil
+}
+
+func (s *coapSession) Identifier() string {
+	return ""
+}
+
+func (s *coapSession) Service() base.Service {
 	return nil
 }

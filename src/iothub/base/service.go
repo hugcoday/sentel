@@ -12,10 +12,8 @@
 package base
 
 import (
-	"context"
 	"errors"
 	"fmt"
-	"iothub/security"
 	"libs"
 	"strings"
 
@@ -59,17 +57,4 @@ func CheckAllRegisteredServices() error {
 		glog.Infof("Service '%s' is registered", name)
 	}
 	return nil
-}
-
-// LoadAuthPluginWithConfig load a authPlugin with config
-func LoadAuthPluginWithConfig(service string, c libs.Config) (security.AuthPlugin, error) {
-	// Get authentication for this service, if service's authentication is not
-	// specified, using iothub's authentication
-	auth, err := c.String(service, "authentication")
-	if err != nil {
-		if auth, err = c.String("security", "authentication"); err != nil {
-			return nil, fmt.Errorf("Authentication method is not specified for service '%s'", service)
-		}
-	}
-	return security.LoadAuthPlugin(context.Background(), auth, c)
 }
