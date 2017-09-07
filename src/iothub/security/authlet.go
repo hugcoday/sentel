@@ -13,31 +13,48 @@
 package security
 
 import (
+	"authlet/authlet"
 	"context"
 	"libs"
 )
 
-type authletAuthPlugin struct{}
+type authletAuthPlugin struct {
+	rpcapi *authlet.AuthletApi
+}
 
-func (n *authletAuthPlugin) GetVersion() int {
-	return 0
+func (n *authletAuthPlugin) GetVersion(ctx context.Context) int {
+	return n.rpcapi.GetVersion(ctx)
 }
-func (n *authletAuthPlugin) Cleanup(ctx context.Context) error {
-	return nil
+func (n *authletAuthPlugin) Cleanup(ctx context.Context) {
+	n.rpcapi.Close()
 }
+
 func (n *authletAuthPlugin) CheckAcl(ctx context.Context, clientid string, username string, topic string, access int) error {
-	return nil
+	action := ""
+	switch access {
+	case AclActionRead:
+		action = "r"
+	case AclActionWrite:
+		action = "w"
+	}
+	return n.rpcapi.CheckAcl(ctx, clientid, username, topic, action)
 }
-func (n *authletAuthPlugin) CheckUsernameAndPasswor(ctx context.Context, username string, password string) error {
-	return nil
+func (n *authletAuthPlugin) CheckUserNameAndPassword(ctx context.Context, username string, password string) error {
+	return n.rpcapi.CheckUserNameAndPassword(ctx, username, password)
 }
 func (n *authletAuthPlugin) GetPskKey(ctx context.Context, hint string, identity string) (string, error) {
-	return "", nil
+	return n.rpcapi.GetPskKey(ctx, hint, identity)
 }
 
 // AuthPluginFactory
 type authletAuthPluginFactory struct{}
 
 func (n authletAuthPluginFactory) New(ctx context.Context, c libs.Config) (AuthPlugin, error) {
-	return &authletAuthPlugin{}, nil
+	plugin := &authletAuthPlugin{}
+	if rpcapi, err := authlet.New(c); err != nil {
+		return nil, err
+	} else {
+		plugin.rpcapi = rpcapi
+	}
+	return plugin, nil
 }

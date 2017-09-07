@@ -19,16 +19,12 @@ import (
 
 type noneAuthPlugin struct{}
 
-func (n *noneAuthPlugin) GetVersion() int {
-	return 0
-}
-func (n *noneAuthPlugin) Cleanup(ctx context.Context) error {
-	return nil
-}
+func (n *noneAuthPlugin) GetVersion(ctx context.Context) int { return 0 }
+func (n *noneAuthPlugin) Cleanup(ctx context.Context)        {}
 func (n *noneAuthPlugin) CheckAcl(ctx context.Context, clientid string, username string, topic string, access int) error {
 	return nil
 }
-func (n *noneAuthPlugin) CheckUsernameAndPasswor(ctx context.Context, username string, password string) error {
+func (n *noneAuthPlugin) CheckUserNameAndPassword(ctx context.Context, username string, password string) error {
 	return nil
 }
 func (n *noneAuthPlugin) GetPskKey(ctx context.Context, hint string, identity string) (string, error) {

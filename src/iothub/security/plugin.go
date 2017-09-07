@@ -37,11 +37,11 @@ var (
 
 // AuthPlugin interface for security
 type AuthPlugin interface {
-	GetVersion() int
+	GetVersion(ctx context.Context) int
 	CheckAcl(ctx context.Context, clientid string, username string, topic string, access int) error
-	CheckUsernameAndPasswor(ctx context.Context, username string, password string) error
+	CheckUserNameAndPassword(ctx context.Context, username string, password string) error
 	GetPskKey(ctx context.Context, hint string, identity string) (string, error)
-	Cleanup(ctx context.Context) error
+	Cleanup(ctx context.Context)
 }
 
 // AuthPluginFactory

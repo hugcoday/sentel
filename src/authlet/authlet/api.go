@@ -57,7 +57,7 @@ func (auth *AuthletApi) CheckAcl(ctx context.Context, clientid string, username 
 	return nil
 }
 
-func (auth *AuthletApi) CheckUserNameAndPasswor(ctx context.Context, username string, password string) error {
+func (auth *AuthletApi) CheckUserNameAndPassword(ctx context.Context, username string, password string) error {
 	reply, err := auth.client.CheckUserNameAndPassword(ctx, &AuthRequest{
 		Username: username,
 		Password: password,

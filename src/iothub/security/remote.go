@@ -19,16 +19,14 @@ import (
 
 type remoteAuthPlugin struct{}
 
-func (n *remoteAuthPlugin) GetVersion() int {
+func (n *remoteAuthPlugin) GetVersion(ctx context.Context) int {
 	return 0
 }
-func (n *remoteAuthPlugin) Cleanup(ctx context.Context) error {
-	return nil
-}
+func (n *remoteAuthPlugin) Cleanup(ctx context.Context) {}
 func (n *remoteAuthPlugin) CheckAcl(ctx context.Context, clientid string, username string, topic string, access int) error {
 	return nil
 }
-func (n *remoteAuthPlugin) CheckUsernameAndPasswor(ctx context.Context, username string, password string) error {
+func (n *remoteAuthPlugin) CheckUserNameAndPassword(ctx context.Context, username string, password string) error {
 	return nil
 }
 func (n *remoteAuthPlugin) GetPskKey(ctx context.Context, hint string, identity string) (string, error) {
