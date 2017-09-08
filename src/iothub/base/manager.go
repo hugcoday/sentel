@@ -60,7 +60,7 @@ func NewServiceManager(c libs.Config) (*ServiceManager, error) {
 func (s *ServiceManager) Start() error {
 	// Run all service
 	for _, service := range s.services {
-		go service.Run()
+		go service.Start()
 	}
 	// Wait all service to terminate in main context
 	for name, ch := range s.chs {

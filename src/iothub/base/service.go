@@ -25,7 +25,8 @@ var (
 )
 
 type Service interface {
-	Run() error
+	Start() error
+	Stop()
 }
 
 type ServiceFactory interface {

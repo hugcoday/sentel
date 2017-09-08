@@ -113,9 +113,8 @@ func (m *mqtt) RegisterSession(s base.Session) {
 	m.mutex.Unlock()
 }
 
-// Run is mainloop for mqtt service
-// TODO: Run is very common for each service, it should be moved to ServiceManager
-func (m *mqtt) Run() error {
+// Start is mainloop for mqtt service
+func (m *mqtt) Start() error {
 	host, _ := m.config.String("mqtt", "host")
 
 	listen, err := net.Listen("tcp", host)
@@ -152,6 +151,10 @@ func (m *mqtt) Run() error {
 	// notify main
 	m.chn <- 1
 	return nil
+}
+
+// Stop
+func (m *mqtt) Stop() {
 }
 
 // launchMqttMonitor

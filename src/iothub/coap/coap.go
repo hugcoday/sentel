@@ -14,14 +14,11 @@ package coap
 
 import (
 	"errors"
-	"fmt"
 	"iothub/base"
 	"libs"
 	"net"
-	"strings"
 	"sync"
 
-	"github.com/Shopify/sarama"
 	"github.com/golang/glog"
 	"github.com/satori/go.uuid"
 )
@@ -100,9 +97,8 @@ func (m *coap) RegisterSession(s base.Session) {
 	m.mutex.Unlock()
 }
 
-// Run is mainloop for coap service
-// TODO: Run is very common for each service, it should be moved to ServiceManager
-func (m *coap) Run() error {
+// Start
+func (m *coap) Start() error {
 	host, _ := m.config.String("coap", "host")
 
 	listen, err := net.Listen("tcp", host)
@@ -130,49 +126,4 @@ func (m *coap) Run() error {
 	return nil
 }
 
-// launchMqttMonitor
-func (m *coap) launchCoapMonitor() error {
-	glog.Info("Luanching coap monitor...")
-	//sarama.Logger = glog
-	khosts, _ := m.config.String("iothub", "kafka-hosts")
-	consumer, err := sarama.NewConsumer(strings.Split(khosts, ","), nil)
-	if err != nil {
-		return fmt.Errorf("Connecting with kafka:%s failed", khosts)
-	}
-
-	partitionList, err := consumer.Partitions("iothub-coap")
-	if err != nil {
-		return fmt.Errorf("Failed to get list of partions:%v", err)
-		return err
-	}
-
-	for partition := range partitionList {
-		pc, err := consumer.ConsumePartition("iothub", int32(partition), sarama.OffsetNewest)
-		if err != nil {
-			glog.Errorf("Failed  to start consumer for partion %d:%s", partition, err)
-			continue
-		}
-		defer pc.AsyncClose()
-		m.wg.Add(1)
-
-		go func(sarama.PartitionConsumer) {
-			defer m.wg.Done()
-			for msg := range pc.Messages() {
-				m.handleNotifications(string(msg.Topic), msg.Value)
-			}
-		}(pc)
-	}
-	m.wg.Wait()
-	consumer.Close()
-	return nil
-}
-
-// handleNotifications handle notification from kafka
-func (m *coap) handleNotifications(topic string, value []byte) error {
-	return nil
-}
-
-// handleSessionNotifications handle session notification  from kafka
-func (m *coap) handleSessionNotifications(value []byte) error {
-	return nil
-}
+func (m *coap) Stop() {}

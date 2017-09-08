@@ -63,11 +63,12 @@ func (m *ApiService) Run() error {
 }
 
 // Start
-func (s *ApiService) Start() {
+func (s *ApiService) Start() error {
 	go func(s *ApiService) {
 		s.srv.Serve(s.listener)
 		s.wg.Add(1)
 	}(s)
+	return nil
 }
 
 // Stop
