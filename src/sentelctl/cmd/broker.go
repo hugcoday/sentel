@@ -12,17 +12,12 @@
 
 package cmd
 
-import (
-	"fmt"
-
-	"github.com/spf13/cobra"
-)
+import "github.com/spf13/cobra"
 
 var brokerCmd = &cobra.Command{
 	Use:   "broker",
 	Short: "Inquery broker status, such as metrics, clients",
 	Long:  `All software has versions. This is Hugo's`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Broker:")
 	},
 }

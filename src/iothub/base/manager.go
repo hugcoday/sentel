@@ -12,8 +12,10 @@
 package base
 
 import (
+	"errors"
 	"libs"
 	"strings"
+	"sync"
 
 	"github.com/golang/glog"
 )
@@ -26,13 +28,25 @@ const (
 )
 
 type ServiceManager struct {
+	sync.Once
 	config   libs.Config                    // Global config
 	services map[string]Service             // All service created by config.Protocols
 	chs      map[string]chan ServiceCommand // Notification channel for each service
 }
 
-// NewProtocolServiceManager create ServiceManager in main context
+const serviceManagerVersion = "0.1"
+
+var _serviceManager *ServiceManager
+
+// GetServiceManager create service manager and all supported service
+// The function should be called in service
+func GetServiceManager() *ServiceManager { return _serviceManager }
+
+// NewServiceManager create ServiceManager only in main context
 func NewServiceManager(c libs.Config) (*ServiceManager, error) {
+	if _serviceManager != nil {
+		return _serviceManager, errors.New("NewServiceManager had been called many times")
+	}
 	mgr := &ServiceManager{
 		config:   c,
 		chs:      make(map[string]chan ServiceCommand),
@@ -53,7 +67,8 @@ func NewServiceManager(c libs.Config) (*ServiceManager, error) {
 			mgr.chs[name] = ch
 		}
 	}
-	return mgr, nil
+	_serviceManager = mgr
+	return _serviceManager, nil
 }
 
 // ServiceManger run all serice and wait to terminate
@@ -68,4 +83,9 @@ func (s *ServiceManager) Start() error {
 		glog.Info("Servide(%s) is terminated", name)
 	}
 	return nil
+}
+
+// Version
+func (s *ServiceManager) GetVersion() string {
+	return serviceManagerVersion
 }
