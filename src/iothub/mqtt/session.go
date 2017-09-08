@@ -78,6 +78,8 @@ type mqttSession struct {
 	waitgroup         sync.WaitGroup
 
 	// resume field
+	stats             *base.Stats
+	metrics           *base.Metrics
 	msgs              []*mqttMessage
 	storedMsgs        map[uint16]*mqttMessage
 }
@@ -113,6 +115,8 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 		sendStopChannel:   make(chan int),
 		sendPacketChannel: make(chan *mqttPacket, qsize),
 		authapi:           authapi,
+		stats:             base.NewStats(true),
+		metrics:           base.NewMetrics(true),
 		sendMsgChannel:    make(chan *mqttMessage, msgqsize),
 		msgs:              make([]*mqttMessage, msgqsize),
 		storedMsgs:        make(map[uint16]*mqttMessage),
@@ -129,6 +133,8 @@ func (s *mqttSession) RegisterObserver(o base.SessionObserver) {
 	}
 	s.observer = o
 }
+func (s *mqttSession) GetStats() *base.Stats     { return s.stats }
+func (s *mqttSession) GetMetrics() *base.Metrics { return s.metrics }
 
 // launchPacketSendHandler launch goroutine to send packet queued for client
 func (s *mqttSession) launchPacketSendHandler() {
@@ -156,7 +162,7 @@ func (s *mqttSession) launchPacketSendHandler() {
 				}
 			case msg := <-msgChannel:
 				s.msgs = append(s.msgs, msg)
-			case <- time.After(1 * time.Second):
+			case <-time.After(1 * time.Second):
 			}
 
 			s.processMessage()
@@ -224,7 +230,7 @@ func (s *mqttSession) Destroy() error {
 	if s.conn != nil {
 		s.conn.Close()
 	}
-	s.mgr.RemoveSession(s)
+	s.mgr.removeSession(s)
 	return nil
 }
 

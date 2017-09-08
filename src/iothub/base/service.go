@@ -27,6 +27,8 @@ var (
 type Service interface {
 	Start() error
 	Stop()
+	GetStats() *Stats
+	GetMetrics() *Metrics
 }
 
 type ServiceFactory interface {

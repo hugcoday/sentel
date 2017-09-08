@@ -13,6 +13,7 @@
 package api
 
 import (
+	"fmt"
 	"iothub/base"
 	"libs"
 	"net"
@@ -57,10 +58,8 @@ func (m *ApiServiceFactory) New(protocol string, c libs.Config, ch chan base.Ser
 
 }
 
-// Run is mainloop for apiService service
-func (m *ApiService) Run() error {
-	return nil
-}
+func (s *ApiService) GetMetrics() *base.Metrics { return nil }
+func (s *ApiService) GetStats() *base.Stats     { return nil }
 
 // Start
 func (s *ApiService) Start() error {
@@ -105,7 +104,17 @@ func (s *ApiService) Status(ctx context.Context, req *StatusRequest) (*StatusRep
 }
 
 func (s *ApiService) Broker(ctx context.Context, req *BrokerRequest) (*BrokerReply, error) {
-	return nil, nil
+	mgr := base.GetServiceManager()
+	switch req.Category {
+	case "stats":
+		stats := mgr.GetStats()
+		return &BrokerReply{Stats: stats}, nil
+	case "metrics":
+		metrics := mgr.GetMetrics()
+		return &BrokerReply{Metrics: metrics}, nil
+	default:
+	}
+	return nil, fmt.Errorf("Invalid broker request with categoru:%s", req.Category)
 }
 
 func (s *ApiService) Plugins(ctx context.Context, req *PluginsRequest) (*PluginsReply, error) {

@@ -85,7 +85,42 @@ func (s *ServiceManager) Start() error {
 	return nil
 }
 
+// GetServicesByName return service instance by name, or matched by part of name
+func (s *ServiceManager) GetServicesByName(name string) []Service {
+	services := []Service{}
+	for k, service := range s.services {
+		if strings.IndexAny(k, name) >= 0 {
+			services = append(services, service)
+		}
+	}
+	return services
+}
+
 // Version
 func (s *ServiceManager) GetVersion() string {
 	return serviceManagerVersion
+}
+
+// GetStats return server's stats
+func (s *ServiceManager) GetStats() map[string]uint64 {
+	allstats := NewStats(false)
+	services := s.GetServicesByName("mqtt")
+
+	for _, service := range services {
+		stats := service.GetStats()
+		allstats.AddStats(stats)
+	}
+	return allstats.Get()
+}
+
+// GetMetrics return server metrics
+func (s *ServiceManager) GetMetrics() map[string]uint64 {
+	allmetrics := NewMetrics(false)
+	services := s.GetServicesByName("mqtt")
+
+	for _, service := range services {
+		metrics := service.GetMetrics()
+		allmetrics.AddMetrics(metrics)
+	}
+	return allmetrics.Get()
 }
