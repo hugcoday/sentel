@@ -72,25 +72,25 @@ type Storage interface {
 	RegisterSession(s *mqttSession) error
 
 	// Device
-	AddDevice(d StorageDevice) error
-	DeleteDevice(id string) error
-	UpdateDevice(d StorageDevice) error
-	GetDeviceState(id string) (int, error)
-	SetDeviceState(state int) error
+	// AddDevice(d StorageDevice) error
+	// DeleteDevice(id string) error
+	// UpdateDevice(d StorageDevice) error
+	// GetDeviceState(id string) (int, error)
+	// SetDeviceState(state int) error
 
 	// Topic
-	TopicExist(t StorageTopic) (bool, error)
-	AddTopic(t StorageTopic) error
-	DeleteTopic(id string) error
-	UpdateTopic(t StorageTopic) error
-	AddSubscriber(t StorageTopic, clientid string) error
-	RemoveSubscriber(t StorageTopic, clientid string) error
-	GetTopicSubscribers(t StorageTopic) ([]string, error)
+	// TopicExist(t StorageTopic) (bool, error)
+	// AddTopic(t StorageTopic) error
+	// DeleteTopic(id string) error
+	// UpdateTopic(t StorageTopic) error
+	// AddSubscriber(t StorageTopic, clientid string) error
+	// RemoveSubscriber(t StorageTopic, clientid string) error
+	// GetTopicSubscribers(t StorageTopic) ([]string, error)
 
 	// Subscription
-	AddSubscription(clientid string, sub string, qos uint8) error
-	RetainSubscription(clientid string, sub string, qos uint8) error
-	RemoveSubscription(clientid string, sub string) error
+	AddSubscription(sessionid string, topic string, qos uint8) error
+	RetainSubscription(sessionid string, topic string, qos uint8) error
+	RemoveSubscription(sessionid string, topic string) error
 
 	// Message Management
 	FindMessage(clientid string, mid uint16) (bool, error)

@@ -74,7 +74,9 @@ type mqttSession struct {
 	stateMutex        sync.Mutex
 	sendStopChannel   chan int
 	sendPacketChannel chan *mqttPacket
+	sendMsgChannel    chan *mqttMessage
 	waitgroup         sync.WaitGroup
+	msgs              []*mqttMessage
 }
 
 // newMqttSession create new session  for each client connection
@@ -87,6 +89,11 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 	authapi, err := authlet.New(m.config)
 	if err != nil {
 		return nil, err
+	}
+	var msgqsize int
+	msgqsize, err = m.config.Int("mqtt", "session_msg_queue_size")
+	if err != nil {
+		msgqsize = 10
 	}
 
 	s := &mqttSession{
@@ -103,6 +110,8 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 		sendStopChannel:   make(chan int),
 		sendPacketChannel: make(chan *mqttPacket, qsize),
 		authapi:           authapi,
+		sendMsgChannel:    make(chan *mqttMessage, msgqsize),
+		msgs:              make([]*mqttMessage, msgqsize),
 	}
 
 	return s, nil
@@ -119,7 +128,7 @@ func (s *mqttSession) RegisterObserver(o base.SessionObserver) {
 
 // launchPacketSendHandler launch goroutine to send packet queued for client
 func (s *mqttSession) launchPacketSendHandler() {
-	go func(stopChannel chan int, packetChannel chan *mqttPacket) {
+	go func(stopChannel chan int, packetChannel chan *mqttPacket, msgChannel chan *mqttMessage) {
 		defer s.waitgroup.Add(1)
 
 		for {
@@ -141,10 +150,22 @@ func (s *mqttSession) launchPacketSendHandler() {
 						return
 					}
 				}
+			case msg := <-msgChannel:
+				s.msgs = append(s.msgs, msg)
+			case <- time.After(1 * time.Second):
 			}
 
+			s.processMessage()
+
 		}
-	}(s.sendStopChannel, s.sendPacketChannel)
+	}(s.sendStopChannel, s.sendPacketChannel, s.sendMsgChannel)
+}
+
+// processMessage proceess messages
+func (s *mqttSession) processMessage() error {
+	// for _, msg := range s.msgs {
+	// }
+	return nil
 }
 
 // Handle is mainprocessor for iot device client
@@ -431,6 +452,9 @@ func (s *mqttSession) handleConnect() error {
 				})
 		}
 
+	} else {
+		// Register the session in storage
+		s.storage.RegisterSession(s)
 	}
 
 	if willMsg != nil {
@@ -460,9 +484,6 @@ func (s *mqttSession) handleConnect() error {
 			}
 			return true
 		})
-
-	// Register the session in storage
-	s.storage.RegisterSession(s)
 
 	s.state = mqttStateConnected
 	err = s.sendConnAck(uint8(conack), CONNACK_ACCEPTED)
@@ -817,6 +838,12 @@ func (s *mqttSession) queuePacket(p *mqttPacket) error {
 	s.sendPacketChannel <- p
 	return nil
 }
+
+func (s *mqttSession) QueueMessage(msg *mqttMessage) error {
+	s.sendMsgChannel <- msg
+	return nil
+}
+
 func (s *mqttSession) updateOutMessage(mid uint16, state int) error {
 	return nil
 }
