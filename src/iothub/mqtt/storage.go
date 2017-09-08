@@ -13,7 +13,6 @@
 package mqtt
 
 import (
-	"context"
 	"fmt"
 	"libs"
 	"time"
@@ -67,31 +66,31 @@ type Storage interface {
 	Restore() error
 
 	// Session
-	FindSession(c context.Context, id string) (*StorageSession, error)
-	DeleteSession(c context.Context, id string) error
-	UpdateSession(c context.Context, s *StorageSession) error
-	RegisterSession(c context.Context, s StorageSession) error
+	FindSession(id string) (*StorageSession, error)
+	DeleteSession(id string) error
+	UpdateSession(s *StorageSession) error
+	RegisterSession(s StorageSession) error
 
 	// Device
-	AddDevice(c context.Context, d StorageDevice) error
-	DeleteDevice(c context.Context, id string) error
-	UpdateDevice(c context.Context, d StorageDevice) error
-	GetDeviceState(c context.Context, id string) (int, error)
-	SetDeviceState(c context.Context, state int) error
+	AddDevice(d StorageDevice) error
+	DeleteDevice(id string) error
+	UpdateDevice(d StorageDevice) error
+	GetDeviceState(id string) (int, error)
+	SetDeviceState(state int) error
 
 	// Topic
-	TopicExist(c context.Context, t StorageTopic) (bool, error)
-	AddTopic(c context.Context, t StorageTopic) error
-	DeleteTopic(c context.Context, id string) error
-	UpdateTopic(c context.Context, t StorageTopic) error
-	AddSubscriber(c context.Context, t StorageTopic, clientid string) error
-	RemoveSubscriber(c context.Context, t StorageTopic, clientid string) error
-	GetTopicSubscribers(c context.Context, t StorageTopic) ([]string, error)
+	TopicExist(t StorageTopic) (bool, error)
+	AddTopic(t StorageTopic) error
+	DeleteTopic(id string) error
+	UpdateTopic(t StorageTopic) error
+	AddSubscriber(t StorageTopic, clientid string) error
+	RemoveSubscriber(t StorageTopic, clientid string) error
+	GetTopicSubscribers(t StorageTopic) ([]string, error)
 
 	// Subscription
-	AddSubscription(c context.Context, clientid string, sub string, qos uint8) error
-	RetainSubscription(c context.Context, clientid string, sub string, qos uint8) error
-	RemoveSubscription(c context.Context, clientid string, sub string) error
+	AddSubscription(clientid string, sub string, qos uint8) error
+	RetainSubscription(clientid string, sub string, qos uint8) error
+	RemoveSubscription(clientid string, sub string) error
 
 	// Message Management
 	FindMessage(clientid string, mid uint16) (bool, error)
