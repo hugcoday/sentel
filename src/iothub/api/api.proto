@@ -17,10 +17,20 @@ service Api {
     rpc Topics(TopicsRequest) returns (TopicsReply){}
 }
 
+// Version
 message VersionRequest { }
 message VersionReply{
     string version  = 1;
 }
+// Broker
+message BrokerRequest{
+    string category = 1;
+}
+message BrokerReply{
+    map<string, uint64> stats = 1;
+    map<string, uint64> metrics = 2;
+}
+
 message AdminsRequest{}
 message AdminsReply{}
 message ClusterRequest{}
@@ -29,8 +39,6 @@ message RoutesRequest{}
 message RoutesReply{}
 message StatusRequest{}
 message StatusReply{}
-message BrokerRequest{}
-message BrokerReply{}
 message PluginsRequest{}
 message PluginsReply{}
 message ServicesRequest{}

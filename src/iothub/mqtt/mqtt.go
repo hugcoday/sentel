@@ -32,6 +32,7 @@ const (
 	protocolName       = "mqtt3"
 )
 
+// MQTT service declaration
 type mqtt struct {
 	config     libs.Config
 	chn        chan base.ServiceCommand
@@ -43,6 +44,8 @@ type mqtt struct {
 	localAddrs []string
 	storage    Storage
 	protocol   string
+	stats      *base.Stats
+	metrics    *base.Metrics
 }
 
 // MqttFactory
@@ -80,6 +83,8 @@ func (m *MqttFactory) New(protocol string, c libs.Config, ch chan base.ServiceCo
 		protocol:   protocol,
 		localAddrs: localAddrs,
 		storage:    s,
+		stats:      base.NewStats(true),
+		metrics:    base.NewMetrics(true),
 	}
 	return t, nil
 }
@@ -87,31 +92,33 @@ func (m *MqttFactory) New(protocol string, c libs.Config, ch chan base.ServiceCo
 // MQTT Service
 
 func (m *mqtt) NewSession(conn net.Conn) (base.Session, error) {
-	id := m.CreateSessionId()
+	id := m.createSessionId()
 	s, err := newMqttSession(m, conn, id)
 	return s, err
 }
 
 // CreateSessionId create id for new session
-func (m *mqtt) CreateSessionId() string {
+func (m *mqtt) createSessionId() string {
 	return uuid.NewV4().String()
 }
 
 // GetSessionTotalCount get total session count
-func (m *mqtt) GetSessionTotalCount() int64 {
+func (m *mqtt) getSessionTotalCount() int64 {
 	return int64(len(m.sessions))
 }
 
-func (m *mqtt) RemoveSession(s base.Session) {
+func (m *mqtt) removeSession(s base.Session) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	m.sessions[s.Identifier()] = nil
 }
-func (m *mqtt) RegisterSession(s base.Session) {
+func (m *mqtt) registerSession(s base.Session) {
 	m.mutex.Lock()
 	m.sessions[s.Identifier()] = s
 	m.mutex.Unlock()
 }
+func (m *mqtt) GetStats() *base.Stats     { return m.stats }
+func (m *mqtt) GetMetrics() *base.Metrics { return m.metrics }
 
 // Start is mainloop for mqtt service
 func (m *mqtt) Start() error {
@@ -140,7 +147,7 @@ func (m *mqtt) Start() error {
 			glog.Errorf("Mqtt create session failed:%s", err)
 			return err
 		}
-		m.RegisterSession(session)
+		m.registerSession(session)
 		go func(s base.Session) {
 			err := s.Handle()
 			if err != nil {

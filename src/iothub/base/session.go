@@ -33,4 +33,8 @@ type Session interface {
 	Destroy() error
 	// RegisterObserver register observer on session
 	RegisterObserver(SessionObserver)
+	// Get Stats
+	GetStats() *Stats
+	// Get Metrics
+	GetMetrics() *Metrics
 }

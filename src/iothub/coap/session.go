@@ -66,3 +66,11 @@ func (s *coapSession) Identifier() string {
 func (s *coapSession) Service() base.Service {
 	return nil
 }
+
+func (s *coapSession) GetStats() *base.Stats {
+	return nil
+}
+
+func (s *coapSession) GetMetrics() *base.Metrics {
+	return nil
+}

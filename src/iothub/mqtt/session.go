@@ -75,6 +75,8 @@ type mqttSession struct {
 	sendStopChannel   chan int
 	sendPacketChannel chan *mqttPacket
 	waitgroup         sync.WaitGroup
+	stats             *base.Stats
+	metrics           *base.Metrics
 }
 
 // newMqttSession create new session  for each client connection
@@ -102,6 +104,8 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 		sendStopChannel:   make(chan int),
 		sendPacketChannel: make(chan *mqttPacket, qsize),
 		authapi:           authapi,
+		stats:             base.NewStats(true),
+		metrics:           base.NewMetrics(true),
 	}
 	// Load storage and plugin for each session
 	name := m.config.MustString("storage", "name")
@@ -119,6 +123,8 @@ func (s *mqttSession) RegisterObserver(o base.SessionObserver) {
 	}
 	s.observer = o
 }
+func (s *mqttSession) GetStats() *base.Stats     { return s.stats }
+func (s *mqttSession) GetMetrics() *base.Metrics { return s.metrics }
 
 // launchPacketSendHandler launch goroutine to send packet queued for client
 func (s *mqttSession) launchPacketSendHandler() {
@@ -202,7 +208,7 @@ func (s *mqttSession) Destroy() error {
 	if s.conn != nil {
 		s.conn.Close()
 	}
-	s.mgr.RemoveSession(s)
+	s.mgr.removeSession(s)
 	return nil
 }
 
