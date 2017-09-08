@@ -158,6 +158,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/inconshreveable/mousetrap",
+			"repository": "https://github.com/inconshreveable/mousetrap",
+			"revision": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/koding/multiconfig",
 			"repository": "https://github.com/koding/multiconfig",
 			"revision": "7ab5923ac43fc173d0c21e5e91da559469fa04f8",
