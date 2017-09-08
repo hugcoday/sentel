@@ -14,6 +14,7 @@ package cmd
 
 import (
 	"fmt"
+	pb "iothub/api"
 
 	"github.com/spf13/cobra"
 )
@@ -23,6 +24,11 @@ var versionCmd = &cobra.Command{
 	Short: "Print the version number of Sentel",
 	Long:  `All software has versions. This is Hugo's`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Version 0.1")
+		if reply, err := sentelApi.Version(&pb.VersionRequest{}); err != nil {
+			fmt.Println("Error:%v", err)
+		} else {
+			fmt.Println("Version:%s", reply.Version)
+		}
+
 	},
 }

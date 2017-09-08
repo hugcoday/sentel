@@ -13,6 +13,9 @@
 package cmd
 
 import (
+	"errors"
+	"sentelctl/api"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -26,7 +29,8 @@ var RootCmd = &cobra.Command{
 }
 
 var (
-	cfgFile string
+	cfgFile   string
+	sentelApi *api.SentelApi
 )
 
 func init() {
@@ -53,8 +57,13 @@ func init() {
 
 }
 
-func Execute() {
-	RootCmd.Execute()
+func Execute() error {
+	if api, err := api.NewSentelApi(); err != nil {
+		return errors.New("Sentel service is not started, please start sentel at first")
+	} else {
+		sentelApi = api
+		return RootCmd.Execute()
+	}
 }
 
 func initConfig() {

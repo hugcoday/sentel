@@ -14,15 +14,18 @@ package cmd
 
 import (
 	"fmt"
+	pb "iothub/api"
 
 	"github.com/spf13/cobra"
 )
 
 var statusCmd = &cobra.Command{
 	Use:   "status",
-	Short: "Inquery sentel server's runing status",
-	Long:  `All software has versions. This is Hugo's`,
+	Short: "Inquery sentel server's runing status.",
+	Long:  `All software has versions.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Version 0.1")
+		if _, err := sentelApi.Status(&pb.StatusRequest{}); err != nil {
+			fmt.Println("Error:%v", err)
+		}
 	},
 }

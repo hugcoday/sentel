@@ -18,7 +18,9 @@ service Api {
 }
 
 message VersionRequest { }
-message VersionReply{}
+message VersionReply{
+    string version  = 1;
+}
 message AdminsRequest{}
 message AdminsReply{}
 message ClusterRequest{}
