@@ -92,6 +92,7 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 	s := &mqttSession{
 		mgr:               m,
 		config:            m.config,
+		storage:           m.storage,
 		conn:              conn,
 		id:                id,
 		bytesReceived:     0,
@@ -103,11 +104,7 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 		sendPacketChannel: make(chan *mqttPacket, qsize),
 		authapi:           authapi,
 	}
-	// Load storage and plugin for each session
-	name := m.config.MustString("storage", "name")
-	if s.storage, err = NewStorage(name, m.config); err != nil {
-		return nil, err
-	}
+
 	return s, nil
 }
 
