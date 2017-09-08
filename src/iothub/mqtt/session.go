@@ -407,8 +407,8 @@ func (s *mqttSession) handleConnect() error {
 	// Find if the client already has an entry, this must be done after any security check
 	if found, _ := s.storage.FindSession(clientid); found != nil {
 		// Found old session
-		if found.State == mqttStateInvalid {
-			glog.Errorf("Invalid session(%s) in store", found.Id)
+		if found.state == mqttStateInvalid {
+			glog.Errorf("Invalid session(%s) in store", found.id)
 		}
 		if s.protocol == mqttProtocol311 {
 			if cleanSession == 0 {
@@ -417,9 +417,9 @@ func (s *mqttSession) handleConnect() error {
 		}
 		s.cleanSession = cleanSession
 
-		if s.cleanSession == 0 && found.CleanSession == 0 {
-			// Resume last session
-			s.storage.UpdateSession(&StorageSession{Id: clientid, RefCount: found.RefCount + 1})
+		if s.cleanSession == 0 && found.cleanSession == 0 {
+			// Resume last session   // fix me ssddn
+			s.storage.UpdateSession(s)
 			// Notify other mqtt node to release resource
 			base.AsyncProduceMessage(s.config,
 				TopicNameSession,
@@ -462,16 +462,7 @@ func (s *mqttSession) handleConnect() error {
 		})
 
 	// Register the session in storage
-	s.storage.RegisterSession(StorageSession{
-		Id:           s.id,
-		Username:     username,
-		Password:     password,
-		Keepalive:    keepalive,
-		State:        mqttStateConnected,
-		CleanSession: cleanSession,
-		Protocol:     s.protocol,
-		RefCount:     1, // TODO
-	})
+	s.storage.RegisterSession(s)
 
 	s.state = mqttStateConnected
 	err = s.sendConnAck(uint8(conack), CONNACK_ACCEPTED)

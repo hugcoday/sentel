@@ -66,10 +66,10 @@ type Storage interface {
 	Restore() error
 
 	// Session
-	FindSession(id string) (*StorageSession, error)
+	FindSession(id string) (*mqttSession, error)
 	DeleteSession(id string) error
-	UpdateSession(s *StorageSession) error
-	RegisterSession(s StorageSession) error
+	UpdateSession(s *mqttSession) error
+	RegisterSession(s *mqttSession) error
 
 	// Device
 	AddDevice(d StorageDevice) error
