@@ -14,7 +14,6 @@ package coap
 
 import (
 	"iothub/base"
-	"iothub/storage"
 	"libs"
 	"net"
 
@@ -24,7 +23,6 @@ import (
 type coapSession struct {
 	mgr      *coap
 	config   libs.Config
-	storage  storage.Storage
 	conn     net.Conn
 	id       string
 	state    uint8

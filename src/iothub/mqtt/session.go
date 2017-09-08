@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"iothub/authlet"
 	"iothub/base"
-	"iothub/storage"
 	"libs"
 	"net"
 	"sync"
@@ -53,7 +52,7 @@ const (
 type mqttSession struct {
 	mgr               *mqtt
 	config            libs.Config
-	storage           storage.Storage
+	storage           Storage
 	authapi           *authlet.AuthletApi
 	conn              net.Conn
 	id                string
@@ -106,7 +105,7 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 	}
 	// Load storage and plugin for each session
 	name := m.config.MustString("storage", "name")
-	if s.storage, err = storage.New(name, storage.Option{}); err != nil {
+	if s.storage, err = NewStorage(name, m.config); err != nil {
 		return nil, err
 	}
 	return s, nil
@@ -409,7 +408,7 @@ func (s *mqttSession) handleConnect() error {
 	}
 	conack := 0
 	// Find if the client already has an entry, this must be done after any security check
-	if found, _ := s.storage.FindSession(s, clientid); found != nil {
+	if found, _ := s.storage.FindSession(context.Background(), clientid); found != nil {
 		// Found old session
 		if found.State == mqttStateInvalid {
 			glog.Errorf("Invalid session(%s) in store", found.Id)
@@ -423,7 +422,7 @@ func (s *mqttSession) handleConnect() error {
 
 		if s.cleanSession == 0 && found.CleanSession == 0 {
 			// Resume last session
-			s.storage.UpdateSession(s, &storage.Session{Id: clientid, RefCount: found.RefCount + 1})
+			s.storage.UpdateSession(context.Background(), &StorageSession{Id: clientid, RefCount: found.RefCount + 1})
 			// Notify other mqtt node to release resource
 			base.AsyncProduceMessage(s.config,
 				TopicNameSession,
@@ -457,8 +456,8 @@ func (s *mqttSession) handleConnect() error {
 	// Assuming a possible change of username
 	s.storage.DeleteMessageWithValidator(
 		clientid,
-		func(msg storage.Message) bool {
-			err := s.authapi.CheckAcl(context.Background(), clientid, username, msg.Topic, authlet.AclActionRead)
+		func(msg StorageMessage) bool {
+			err := s.authapi.CheckAcl(context.Background(), clientid, username, willTopic, authlet.AclActionRead)
 			if err != nil {
 				return false
 			}
@@ -466,7 +465,7 @@ func (s *mqttSession) handleConnect() error {
 		})
 
 	// Register the session in storage
-	s.storage.RegisterSession(s, storage.Session{
+	s.storage.RegisterSession(context.Background(), StorageSession{
 		Id:           s.id,
 		Username:     username,
 		Password:     password,
@@ -552,10 +551,10 @@ func (s *mqttSession) handleSubscribe() error {
 			sub = mp + sub
 		}
 		if qos != 0x80 {
-			if err := s.storage.AddSubscription(s, s.id, sub, qos); err != nil {
+			if err := s.storage.AddSubscription(context.Background(), s.id, sub, qos); err != nil {
 				return err
 			}
-			if err := s.storage.RetainSubscription(s, s.id, sub, qos); err != nil {
+			if err := s.storage.RetainSubscription(context.Background(), s.id, sub, qos); err != nil {
 				return err
 			}
 		}
@@ -588,7 +587,7 @@ func (s *mqttSession) handleUnsubscribe() error {
 		if err := checkTopicValidity(sub); err != nil {
 			return fmt.Errorf("Invalid unsubscription string from %s, disconnecting", s.id)
 		}
-		s.storage.RemoveSubscription(s, s.id, sub)
+		s.storage.RemoveSubscription(context.Background(), s.id, sub)
 	}
 
 	return s.sendCommandWithMid(UNSUBACK, mid, false)
@@ -661,9 +660,9 @@ func (s *mqttSession) handlePublish() error {
 			stored = found
 		}
 	}
-	msg := storage.Message{
+	msg := StorageMessage{
 		Id:        uint(mid),
-		Direction: storage.MessageDirectionIn,
+		Direction: MessageDirectionIn,
 		State:     0,
 		Qos:       qos,
 		Retain:    (retain > 0),
@@ -688,7 +687,7 @@ func (s *mqttSession) handlePublish() error {
 	case 2:
 		err = nil
 		if dup > 0 {
-			err = s.storage.InsertMessage(s.id, mid, storage.MessageDirectionIn, msg)
+			err = s.storage.InsertMessage(s.id, mid, MessageDirectionIn, msg)
 		}
 		if err == nil {
 			err = s.sendPubRec(mid)
@@ -714,7 +713,7 @@ func (s *mqttSession) handlePubRel() error {
 		return err
 	}
 
-	s.storage.DeleteMessage(s.id, mid, storage.MessageDirectionIn)
+	s.storage.DeleteMessage(s.id, mid, MessageDirectionIn)
 	return s.sendPubComp(mid)
 }
 

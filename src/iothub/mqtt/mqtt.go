@@ -17,7 +17,6 @@ import (
 	"errors"
 	"fmt"
 	"iothub/base"
-	"iothub/storage"
 	"libs"
 	"net"
 	"strings"
@@ -42,7 +41,7 @@ type mqtt struct {
 	inpacket   *mqttPacket
 	wg         sync.WaitGroup
 	localAddrs []string
-	storage    storage.Storage
+	storage    Storage
 	protocol   string
 }
 
@@ -52,7 +51,7 @@ type MqttFactory struct{}
 // New create mqtt service factory
 func (m *MqttFactory) New(protocol string, c libs.Config, ch chan base.ServiceCommand) (base.Service, error) {
 	var localAddrs []string = []string{}
-	var s storage.Storage
+	var s Storage
 
 	// Get all local ip address
 	addrs, err := net.InterfaceAddrs()
@@ -70,7 +69,7 @@ func (m *MqttFactory) New(protocol string, c libs.Config, ch chan base.ServiceCo
 	}
 	// Create storage
 	name := c.MustString("storage", "name")
-	if s, err = storage.New(name, storage.Option{}); err != nil {
+	if s, err = NewStorage(name, c); err != nil {
 		return nil, errors.New("Failed to create storage in mqtt")
 	}
 
@@ -217,7 +216,7 @@ func (m *mqtt) handleSessionNotifications(value []byte) error {
 			for _, addr := range m.localAddrs {
 				if addr != topic.Launcher {
 					m.storage.UpdateSession(nil,
-						&storage.Session{Id: topic.SessionId, State: topic.State})
+						&StorageSession{Id: topic.SessionId, State: topic.State})
 				}
 			}
 		case ObjectActionDelete:

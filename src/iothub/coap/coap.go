@@ -16,7 +16,6 @@ import (
 	"errors"
 	"fmt"
 	"iothub/base"
-	"iothub/storage"
 	"libs"
 	"net"
 	"strings"
@@ -40,7 +39,6 @@ type coap struct {
 	protocol   uint8
 	wg         sync.WaitGroup
 	localAddrs []string
-	storage    storage.Storage
 }
 
 // CoapFactory
@@ -49,8 +47,6 @@ type CoapFactory struct{}
 // New create coap service factory
 func (m *CoapFactory) New(protocol string, c libs.Config, ch chan base.ServiceCommand) (base.Service, error) {
 	var localAddrs []string = []string{}
-	var s storage.Storage
-
 	// Get all local ip address
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
@@ -65,19 +61,12 @@ func (m *CoapFactory) New(protocol string, c libs.Config, ch chan base.ServiceCo
 	if len(localAddrs) == 0 {
 		return nil, errors.New("Failed to get local address")
 	}
-	// Create storage
-	name := c.MustString("storage", "name")
-	if s, err = storage.New(name, storage.Option{}); err != nil {
-		return nil, errors.New("Failed to create storage in coap")
-	}
-
 	t := &coap{config: c,
 		chn:        ch,
 		index:      -1,
 		sessions:   make(map[string]base.Session),
 		protocol:   2,
 		localAddrs: localAddrs,
-		storage:    s,
 	}
 	return t, nil
 }
