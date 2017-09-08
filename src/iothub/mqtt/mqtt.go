@@ -88,7 +88,7 @@ func (m *MqttFactory) New(protocol string, c libs.Config, ch chan base.ServiceCo
 	}
 	return t, nil
 }
-
+ 
 // MQTT Service
 
 func (m *mqtt) NewSession(conn net.Conn) (base.Session, error) {
@@ -225,8 +225,11 @@ func (m *mqtt) handleSessionNotifications(value []byte) error {
 			// Only deal with notification that is not  launched by myself
 			for _, addr := range m.localAddrs {
 				if addr != topic.Launcher {
-					m.storage.UpdateSession(nil,
-						&StorageSession{Id: topic.SessionId, State: topic.State})
+					s, err := m.storage.FindSession(topic.SessionId)
+					if err != nil {
+						s.state = topic.State
+					}
+					//m.storage.UpdateSession(&StorageSession{Id: topic.SessionId, State: topic.State})
 				}
 			}
 		case ObjectActionDelete:

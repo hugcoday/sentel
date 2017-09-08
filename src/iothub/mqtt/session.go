@@ -74,9 +74,11 @@ type mqttSession struct {
 	stateMutex        sync.Mutex
 	sendStopChannel   chan int
 	sendPacketChannel chan *mqttPacket
+	sendMsgChannel    chan *mqttMessage
 	waitgroup         sync.WaitGroup
 	stats             *base.Stats
 	metrics           *base.Metrics
+	msgs              []*mqttMessage
 }
 
 // newMqttSession create new session  for each client connection
@@ -90,10 +92,16 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 	if err != nil {
 		return nil, err
 	}
+	var msgqsize int
+	msgqsize, err = m.config.Int("mqtt", "session_msg_queue_size")
+	if err != nil {
+		msgqsize = 10
+	}
 
 	s := &mqttSession{
 		mgr:               m,
 		config:            m.config,
+		storage:           m.storage,
 		conn:              conn,
 		id:                id,
 		bytesReceived:     0,
@@ -106,12 +114,10 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 		authapi:           authapi,
 		stats:             base.NewStats(true),
 		metrics:           base.NewMetrics(true),
+		sendMsgChannel:    make(chan *mqttMessage, msgqsize),
+		msgs:              make([]*mqttMessage, msgqsize),
 	}
-	// Load storage and plugin for each session
-	name := m.config.MustString("storage", "name")
-	if s.storage, err = NewStorage(name, m.config); err != nil {
-		return nil, err
-	}
+
 	return s, nil
 }
 
@@ -128,7 +134,7 @@ func (s *mqttSession) GetMetrics() *base.Metrics { return s.metrics }
 
 // launchPacketSendHandler launch goroutine to send packet queued for client
 func (s *mqttSession) launchPacketSendHandler() {
-	go func(stopChannel chan int, packetChannel chan *mqttPacket) {
+	go func(stopChannel chan int, packetChannel chan *mqttPacket, msgChannel chan *mqttMessage) {
 		defer s.waitgroup.Add(1)
 
 		for {
@@ -150,10 +156,22 @@ func (s *mqttSession) launchPacketSendHandler() {
 						return
 					}
 				}
+			case msg := <-msgChannel:
+				s.msgs = append(s.msgs, msg)
+			case <-time.After(1 * time.Second):
 			}
 
+			s.processMessage()
+
 		}
-	}(s.sendStopChannel, s.sendPacketChannel)
+	}(s.sendStopChannel, s.sendPacketChannel, s.sendMsgChannel)
+}
+
+// processMessage proceess messages
+func (s *mqttSession) processMessage() error {
+	// for _, msg := range s.msgs {
+	// }
+	return nil
 }
 
 // Handle is mainprocessor for iot device client
@@ -414,10 +432,10 @@ func (s *mqttSession) handleConnect() error {
 	}
 	conack := 0
 	// Find if the client already has an entry, this must be done after any security check
-	if found, _ := s.storage.FindSession(context.Background(), clientid); found != nil {
+	if found, _ := s.storage.FindSession(clientid); found != nil {
 		// Found old session
-		if found.State == mqttStateInvalid {
-			glog.Errorf("Invalid session(%s) in store", found.Id)
+		if found.state == mqttStateInvalid {
+			glog.Errorf("Invalid session(%s) in store", found.id)
 		}
 		if s.protocol == mqttProtocol311 {
 			if cleanSession == 0 {
@@ -426,9 +444,9 @@ func (s *mqttSession) handleConnect() error {
 		}
 		s.cleanSession = cleanSession
 
-		if s.cleanSession == 0 && found.CleanSession == 0 {
-			// Resume last session
-			s.storage.UpdateSession(context.Background(), &StorageSession{Id: clientid, RefCount: found.RefCount + 1})
+		if s.cleanSession == 0 && found.cleanSession == 0 {
+			// Resume last session   // fix me ssddn
+			s.storage.UpdateSession(s)
 			// Notify other mqtt node to release resource
 			base.AsyncProduceMessage(s.config,
 				TopicNameSession,
@@ -440,6 +458,9 @@ func (s *mqttSession) handleConnect() error {
 				})
 		}
 
+	} else {
+		// Register the session in storage
+		s.storage.RegisterSession(s)
 	}
 
 	if willMsg != nil {
@@ -470,18 +491,6 @@ func (s *mqttSession) handleConnect() error {
 			return true
 		})
 
-	// Register the session in storage
-	s.storage.RegisterSession(context.Background(), StorageSession{
-		Id:           s.id,
-		Username:     username,
-		Password:     password,
-		Keepalive:    keepalive,
-		State:        mqttStateConnected,
-		CleanSession: cleanSession,
-		Protocol:     s.protocol,
-		RefCount:     1, // TODO
-	})
-
 	s.state = mqttStateConnected
 	err = s.sendConnAck(uint8(conack), CONNACK_ACCEPTED)
 	return err
@@ -509,7 +518,7 @@ func (s *mqttSession) disconnect() {
 		return
 	}
 	if s.cleanSession > 0 {
-		s.storage.DeleteSession(nil, s.id)
+		s.storage.DeleteSession(s.id)
 		s.id = ""
 	}
 	s.state = mqttStateDisconnected
@@ -557,10 +566,10 @@ func (s *mqttSession) handleSubscribe() error {
 			sub = mp + sub
 		}
 		if qos != 0x80 {
-			if err := s.storage.AddSubscription(context.Background(), s.id, sub, qos); err != nil {
+			if err := s.storage.AddSubscription(s.id, sub, qos); err != nil {
 				return err
 			}
-			if err := s.storage.RetainSubscription(context.Background(), s.id, sub, qos); err != nil {
+			if err := s.storage.RetainSubscription(s.id, sub, qos); err != nil {
 				return err
 			}
 		}
@@ -593,7 +602,7 @@ func (s *mqttSession) handleUnsubscribe() error {
 		if err := checkTopicValidity(sub); err != nil {
 			return fmt.Errorf("Invalid unsubscription string from %s, disconnecting", s.id)
 		}
-		s.storage.RemoveSubscription(context.Background(), s.id, sub)
+		s.storage.RemoveSubscription(s.id, sub)
 	}
 
 	return s.sendCommandWithMid(UNSUBACK, mid, false)
@@ -835,6 +844,12 @@ func (s *mqttSession) queuePacket(p *mqttPacket) error {
 	s.sendPacketChannel <- p
 	return nil
 }
+
+func (s *mqttSession) QueueMessage(msg *mqttMessage) error {
+	s.sendMsgChannel <- msg
+	return nil
+}
+
 func (s *mqttSession) updateOutMessage(mid uint16, state int) error {
 	return nil
 }
