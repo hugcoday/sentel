@@ -12,9 +12,8 @@
 
 package mqtt
 
-/*
+
 import (
-	"context"
 	"errors"
 	"libs"
 
@@ -28,7 +27,7 @@ type subNode struct {
 
 type localStorage struct {
 	config   libs.Config
-	sessions map[string]Session
+	sessions map[string]*mqttSession
 	subs     map[string][]subNode
 }
 
@@ -55,17 +54,17 @@ func (l *localStorage) Restore() error {
 }
 
 // FindSession find session by id
-func (l *localStorage) FindSession(c context.Context, id string) (*Session, error) {
+func (l *localStorage) FindSession(id string) (*mqttSession, error) {
 	v, ok := l.sessions[id]
 	if !ok {
 		return nil, errors.New("Session id does not exist")
 	}
 
-	return &v, nil
+	return v, nil
 }
 
 // DeleteSession delete session by id
-func (l *localStorage) DeleteSession(c context.Context, id string) error {
+func (l *localStorage) DeleteSession(id string) error {
 	_, ok := l.sessions[id]
 	if !ok {
 		return errors.New("Session id does not exist")
@@ -77,107 +76,107 @@ func (l *localStorage) DeleteSession(c context.Context, id string) error {
 }
 
 // UpdateSession update session
-func (l *localStorage) UpdateSession(c context.Context, s *Session) error {
-	_, ok := l.sessions[s.Id]
+func (l *localStorage) UpdateSession(s *mqttSession) error {
+	_, ok := l.sessions[s.id]
 	if !ok {
 		return errors.New("Session id does not exist")
 	}
 
-	l.sessions[s.Id] = *s
+	l.sessions[s.id] = s
 	return nil
 }
 
 // RegisterSession register new session
-func (l *localStorage) RegisterSession(c context.Context, s Session) error {
-	if _, ok := l.sessions[s.Id]; ok {
+func (l *localStorage) RegisterSession(s *mqttSession) error {
+	if _, ok := l.sessions[s.id]; ok {
 		return errors.New("Session id already exists")
 	} else {
-		l.sessions[s.Id] = s
+		l.sessions[s.id] = s
 		return nil
 	}
 }
 
 // Device
 // AddDevice
-func (l *localStorage) AddDevice(c context.Context, d Device) error {
-	return nil
-}
+// func (l *localStorage) AddDevice(d Device) error {
+// 	return nil
+// }
 
-func (l *localStorage) DeleteDevice(c context.Context, id string) error {
-	return nil
-}
+// func (l *localStorage) DeleteDevice(id string) error {
+// 	return nil
+// }
 
-func (l *localStorage) UpdateDevice(c context.Context, d Device) error {
-	return nil
-}
+// func (l *localStorage) UpdateDevice(d Device) error {
+// 	return nil
+// }
 
-func (l *localStorage) GetDeviceState(c context.Context, id string) (int, error) {
-	return 0, nil
-}
+// func (l *localStorage) GetDeviceState(id string) (int, error) {
+// 	return 0, nil
+// }
 
-func (l *localStorage) SetDeviceState(c context.Context, state int) error {
-	return nil
-}
+// func (l *localStorage) SetDeviceState(state int) error {
+// 	return nil
+// }
 
-// Topic
-func (l *localStorage) TopicExist(c context.Context, t Topic) (bool, error) {
-	return false, nil
-}
+// // Topic
+// func (l *localStorage) TopicExist(t Topic) (bool, error) {
+// 	return false, nil
+// }
 
-func (l *localStorage) AddTopic(c context.Context, t Topic) error {
-	return nil
-}
+// func (l *localStorage) AddTopic(t Topic) error {
+// 	return nil
+// }
 
-func (l *localStorage) DeleteTopic(c context.Context, id string) error {
-	return nil
-}
+// func (l *localStorage) DeleteTopic(id string) error {
+// 	return nil
+// }
 
-func (l *localStorage) UpdateTopic(c context.Context, t Topic) error {
-	return nil
-}
+// func (l *localStorage) UpdateTopic(t Topic) error {
+// 	return nil
+// }
 
-func (l *localStorage) AddSubscriber(c context.Context, t Topic, clientid string) error {
-	return nil
-}
+// func (l *localStorage) AddSubscriber(t Topic, clientid string) error {
+// 	return nil
+// }
 
-func (l *localStorage) RemoveSubscriber(c context.Context, t Topic, clientid string) error {
-	return nil
-}
+// func (l *localStorage) RemoveSubscriber(t Topic, clientid string) error {
+// 	return nil
+// }
 
-func (l *localStorage) GetTopicSubscribers(c context.Context, t Topic) ([]string, error) {
-	return nil, nil
-}
+// func (l *localStorage) GetTopicSubscribers(t Topic) ([]string, error) {
+// 	return nil, nil
+// }
 
 // Subscription
-func (l *localStorage) AddSubscription(c context.Context, clientid string, sub string, qos uint8) error {
+func (l *localStorage) AddSubscription(sessionid string, topic string, qos uint8) error {
 	var node subNode
-	node.id = clientid
+	node.id = sessionid
 	node.qos = qos
-	if _, ok := l.subs[sub]; ok {
-		l.subs[sub] = append(l.subs[sub], node)
+	if _, ok := l.subs[topic]; ok {
+		l.subs[topic] = append(l.subs[topic], node)
 	} else {
-		l.subs[sub] = make([]subNode, 1)
-		l.subs[sub][0] = node
+		l.subs[topic] = make([]subNode, 1)
+		l.subs[topic][0] = node
 	}
 	return nil
 }
 
-func (l *localStorage) RetainSubscription(c context.Context, clientid string, sub string, qos uint8) error {
+func (l *localStorage) RetainSubscription(sessionid string, topic string, qos uint8) error {
 	return nil
 }
 
-func (l *localStorage) RemoveSubscription(c context.Context, clientid string, sub string) error {
-	if _, ok := l.subs[sub]; ok {
+func (l *localStorage) RemoveSubscription(sessionid string, topic string) error {
+	if _, ok := l.subs[topic]; ok {
 		var index int
 		var value subNode
-		for index, value = range l.subs[sub] {
-			if value.id == clientid {
+		for index, value = range l.subs[topic] {
+			if value.id == sessionid {
 				break
 			}
 		}
 
-		copy(l.subs[sub][index:], l.subs[sub][index+1:])
-		l.subs[sub] = l.subs[sub][:len(l.subs[sub])-1]
+		copy(l.subs[topic][index:], l.subs[topic][index+1:])
+		l.subs[topic] = l.subs[topic][:len(l.subs[topic])-1]
 	} else {
 		return errors.New("Topic name is not exists")
 	}
@@ -190,11 +189,11 @@ func (l *localStorage) FindMessage(clientid string, mid uint16) (bool, error) {
 	return false, nil
 }
 
-func (l *localStorage) StoreMessage(clientid string, msg Message) error {
+func (l *localStorage) StoreMessage(clientid string, msg StorageMessage) error {
 	return nil
 }
 
-func (l *localStorage) DeleteMessageWithValidator(clientid string, validator func(msg Message) bool) {
+func (l *localStorage) DeleteMessageWithValidator(clientid string, validator func(msg StorageMessage) bool) {
 
 }
 
@@ -202,7 +201,7 @@ func (l *localStorage) DeleteMessage(clientid string, mid uint16, direction Mess
 	return nil
 }
 
-func (l *localStorage) QueueMessage(clientid string, msg Message) error {
+func (l *localStorage) QueueMessage(clientid string, msg StorageMessage) error {
 	return nil
 }
 
@@ -210,7 +209,7 @@ func (l *localStorage) GetMessageTotalCount(clientid string) int {
 	return 0
 }
 
-func (l *localStorage) InsertMessage(clientid string, mid uint16, direction MessageDirection, msg Message) error {
+func (l *localStorage) InsertMessage(clientid string, mid uint16, direction MessageDirection, msg StorageMessage) error {
 	return nil
 }
 
@@ -228,10 +227,10 @@ type localStorageFactory struct{}
 func (l *localStorageFactory) New(c libs.Config) (Storage, error) {
 	d := &localStorage{
 		config:   c,
-		sessions: make(map[string]Session),
+		sessions: make(map[string]*mqttSession),
 		subs:     make(map[string][]subNode),
 	}
 	return d, nil
 }
 
-*/
+
