@@ -31,24 +31,4 @@ type Packet interface {
 
 	// Length return length of the packet
 	Length() int
-
-	// ReadByte read a byte from packet payload
-	ReadByte() (uint8, error)
-	// WriteByte  write a byte into packet payload
-	WriteByte(byte uint8) error
-
-	// ReadBytes read bytes from packet payload
-	ReadBytes(count int) error
-	// WriteBytes write bytes into packet payload
-	WriteBytes(buf []uint8) error
-
-	// ReadString read string from packet payload
-	ReadString() (string, error)
-	// WriteString write string into packet payload
-	WriteString(data string) error
-
-	// ReadUint16 read word from packet payload
-	ReadUint16() (uint16, error)
-	// WriteUint16 write word into packet pyload
-	WriteUint16(data uint16) error
 }

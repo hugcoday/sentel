@@ -163,7 +163,7 @@ func (p *mqttPacket) Length() int {
 }
 
 // ReadByte read a byte from packet payload
-func (p *mqttPacket) ReadByte() (uint8, error) {
+func (p *mqttPacket) readByte() (uint8, error) {
 	if p.pos+1 > p.remainingLength {
 		return 0, mqttErrorInvalidProtocol
 	}
@@ -173,7 +173,7 @@ func (p *mqttPacket) ReadByte() (uint8, error) {
 }
 
 // WriteByte  write a byte into packet payload
-func (p *mqttPacket) WriteByte(b uint8) error {
+func (p *mqttPacket) writeByte(b uint8) error {
 	if p.pos+1 > p.length {
 		return mqttErrorInvalidProtocol
 	}
@@ -183,7 +183,7 @@ func (p *mqttPacket) WriteByte(b uint8) error {
 }
 
 // ReadBytes read bytes from packet payload
-func (p *mqttPacket) ReadBytes(count int) ([]uint8, error) {
+func (p *mqttPacket) readBytes(count int) ([]uint8, error) {
 	if p.pos+count > p.remainingLength {
 		return nil, mqttErrorInvalidProtocol
 	}
@@ -192,7 +192,7 @@ func (p *mqttPacket) ReadBytes(count int) ([]uint8, error) {
 }
 
 // WriteBytes write bytes into packet payload
-func (p *mqttPacket) WriteBytes(buf []uint8) error {
+func (p *mqttPacket) writeBytes(buf []uint8) error {
 	if p.pos+len(buf) > p.length {
 		return mqttErrorInvalidProtocol
 	}
@@ -204,8 +204,8 @@ func (p *mqttPacket) WriteBytes(buf []uint8) error {
 }
 
 // ReadString read string from packet payload
-func (p *mqttPacket) ReadString() (string, error) {
-	len, err := p.ReadUint16()
+func (p *mqttPacket) readString() (string, error) {
+	len, err := p.readUint16()
 	if err != nil {
 		return "", err
 	}
@@ -219,19 +219,19 @@ func (p *mqttPacket) ReadString() (string, error) {
 }
 
 // WriteString write string into packet payload
-func (p *mqttPacket) WriteString(data string) error {
+func (p *mqttPacket) writeString(data string) error {
 	length := uint16(len(data))
-	if err := p.WriteUint16(length); err != nil {
+	if err := p.writeUint16(length); err != nil {
 		return err
 	}
-	if err := p.WriteBytes([]uint8(data)); err != nil {
+	if err := p.writeBytes([]uint8(data)); err != nil {
 		return err
 	}
 	return nil
 }
 
 // ReadUint16 read word from packet payload
-func (p *mqttPacket) ReadUint16() (uint16, error) {
+func (p *mqttPacket) readUint16() (uint16, error) {
 	if p.pos+2 > p.remainingLength {
 		return 0, mqttErrorInvalidProtocol
 	}
@@ -244,13 +244,13 @@ func (p *mqttPacket) ReadUint16() (uint16, error) {
 }
 
 // WriteUint16 write word into packet pyload
-func (p *mqttPacket) WriteUint16(data uint16) error {
+func (p *mqttPacket) writeUint16(data uint16) error {
 	msb := uint8((data >> 8) & 0xF)
 	lsb := uint8(data & 0xF)
-	if err := p.WriteByte(msb); err != nil {
+	if err := p.writeByte(msb); err != nil {
 		return err
 	}
-	if err := p.WriteByte(lsb); err != nil {
+	if err := p.writeByte(lsb); err != nil {
 		return err
 	}
 	return nil

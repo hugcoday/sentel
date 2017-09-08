@@ -225,11 +225,11 @@ func (s *mqttSession) handleConnect() error {
 		return errors.New("Invalid session state")
 	}
 	// Check protocol name and version
-	protocolName, err := s.inpacket.ReadString()
+	protocolName, err := s.inpacket.readString()
 	if err != nil {
 		return err
 	}
-	protocolVersion, err := s.inpacket.ReadByte()
+	protocolVersion, err := s.inpacket.readByte()
 	if err != nil {
 		return err
 	}
@@ -256,7 +256,7 @@ func (s *mqttSession) handleConnect() error {
 	}
 
 	// Check connect flags
-	cflags, err := s.inpacket.ReadByte()
+	cflags, err := s.inpacket.readByte()
 	if err != nil {
 		return nil
 	}
@@ -277,14 +277,14 @@ func (s *mqttSession) handleConnect() error {
 	willRetain := (cflags & 0x20) == 0x20
 	passwordFlag := cflags & 0x40
 	usernameFlag := cflags & 0x80
-	keepalive, err := s.inpacket.ReadUint16()
+	keepalive, err := s.inpacket.readUint16()
 	if err != nil {
 		return err
 	}
 	s.keepalive = keepalive
 
 	// Deal with client identifier
-	clientid, err := s.inpacket.ReadString()
+	clientid, err := s.inpacket.readString()
 	if err != nil {
 		return err
 	}
@@ -308,7 +308,7 @@ func (s *mqttSession) handleConnect() error {
 	if will > 0 {
 		willMsg = new(mqttMessage)
 		// Get topic
-		topic, err := s.inpacket.ReadString()
+		topic, err := s.inpacket.readString()
 		if err != nil || topic == "" {
 			return nil
 		}
@@ -320,12 +320,12 @@ func (s *mqttSession) handleConnect() error {
 			return err
 		}
 		// Get willtopic's payload
-		willPayloadLength, err := s.inpacket.ReadUint16()
+		willPayloadLength, err := s.inpacket.readUint16()
 		if err != nil {
 			return err
 		}
 		if willPayloadLength > 0 {
-			payload, err = s.inpacket.ReadBytes(int(willPayloadLength))
+			payload, err = s.inpacket.readBytes(int(willPayloadLength))
 			if err != nil {
 				return err
 			}
@@ -341,10 +341,10 @@ func (s *mqttSession) handleConnect() error {
 	var username string
 	var password string
 	if usernameFlag > 0 {
-		username, err = s.inpacket.ReadString()
+		username, err = s.inpacket.readString()
 		if err == nil {
 			if passwordFlag > 0 {
-				password, err = s.inpacket.ReadString()
+				password, err = s.inpacket.readString()
 				if err == mqttErrorInvalidProtocol {
 					if s.protocol == mqttProtocol31 {
 						passwordFlag = 0
@@ -522,7 +522,7 @@ func (s *mqttSession) handleSubscribe() error {
 		}
 	}
 	// Get message identifier
-	mid, err := s.inpacket.ReadUint16()
+	mid, err := s.inpacket.readUint16()
 	if err != nil {
 		return err
 	}
@@ -530,14 +530,14 @@ func (s *mqttSession) handleSubscribe() error {
 	for s.inpacket.pos < s.inpacket.remainingLength {
 		sub := ""
 		qos := uint8(0)
-		if sub, err = s.inpacket.ReadString(); err != nil {
+		if sub, err = s.inpacket.readString(); err != nil {
 			return err
 		}
 		if checkTopicValidity(sub) != nil {
 			glog.Errorf("Invalid subscription topic %s from %s, disconnecting", sub, s.id)
 			return mqttErrorInvalidProtocol
 		}
-		if qos, err = s.inpacket.ReadByte(); err != nil {
+		if qos, err = s.inpacket.readByte(); err != nil {
 			return err
 		}
 
@@ -574,13 +574,13 @@ func (s *mqttSession) handleUnsubscribe() error {
 	if s.protocol == mqttProtocol311 && (s.inpacket.command&0x0f) != 0x02 {
 		return mqttErrorInvalidProtocol
 	}
-	mid, err := s.inpacket.ReadUint16()
+	mid, err := s.inpacket.readUint16()
 	if err != nil {
 		return err
 	}
 	// Iterate all subscription
 	for s.inpacket.pos < s.inpacket.remainingLength {
-		sub, err := s.inpacket.ReadString()
+		sub, err := s.inpacket.readString()
 		if err != nil {
 			return mqttErrorInvalidProtocol
 		}
@@ -611,7 +611,7 @@ func (s *mqttSession) handlePublish() error {
 	retain := (s.inpacket.command & 0x01)
 
 	// Topic
-	if topic, err = s.inpacket.ReadString(); err != nil {
+	if topic, err = s.inpacket.readString(); err != nil {
 		return fmt.Errorf("Invalid topic in PUBLISH from %s", s.id)
 	}
 	if checkTopicValidity(topic) != nil {
@@ -622,7 +622,7 @@ func (s *mqttSession) handlePublish() error {
 	}
 
 	if qos > 0 {
-		mid, err = s.inpacket.ReadUint16()
+		mid, err = s.inpacket.readUint16()
 		if err != nil {
 			return err
 		}
@@ -634,7 +634,7 @@ func (s *mqttSession) handlePublish() error {
 		if payloadlen > limitSize {
 			return mqttErrorInvalidProtocol
 		}
-		payload, err = s.inpacket.ReadBytes(payloadlen)
+		payload, err = s.inpacket.readBytes(payloadlen)
 		if err != nil {
 			return err
 		}
@@ -708,7 +708,7 @@ func (s *mqttSession) handlePubRel() error {
 		}
 	}
 	// Get message identifier
-	mid, err := s.inpacket.ReadUint16()
+	mid, err := s.inpacket.readUint16()
 	if err != nil {
 		return err
 	}
@@ -784,9 +784,9 @@ func (s *mqttSession) sendSubAck(mid uint16, payload []uint8) error {
 	}
 
 	s.initializePacket(packet)
-	packet.WriteUint16(mid)
+	packet.writeUint16(mid)
 	if len(payload) > 0 {
-		packet.WriteBytes(payload)
+		packet.writeBytes(payload)
 	}
 	return s.queuePacket(packet)
 }
