@@ -84,7 +84,8 @@ func (s *ApiService) Wait() {
 }
 
 func (s *ApiService) Version(ctx context.Context, req *VersionRequest) (*VersionReply, error) {
-	return nil, nil
+	version := base.GetServiceManager().GetVersion()
+	return &VersionReply{Version: version}, nil
 }
 
 func (s *ApiService) Admins(ctx context.Context, req *AdminsRequest) (*AdminsReply, error) {
