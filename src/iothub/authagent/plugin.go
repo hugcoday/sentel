@@ -9,8 +9,7 @@
 //  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 //  License for the specific language governing permissions and limitations
 //  under the License.
-
-package authlet
+package authagent
 
 import (
 	"context"
@@ -26,11 +25,11 @@ var (
 )
 
 var (
-	_authServices = make(map[string]AuthServiceFactory)
+	_authPlugins = make(map[string]AuthPluginFactory)
 )
 
-// AuthService interface for security
-type AuthService interface {
+// AuthPlugin interface for security
+type AuthPlugin interface {
 	GetVersion() int
 	CheckAcl(ctx context.Context, clientid string, username string, topic string, access int) error
 	CheckUsernameAndPasswor(ctx context.Context, username string, password string) error
@@ -38,29 +37,29 @@ type AuthService interface {
 	Cleanup(ctx context.Context) error
 }
 
-// AuthServiceFactory
-type AuthServiceFactory interface {
-	New(c libs.Config) (AuthService, error)
+// AuthPluginFactory
+type AuthPluginFactory interface {
+	New(c libs.Config) (AuthPlugin, error)
 }
 
-// RegisterAuthService register a auth plugin
-func RegisterAuthService(name string, factory AuthServiceFactory) {
-	if _authServices[name] != nil {
-		glog.Errorf("AuthService '%s' is already registered")
+// RegisterAuthPlugin register a auth plugin
+func RegisterAuthPlugin(name string, factory AuthPluginFactory) {
+	if _authPlugins[name] != nil {
+		glog.Errorf("AuthPlugin '%s' is already registered")
 		return
 	}
-	_authServices[name] = factory
+	_authPlugins[name] = factory
 }
 
-// LoadAuthService load a authService
-func LoadAuthService(name string, c libs.Config) (AuthService, error) {
+// LoadAuthPlugin load a authPlugin
+func LoadAuthPlugin(name string, c libs.Config) (AuthPlugin, error) {
 	// Default authentication is 'none'
 	if name == "" {
 		glog.Warning("No authentication method is specified, using none authentication")
 		name = "none"
 	}
-	if _authServices[name] == nil {
-		return nil, fmt.Errorf("AuthService '%s' is not registered", name)
+	if _authPlugins[name] == nil {
+		return nil, fmt.Errorf("AuthPlugin '%s' is not registered", name)
 	}
-	return _authServices[name].New(c)
+	return _authPlugins[name].New(c)
 }
