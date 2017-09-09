@@ -58,8 +58,11 @@ func (m *ApiServiceFactory) New(protocol string, c libs.Config, ch chan base.Ser
 
 }
 
-func (s *ApiService) GetMetrics() *base.Metrics { return nil }
-func (s *ApiService) GetStats() *base.Stats     { return nil }
+func (s *ApiService) GetMetrics() *base.Metrics        { return nil }
+func (s *ApiService) GetStats() *base.Stats            { return nil }
+func (s *ApiService) GetClients() []*base.Client       { return nil }
+func (s *ApiService) GetClient(id string) *base.Client { return nil }
+func (s *ApiService) KickoffClient(id string) error    { return nil }
 
 // Start
 func (s *ApiService) Start() error {
@@ -103,14 +106,15 @@ func (s *ApiService) Status(ctx context.Context, req *StatusRequest) (*StatusRep
 	return nil, nil
 }
 
+// Broker delegate broker command implementation in sentel
 func (s *ApiService) Broker(ctx context.Context, req *BrokerRequest) (*BrokerReply, error) {
 	mgr := base.GetServiceManager()
 	switch req.Category {
 	case "stats":
-		stats := mgr.GetStats()
+		stats := mgr.GetStats("mqtt")
 		return &BrokerReply{Stats: stats}, nil
 	case "metrics":
-		metrics := mgr.GetMetrics()
+		metrics := mgr.GetMetrics("mqtt")
 		return &BrokerReply{Metrics: metrics}, nil
 	default:
 	}
@@ -129,8 +133,44 @@ func (s *ApiService) Subscriptions(ctx context.Context, req *SubscriptionsReques
 	return nil, nil
 }
 
+// Clients delegate clients command implementation in sentel
 func (s *ApiService) Clients(ctx context.Context, req *ClientsRequest) (*ClientsReply, error) {
-	return nil, nil
+	reply := &ClientsReply{Clients: []*ClientInfo{}, Success: true}
+	mgr := base.GetServiceManager()
+
+	switch req.Category {
+	case "list":
+		// Get all client information for specified service
+		clients := mgr.GetClients("mqtt")
+		for _, client := range clients {
+			reply.Clients = append(reply.Clients,
+				&ClientInfo{
+					UserName:     client.UserName,
+					CleanSession: client.CleanSession,
+					PeerName:     client.PeerName,
+					ConnectTime:  client.ConnectTime,
+				})
+		}
+	case "show":
+		// Get client information for specified client id
+		if client := mgr.GetClient("mqtt", req.ClientId); client != nil {
+			reply.Clients = append(reply.Clients,
+				&ClientInfo{
+					UserName:     client.UserName,
+					CleanSession: client.CleanSession,
+					PeerName:     client.PeerName,
+					ConnectTime:  client.ConnectTime,
+				})
+		}
+	case "kick":
+		if err := mgr.KickoffClient("mqtt", req.ClientId); err != nil {
+			reply.Success = false
+			reply.Reason = fmt.Sprintf("%v", err)
+		}
+	default:
+		return nil, fmt.Errorf("Invalid category:'%s' for Clients api", req.Category)
+	}
+	return reply, nil
 }
 
 func (s *ApiService) Sessions(ctx context.Context, req *SessionsRequest) (*SessionsReply, error) {

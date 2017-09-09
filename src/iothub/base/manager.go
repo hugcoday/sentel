@@ -13,6 +13,7 @@ package base
 
 import (
 	"errors"
+	"fmt"
 	"libs"
 	"strings"
 	"sync"
@@ -102,9 +103,9 @@ func (s *ServiceManager) GetVersion() string {
 }
 
 // GetStats return server's stats
-func (s *ServiceManager) GetStats() map[string]uint64 {
+func (s *ServiceManager) GetStats(service string) map[string]uint64 {
 	allstats := NewStats(false)
-	services := s.GetServicesByName("mqtt")
+	services := s.GetServicesByName(service)
 
 	for _, service := range services {
 		stats := service.GetStats()
@@ -114,13 +115,49 @@ func (s *ServiceManager) GetStats() map[string]uint64 {
 }
 
 // GetMetrics return server metrics
-func (s *ServiceManager) GetMetrics() map[string]uint64 {
+func (s *ServiceManager) GetMetrics(service string) map[string]uint64 {
 	allmetrics := NewMetrics(false)
-	services := s.GetServicesByName("mqtt")
+	services := s.GetServicesByName(service)
 
 	for _, service := range services {
 		metrics := service.GetMetrics()
 		allmetrics.AddMetrics(metrics)
 	}
 	return allmetrics.Get()
+}
+
+// GetClients return clients list withspecified service
+func (s *ServiceManager) GetClients(service string) []*Client {
+	clients := []*Client{}
+	services := s.GetServicesByName(service)
+
+	for _, service := range services {
+		list := service.GetClients()
+		clients = append(clients, list...)
+	}
+	return clients
+}
+
+// GeteClient return client info with specified client id
+func (s *ServiceManager) GetClient(service string, id string) *Client {
+	services := s.GetServicesByName(service)
+
+	for _, service := range services {
+		if client := service.GetClient(id); client != nil {
+			return client
+		}
+	}
+	return nil
+}
+
+// Kickoff Client killoff a client from specified service
+func (s *ServiceManager) KickoffClient(service string, id string) error {
+	services := s.GetServicesByName(service)
+
+	for _, service := range services {
+		if err := service.KickoffClient(id); err == nil {
+			return nil
+		}
+	}
+	return fmt.Errorf("Failed to kick off user '%s' from service '%s'", id, service)
 }

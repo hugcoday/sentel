@@ -36,8 +36,9 @@ message ClientsRequest{
     string ClientId = 2;
 }
 message ClientsReply{
-    bool Result = 1;
-    repeated ClientInfo Clients =2;
+    bool Success = 1;
+    string Reason =2;
+    repeated ClientInfo Clients =3;
 }
 
 message ClientInfo {
