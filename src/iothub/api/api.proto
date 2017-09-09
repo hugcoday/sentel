@@ -20,16 +20,34 @@ service Api {
 // Version
 message VersionRequest { }
 message VersionReply{
-    string version  = 1;
+    string Version  = 1;
 }
 // Broker
 message BrokerRequest{
-    string category = 1;
+    string Category = 1;
 }
 message BrokerReply{
-    map<string, uint64> stats = 1;
-    map<string, uint64> metrics = 2;
+    map<string, uint64> Stats = 1;
+    map<string, uint64> Metrics = 2;
 }
+// Clients
+message ClientsRequest{
+    string Category = 1;
+    string ClientId = 2;
+}
+message ClientsReply{
+    bool Result = 1;
+    repeated ClientInfo Clients =2;
+}
+
+message ClientInfo {
+    string UserName = 1;
+    bool CleanSession = 2;
+    string PeerName = 3;
+    string ConnectTime = 4;
+}
+
+
 
 message AdminsRequest{}
 message AdminsReply{}
@@ -45,8 +63,6 @@ message ServicesRequest{}
 message ServicesReply{}
 message SubscriptionsRequest{}
 message SubscriptionsReply{}
-message ClientsRequest{}
-message ClientsReply{}
 message SessionsRequest{}
 message SessionsReply{}
 message TopicsRequest{}
