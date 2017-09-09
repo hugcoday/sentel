@@ -76,9 +76,12 @@ type mqttSession struct {
 	sendPacketChannel chan *mqttPacket
 	sendMsgChannel    chan *mqttMessage
 	waitgroup         sync.WaitGroup
+
+	// resume field
 	stats             *base.Stats
 	metrics           *base.Metrics
 	msgs              []*mqttMessage
+	storedMsgs        map[uint16]*mqttMessage
 }
 
 // newMqttSession create new session  for each client connection
@@ -116,6 +119,7 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 		metrics:           base.NewMetrics(true),
 		sendMsgChannel:    make(chan *mqttMessage, msgqsize),
 		msgs:              make([]*mqttMessage, msgqsize),
+		storedMsgs:        make(map[uint16]*mqttMessage),
 	}
 
 	return s, nil
@@ -616,7 +620,6 @@ func (s *mqttSession) handlePublish() error {
 	var mid uint16
 	var err error
 	var payload []uint8
-	var stored bool
 
 	dup := (s.inpacket.command & 0x08) >> 3
 	qos := (s.inpacket.command & 0x06) >> 1
@@ -669,10 +672,10 @@ func (s *mqttSession) handlePublish() error {
 
 	// Check wether the message has been stored
 	if qos > 0 {
-		if found, err := s.storage.FindMessage(s.id, mid); err != nil {
-			return err
+		if _, ok := s.storedMsgs[mid]; !ok {
+			dup = 1
 		} else {
-			stored = found
+			dup = 0
 		}
 	}
 	msg := StorageMessage{
@@ -682,15 +685,6 @@ func (s *mqttSession) handlePublish() error {
 		Qos:       qos,
 		Retain:    (retain > 0),
 		Payload:   payload,
-	}
-
-	if !stored {
-		dup = 0
-		if err := s.storage.StoreMessage(s.id, msg); err != nil {
-			return err
-		}
-	} else {
-		dup = 1
 	}
 
 	switch qos {
