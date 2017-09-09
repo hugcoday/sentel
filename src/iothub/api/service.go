@@ -58,11 +58,13 @@ func (m *ApiServiceFactory) New(protocol string, c libs.Config, ch chan base.Ser
 
 }
 
-func (s *ApiService) GetMetrics() *base.Metrics            { return nil }
-func (s *ApiService) GetStats() *base.Stats                { return nil }
-func (s *ApiService) GetClients() []*base.ClientInfo       { return nil }
-func (s *ApiService) GetClient(id string) *base.ClientInfo { return nil }
-func (s *ApiService) KickoffClient(id string) error        { return nil }
+func (s *ApiService) GetMetrics() *base.Metrics              { return nil }
+func (s *ApiService) GetStats() *base.Stats                  { return nil }
+func (s *ApiService) GetClients() []*base.ClientInfo         { return nil }
+func (s *ApiService) GetClient(id string) *base.ClientInfo   { return nil }
+func (s *ApiService) KickoffClient(id string) error          { return nil }
+func (s *ApiService) GetSessions() []*base.SessionInfo       { return nil }
+func (s *ApiService) GetSession(id string) *base.SessionInfo { return nil }
 
 // Start
 func (s *ApiService) Start() error {
@@ -135,7 +137,10 @@ func (s *ApiService) Subscriptions(ctx context.Context, req *SubscriptionsReques
 
 // Clients delegate clients command implementation in sentel
 func (s *ApiService) Clients(ctx context.Context, req *ClientsRequest) (*ClientsReply, error) {
-	reply := &ClientsReply{Clients: []*ClientInfo{}, Success: true}
+	reply := &ClientsReply{
+		Clients: []*ClientInfo{},
+		Header:  &ReplyMessageHeader{Success: true},
+	}
 	mgr := base.GetServiceManager()
 
 	switch req.Category {
@@ -164,8 +169,8 @@ func (s *ApiService) Clients(ctx context.Context, req *ClientsRequest) (*Clients
 		}
 	case "kick":
 		if err := mgr.KickoffClient("mqtt", req.ClientId); err != nil {
-			reply.Success = false
-			reply.Reason = fmt.Sprintf("%v", err)
+			reply.Header.Success = false
+			reply.Header.Reason = fmt.Sprintf("%v", err)
 		}
 	default:
 		return nil, fmt.Errorf("Invalid category:'%s' for Clients api", req.Category)
@@ -173,7 +178,20 @@ func (s *ApiService) Clients(ctx context.Context, req *ClientsRequest) (*Clients
 	return reply, nil
 }
 
+// Sessions delegate client sessions command
 func (s *ApiService) Sessions(ctx context.Context, req *SessionsRequest) (*SessionsReply, error) {
+	/*
+		mgr := base.GetServiceManager()
+		reply := &SessionsReply{
+			Header:   &ReplyMessageHeader{Success: true},
+			Sessions: []*SessionInfo{},
+		}
+
+		switch req.Category {
+		case "list":
+		case "show":
+		}
+	*/
 	return nil, nil
 }
 

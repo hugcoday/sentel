@@ -124,6 +124,9 @@ func (m *mqtt) GetClients() []*base.ClientInfo       { return nil }
 func (m *mqtt) GetClient(id string) *base.ClientInfo { return nil }
 func (m *mqtt) KickoffClient(id string) error        { return nil }
 
+func (m *mqtt) GetSessions() []*base.SessionInfo       { return nil }
+func (m *mqtt) GetSession(id string) *base.SessionInfo { return nil }
+
 // Start is mainloop for mqtt service
 func (m *mqtt) Start() error {
 	host, _ := m.config.String("mqtt", "host")

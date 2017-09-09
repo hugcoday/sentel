@@ -14,6 +14,7 @@ package cmd
 
 import (
 	"fmt"
+	pb "iothub/api"
 
 	"github.com/spf13/cobra"
 )
@@ -21,8 +22,76 @@ import (
 var sessionsCmd = &cobra.Command{
 	Use:   "sessions",
 	Short: "List all MQTT session of the broker",
-	Long:  `All software has versions. This is Hugo's`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Services:")
-	},
+	Long:  `List all MQTT session of the broker, or specified session`,
+	Run:   sessionsCmdHandler,
+}
+
+func sessionsCmdHandler(cmd *cobra.Command, args []string) {
+	if len(args) < 1 || len(args) > 2 {
+		fmt.Println("Usage error, please see help")
+		return
+	}
+
+	req := &pb.SessionsRequest{Category: args[0], Conditions: make(map[string]bool)}
+
+	switch args[0] {
+	case "list": // Print client list
+		// Format conditions
+		if len(args) == 2 {
+			switch args[1] {
+			case "persistent":
+				req.Conditions["persistent"] = true
+			case "transient":
+				req.Conditions["transient"] = true
+			}
+		}
+		reply, err := sentelApi.Sessions(req)
+		if err != nil {
+			fmt.Println("Error:%v", err)
+			return
+		}
+		for _, session := range reply.Sessions {
+			fmt.Printf(`clientid=%s, created_at=%s, clean_session=%s, 
+				max_inflight=%s,infliaht=%s,inqueue=%s,droped=%s,awaiting_rel=%s,
+				awaiting_comp=%s,awaiting_ack=%s`,
+				session.ClientId, session.CreatedAt, session.CleanSession,
+				session.MessageMaxInflight,
+				session.MessageInflight,
+				session.MessageInQueue,
+				session.MessageDropped,
+				session.AwaitingRel,
+				session.AwaitingComp,
+				session.AwaitingAck)
+		}
+	case "show":
+		if len(args) != 2 {
+			fmt.Println("Usage error, please see help")
+			return
+		}
+		req.ClientId = args[1]
+		if reply, err := sentelApi.Sessions(req); err != nil {
+			fmt.Println("Error:%v", err)
+			return
+		} else if len(reply.Sessions) != 1 {
+			fmt.Println("Error:sentel server return multiple sessions")
+			return
+		} else {
+			session := reply.Sessions[0]
+			fmt.Printf(`clientid=%s, created_at=%s, clean_session=%s, 
+				max_inflight=%s,infliaht=%s,inqueue=%s,droped=%s,awaiting_rel=%s,
+				awaiting_comp=%s,awaiting_ack=%s`,
+				session.ClientId, session.CreatedAt, session.CleanSession,
+				session.MessageMaxInflight,
+				session.MessageInflight,
+				session.MessageInQueue,
+				session.MessageDropped,
+				session.AwaitingRel,
+				session.AwaitingComp,
+				session.AwaitingAck)
+
+		}
+	default:
+		fmt.Println("Usage error, please see help")
+		return
+	}
 }

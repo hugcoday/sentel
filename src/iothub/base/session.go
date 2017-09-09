@@ -22,9 +22,13 @@ type SessionObserver interface {
 	OnAuthenticate(s Session, username string, password string) error
 }
 
+type SessionInfo map[string]string
+
 type Session interface {
 	// Identifier get session identifier
 	Identifier() string
+	// Info return session information
+	Info() SessionInfo
 	// GetService get the service ower for current session
 	Service() Service
 	// Handle indicate service to handle the packet

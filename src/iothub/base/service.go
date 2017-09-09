@@ -32,13 +32,19 @@ type ClientInfo struct {
 }
 
 type Service interface {
+	// Service Action
 	Start() error
 	Stop()
+	// Stats and Metrics
 	GetStats() *Stats
 	GetMetrics() *Metrics
+	// Client
 	GetClients() []*ClientInfo
 	GetClient(id string) *ClientInfo
 	KickoffClient(id string) error
+	// Session
+	GetSessions() []*SessionInfo
+	GetSession(id string) *SessionInfo
 }
 
 type ServiceFactory interface {

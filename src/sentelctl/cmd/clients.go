@@ -23,10 +23,10 @@ var clientsCmd = &cobra.Command{
 	Use:   "clients",
 	Short: "Inquery and control connected client",
 	Long:  `Inquery client information and controll client`,
-	Run:   clientCmdHandlerFunc,
+	Run:   clientCmdHandler,
 }
 
-func clientCmdHandlerFunc(cmd *cobra.Command, args []string) {
+func clientCmdHandler(cmd *cobra.Command, args []string) {
 	if len(args) < 1 || len(args) > 2 {
 		fmt.Println("Usage error, please see help")
 		return
@@ -78,7 +78,7 @@ func clientCmdHandlerFunc(cmd *cobra.Command, args []string) {
 			fmt.Println("Error:%v", err)
 			return
 		}
-		fmt.Println(reply.Reason)
+		fmt.Println(reply.Header.Reason)
 
 	default:
 		fmt.Println("Usage error, please see help")

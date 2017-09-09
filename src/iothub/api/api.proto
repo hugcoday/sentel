@@ -27,8 +27,9 @@ message BrokerRequest{
     string Category = 1;
 }
 message BrokerReply{
-    map<string, uint64> Stats = 1;
-    map<string, uint64> Metrics = 2;
+    ReplyMessageHeader Header = 1;
+    map<string, uint64> Stats = 2; 
+    map<string, uint64> Metrics = 3;
 }
 // Clients
 message ClientsRequest{
@@ -36,9 +37,8 @@ message ClientsRequest{
     string ClientId = 2;
 }
 message ClientsReply{
-    bool Success = 1;
-    string Reason =2;
-    repeated ClientInfo Clients =3;
+    ReplyMessageHeader Header = 1;
+    repeated ClientInfo Clients =2;
 }
 
 message ClientInfo {
@@ -64,7 +64,37 @@ message ServicesRequest{}
 message ServicesReply{}
 message SubscriptionsRequest{}
 message SubscriptionsReply{}
-message SessionsRequest{}
-message SessionsReply{}
+
+// Session
+message SessionsRequest{
+    string Category = 1;
+    string ClientId = 2;
+    map<string, bool> Conditions  = 3;
+}
+message SessionsReply{
+    ReplyMessageHeader Header = 1;
+    repeated SessionInfo  Sessions = 2;
+}
+
+message SessionInfo {
+    string ClientId           = 1;
+	string CleanSession       = 2;
+	string MessageMaxInflight = 3; 
+	string MessageInflight    = 4; 
+	string MessageInQueue     = 5; 
+	string MessageDropped     = 6; 
+	string AwaitingRel        = 7;
+	string AwaitingComp       = 8; 
+	string AwaitingAck        = 9; 
+	string CreatedAt          = 10; 
+}
+
+// Topic
 message TopicsRequest{}
 message TopicsReply{}
+
+// Message Header
+message ReplyMessageHeader {
+    bool Success = 1;
+    string Reason = 2;
+}

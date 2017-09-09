@@ -55,22 +55,9 @@ func (s *coapSession) Handle() error {
 }
 
 // removeConnection remove current connection from coapManaager if errors occured
-func (s *coapSession) Destroy() error {
-	return nil
-}
-
-func (s *coapSession) Identifier() string {
-	return ""
-}
-
-func (s *coapSession) Service() base.Service {
-	return nil
-}
-
-func (s *coapSession) GetStats() *base.Stats {
-	return nil
-}
-
-func (s *coapSession) GetMetrics() *base.Metrics {
-	return nil
-}
+func (s *coapSession) Destroy() error            { return nil }
+func (s *coapSession) Identifier() string        { return "" }
+func (s *coapSession) Service() base.Service     { return nil }
+func (s *coapSession) GetStats() *base.Stats     { return nil }
+func (s *coapSession) GetMetrics() *base.Metrics { return nil }
+func (s *coapSession) Info() base.SessionInfo    { return nil }

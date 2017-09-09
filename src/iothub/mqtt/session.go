@@ -78,10 +78,10 @@ type mqttSession struct {
 	waitgroup         sync.WaitGroup
 
 	// resume field
-	stats             *base.Stats
-	metrics           *base.Metrics
-	msgs              []*mqttMessage
-	storedMsgs        map[uint16]*mqttMessage
+	stats      *base.Stats
+	metrics    *base.Metrics
+	msgs       []*mqttMessage
+	storedMsgs map[uint16]*mqttMessage
 }
 
 // newMqttSession create new session  for each client connection
@@ -135,6 +135,7 @@ func (s *mqttSession) RegisterObserver(o base.SessionObserver) {
 }
 func (s *mqttSession) GetStats() *base.Stats     { return s.stats }
 func (s *mqttSession) GetMetrics() *base.Metrics { return s.metrics }
+func (s *mqttSession) Info() base.SessionInfo    { return nil }
 
 // launchPacketSendHandler launch goroutine to send packet queued for client
 func (s *mqttSession) launchPacketSendHandler() {

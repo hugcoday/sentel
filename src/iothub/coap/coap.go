@@ -133,3 +133,6 @@ func (m *coap) GetStats() *base.Stats                { return nil }
 func (m *coap) GetClients() []*base.ClientInfo       { return nil }
 func (m *coap) GetClient(id string) *base.ClientInfo { return nil }
 func (m *coap) KickoffClient(id string) error        { return nil }
+
+func (m *coap) GetSessions() []*base.SessionInfo       { return nil }
+func (m *coap) GetSession(id string) *base.SessionInfo { return nil }

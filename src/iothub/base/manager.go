@@ -161,3 +161,28 @@ func (s *ServiceManager) KickoffClient(service string, id string) error {
 	}
 	return fmt.Errorf("Failed to kick off user '%s' from service '%s'", id, service)
 }
+
+// GetSessions return all sessions information for specified service
+func (s *ServiceManager) GetSessions(service string) []*SessionInfo {
+	sessions := []*SessionInfo{}
+	services := s.GetServicesByName(service)
+
+	for _, service := range services {
+		list := service.GetSessions()
+		sessions = append(sessions, list...)
+	}
+	return sessions
+
+}
+
+// GetSession return specified session information with session id
+func (s *ServiceManager) GetSession(service string, id string) *SessionInfo {
+	services := s.GetServicesByName(service)
+
+	for _, service := range services {
+		if info := service.GetSession(id); info != nil {
+			return info
+		}
+	}
+	return nil
+}
