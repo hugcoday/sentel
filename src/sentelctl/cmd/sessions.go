@@ -51,9 +51,9 @@ func sessionsCmdHandler(cmd *cobra.Command, args []string) {
 			return
 		}
 		for _, session := range reply.Sessions {
-			fmt.Printf(`clientid=%s, created_at=%s, clean_session=%s, 
-				max_inflight=%s,infliaht=%s,inqueue=%s,droped=%s,awaiting_rel=%s,
-				awaiting_comp=%s,awaiting_ack=%s`,
+			fmt.Printf(`(clientid=%s, created_at=%s, clean_session=%t, 
+				max_inflight=%d,infliaht=%d,inqueue=%d,droped=%d,awaiting_rel=%d,
+				awaiting_comp=%d,awaiting_ack=%d)`,
 				session.ClientId, session.CreatedAt, session.CleanSession,
 				session.MessageMaxInflight,
 				session.MessageInflight,
@@ -77,9 +77,9 @@ func sessionsCmdHandler(cmd *cobra.Command, args []string) {
 			return
 		} else {
 			session := reply.Sessions[0]
-			fmt.Printf(`clientid=%s, created_at=%s, clean_session=%s, 
-				max_inflight=%s,infliaht=%s,inqueue=%s,droped=%s,awaiting_rel=%s,
-				awaiting_comp=%s,awaiting_ack=%s`,
+			fmt.Printf(`(clientid=%s, created_at=%s, clean_session=%t, 
+				max_inflight=%d,infliaht=%d,inqueue=%d,droped=%d,awaiting_rel=%d,
+				awaiting_comp=%d,awaiting_ack=%d)`,
 				session.ClientId, session.CreatedAt, session.CleanSession,
 				session.MessageMaxInflight,
 				session.MessageInflight,

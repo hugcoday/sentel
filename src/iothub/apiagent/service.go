@@ -175,19 +175,48 @@ func (s *ApiService) Clients(ctx context.Context, req *ClientsRequest) (*Clients
 
 // Sessions delegate client sessions command
 func (s *ApiService) Sessions(ctx context.Context, req *SessionsRequest) (*SessionsReply, error) {
-	/*
-		mgr := base.GetServiceManager()
-		reply := &SessionsReply{
-			Header:   &ReplyMessageHeader{Success: true},
-			Sessions: []*SessionInfo{},
+	mgr := base.GetServiceManager()
+	reply := &SessionsReply{
+		Header:   &ReplyMessageHeader{Success: true},
+		Sessions: []*SessionInfo{},
+	}
+	switch req.Category {
+	case "list":
+		sessions := mgr.GetSessions("mqtt", req.Conditions)
+		for _, session := range sessions {
+			reply.Sessions = append(reply.Sessions,
+				&SessionInfo{
+					ClientId:           session.ClientId,
+					CreatedAt:          session.CreatedAt,
+					CleanSession:       session.CleanSession,
+					MessageMaxInflight: session.MessageMaxInflight,
+					MessageInflight:    session.MessageInflight,
+					MessageInQueue:     session.MessageInQueue,
+					MessageDropped:     session.MessageDropped,
+					AwaitingRel:        session.AwaitingRel,
+					AwaitingComp:       session.AwaitingComp,
+					AwaitingAck:        session.AwaitingAck,
+				})
 		}
-
-		switch req.Category {
-		case "list":
-		case "show":
+	case "show":
+		session := mgr.GetSession("mqtt", req.ClientId)
+		if session != nil {
+			reply.Sessions = append(reply.Sessions,
+				&SessionInfo{
+					ClientId:           session.ClientId,
+					CreatedAt:          session.CreatedAt,
+					CleanSession:       session.CleanSession,
+					MessageMaxInflight: session.MessageMaxInflight,
+					MessageInflight:    session.MessageInflight,
+					MessageInQueue:     session.MessageInQueue,
+					MessageDropped:     session.MessageDropped,
+					AwaitingRel:        session.AwaitingRel,
+					AwaitingComp:       session.AwaitingComp,
+					AwaitingAck:        session.AwaitingAck,
+				})
 		}
-	*/
-	return nil, nil
+	}
+	return reply, nil
 }
 
 func (s *ApiService) Topics(ctx context.Context, req *TopicsRequest) (*TopicsReply, error) {

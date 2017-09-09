@@ -210,12 +210,12 @@ func (s *ServiceManager) KickoffClient(serviceName string, id string) error {
 }
 
 // GetSessions return all sessions information for specified service
-func (s *ServiceManager) GetSessions(serviceName string) []*SessionInfo {
+func (s *ServiceManager) GetSessions(serviceName string, conditions map[string]bool) []*SessionInfo {
 	sessions := []*SessionInfo{}
 	services := s.GetProtocolServices(serviceName)
 
 	for _, service := range services {
-		list := service.GetSessions()
+		list := service.GetSessions(conditions)
 		sessions = append(sessions, list...)
 	}
 	return sessions

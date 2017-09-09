@@ -42,7 +42,7 @@ type ProtocolService interface {
 	GetClient(id string) *ClientInfo
 	KickoffClient(id string) error
 	// Session
-	GetSessions() []*SessionInfo
+	GetSessions(conditions map[string]bool) []*SessionInfo
 	GetSession(id string) *SessionInfo
 }
 
