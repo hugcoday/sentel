@@ -128,8 +128,8 @@ func (m *coap) Start() error {
 
 func (m *coap) Stop() {}
 
-func (m *coap) GetMetrics() *base.Metrics     { return nil }
-func (m *coap) GetStats() *base.Stats         { return nil }
-func (m *coap) GetClients() []*Client         { return nil }
-func (m *coap) GetClient(id string) *Client   { return nil }
-func (m *coap) KickoffClient(id string) error { return nil }
+func (m *coap) GetMetrics() *base.Metrics            { return nil }
+func (m *coap) GetStats() *base.Stats                { return nil }
+func (m *coap) GetClients() []*base.ClientInfo       { return nil }
+func (m *coap) GetClient(id string) *base.ClientInfo { return nil }
+func (m *coap) KickoffClient(id string) error        { return nil }

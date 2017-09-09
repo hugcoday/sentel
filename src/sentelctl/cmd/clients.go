@@ -78,7 +78,7 @@ func clientCmdHandlerFunc(cmd *cobra.Command, args []string) {
 			fmt.Println("Error:%v", err)
 			return
 		}
-		fmt.Println(reply.Result)
+		fmt.Println(reply.Reason)
 
 	default:
 		fmt.Println("Usage error, please see help")

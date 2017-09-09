@@ -58,11 +58,11 @@ func (m *ApiServiceFactory) New(protocol string, c libs.Config, ch chan base.Ser
 
 }
 
-func (s *ApiService) GetMetrics() *base.Metrics        { return nil }
-func (s *ApiService) GetStats() *base.Stats            { return nil }
-func (s *ApiService) GetClients() []*base.Client       { return nil }
-func (s *ApiService) GetClient(id string) *base.Client { return nil }
-func (s *ApiService) KickoffClient(id string) error    { return nil }
+func (s *ApiService) GetMetrics() *base.Metrics            { return nil }
+func (s *ApiService) GetStats() *base.Stats                { return nil }
+func (s *ApiService) GetClients() []*base.ClientInfo       { return nil }
+func (s *ApiService) GetClient(id string) *base.ClientInfo { return nil }
+func (s *ApiService) KickoffClient(id string) error        { return nil }
 
 // Start
 func (s *ApiService) Start() error {

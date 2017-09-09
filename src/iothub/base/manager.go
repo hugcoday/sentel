@@ -127,8 +127,8 @@ func (s *ServiceManager) GetMetrics(service string) map[string]uint64 {
 }
 
 // GetClients return clients list withspecified service
-func (s *ServiceManager) GetClients(service string) []*Client {
-	clients := []*Client{}
+func (s *ServiceManager) GetClients(service string) []*ClientInfo {
+	clients := []*ClientInfo{}
 	services := s.GetServicesByName(service)
 
 	for _, service := range services {
@@ -139,7 +139,7 @@ func (s *ServiceManager) GetClients(service string) []*Client {
 }
 
 // GeteClient return client info with specified client id
-func (s *ServiceManager) GetClient(service string, id string) *Client {
+func (s *ServiceManager) GetClient(service string, id string) *ClientInfo {
 	services := s.GetServicesByName(service)
 
 	for _, service := range services {

@@ -120,9 +120,9 @@ func (m *mqtt) registerSession(s base.Session) {
 func (m *mqtt) GetStats() *base.Stats     { return m.stats }
 func (m *mqtt) GetMetrics() *base.Metrics { return m.metrics }
 
-func (m *mqtt) GetClients() []*Client         { return nil }
-func (m *mqtt) GetClient(id string) *Client   { return nil }
-func (m *mqtt) KickoffClient(id string) error { return nil }
+func (m *mqtt) GetClients() []*base.ClientInfo       { return nil }
+func (m *mqtt) GetClient(id string) *base.ClientInfo { return nil }
+func (m *mqtt) KickoffClient(id string) error        { return nil }
 
 // Start is mainloop for mqtt service
 func (m *mqtt) Start() error {

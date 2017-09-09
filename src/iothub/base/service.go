@@ -24,7 +24,7 @@ var (
 	_serviceFactories map[string]ServiceFactory = make(map[string]ServiceFactory)
 )
 
-type Client struct {
+type ClientInfo struct {
 	UserName     string
 	CleanSession bool
 	PeerName     string
@@ -36,8 +36,8 @@ type Service interface {
 	Stop()
 	GetStats() *Stats
 	GetMetrics() *Metrics
-	GetClients() []*Client
-	GetClient(id string) *Client
+	GetClients() []*ClientInfo
+	GetClient(id string) *ClientInfo
 	KickoffClient(id string) error
 }
 
