@@ -91,6 +91,9 @@ func (m *MqttFactory) New(protocol string, c libs.Config, ch chan base.ServiceCo
 
 // MQTT Service
 
+// Name
+func (m *mqtt) Name() string { return "matt" }
+
 func (m *mqtt) NewSession(conn net.Conn) (base.Session, error) {
 	id := m.createSessionId()
 	s, err := newMqttSession(m, conn, id)

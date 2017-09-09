@@ -30,14 +30,17 @@ const (
 
 type ServiceManager struct {
 	sync.Once
-	config   libs.Config                    // Global config
-	services map[string]Service             // All service created by config.Protocols
-	chs      map[string]chan ServiceCommand // Notification channel for each service
+	config           libs.Config                    // Global config
+	services         map[string]Service             // All service created by config.Protocols
+	chs              map[string]chan ServiceCommand // Notification channel for each service
+	protocolServices map[string]ProtocolService     // All protocol services, example, mqtt,coap
 }
 
 const serviceManagerVersion = "0.1"
 
-var _serviceManager *ServiceManager
+var (
+	_serviceManager *ServiceManager
+)
 
 // GetServiceManager create service manager and all supported service
 // The function should be called in service
@@ -49,9 +52,10 @@ func NewServiceManager(c libs.Config) (*ServiceManager, error) {
 		return _serviceManager, errors.New("NewServiceManager had been called many times")
 	}
 	mgr := &ServiceManager{
-		config:   c,
-		chs:      make(map[string]chan ServiceCommand),
-		services: make(map[string]Service),
+		config:           c,
+		chs:              make(map[string]chan ServiceCommand),
+		services:         make(map[string]Service),
+		protocolServices: make(map[string]ProtocolService),
 	}
 	// Get supported configs
 	items := c.MustString("iothub", "services")
@@ -63,16 +67,19 @@ func NewServiceManager(c libs.Config) (*ServiceManager, error) {
 		if err != nil {
 			glog.Errorf("%s", err)
 		} else {
-			glog.Infof("Create service '%s' success", name)
+			glog.Infof("Create service '%s' successfully", name)
 			mgr.services[name] = service
 			mgr.chs[name] = ch
+			if p, ok := service.(ProtocolService); ok {
+				mgr.protocolServices[name] = p
+			}
 		}
 	}
 	_serviceManager = mgr
 	return _serviceManager, nil
 }
 
-// ServiceManger run all serice and wait to terminate
+// Run launch all serices and wait to terminate
 func (s *ServiceManager) Start() error {
 	// Run all service
 	for _, service := range s.services {
@@ -86,15 +93,65 @@ func (s *ServiceManager) Start() error {
 	return nil
 }
 
+// StartService launch specified service
+func (s *ServiceManager) StartService(name string) error {
+	// Return error if service has already been started
+	for id, service := range s.services {
+		if strings.IndexAny(id, name) >= 0 && service != nil {
+			return fmt.Errorf("The service '%s' has already been started", name)
+		}
+	}
+	ch := make(chan ServiceCommand)
+	service, err := CreateService(name, s.config, ch)
+	if err != nil {
+		glog.Errorf("%s", err)
+	} else {
+		glog.Infof("Create service '%s' success", name)
+		s.services[name] = service
+		s.chs[name] = ch
+		if p, ok := service.(ProtocolService); ok {
+			s.protocolServices[name] = p
+		}
+	}
+	return nil
+}
+
+// StopService stop specified service
+func (s *ServiceManager) StopService(id string) error {
+	for name, service := range s.services {
+		if name == id && service != nil {
+			service.Stop()
+			s.services[name] = nil
+			close(s.chs[name])
+			if _, ok := service.(ProtocolService); ok {
+				s.protocolServices[name] = nil
+			}
+		}
+	}
+	return nil
+}
+
 // GetServicesByName return service instance by name, or matched by part of name
 func (s *ServiceManager) GetServicesByName(name string) []Service {
 	services := []Service{}
 	for k, service := range s.services {
-		if strings.IndexAny(k, name) >= 0 {
+		if name == k {
 			services = append(services, service)
 		}
 	}
 	return services
+}
+
+// GetProtocolServiceByname return protocol services by name
+func (s *ServiceManager) GetProtocolServices(name string) []ProtocolService {
+	services := []ProtocolService{}
+	for k, service := range s.protocolServices {
+		if name == k {
+			services = append(services, service)
+		}
+	}
+	return services
+
 }
 
 // Version
@@ -105,7 +162,7 @@ func (s *ServiceManager) GetVersion() string {
 // GetStats return server's stats
 func (s *ServiceManager) GetStats(service string) map[string]uint64 {
 	allstats := NewStats(false)
-	services := s.GetServicesByName(service)
+	services := s.GetProtocolServices(service)
 
 	for _, service := range services {
 		stats := service.GetStats()
@@ -117,7 +174,7 @@ func (s *ServiceManager) GetStats(service string) map[string]uint64 {
 // GetMetrics return server metrics
 func (s *ServiceManager) GetMetrics(service string) map[string]uint64 {
 	allmetrics := NewMetrics(false)
-	services := s.GetServicesByName(service)
+	services := s.GetProtocolServices(service)
 
 	for _, service := range services {
 		metrics := service.GetMetrics()
@@ -129,7 +186,7 @@ func (s *ServiceManager) GetMetrics(service string) map[string]uint64 {
 // GetClients return clients list withspecified service
 func (s *ServiceManager) GetClients(service string) []*ClientInfo {
 	clients := []*ClientInfo{}
-	services := s.GetServicesByName(service)
+	services := s.GetProtocolServices(service)
 
 	for _, service := range services {
 		list := service.GetClients()
@@ -140,7 +197,7 @@ func (s *ServiceManager) GetClients(service string) []*ClientInfo {
 
 // GeteClient return client info with specified client id
 func (s *ServiceManager) GetClient(service string, id string) *ClientInfo {
-	services := s.GetServicesByName(service)
+	services := s.GetProtocolServices(service)
 
 	for _, service := range services {
 		if client := service.GetClient(id); client != nil {
@@ -152,7 +209,7 @@ func (s *ServiceManager) GetClient(service string, id string) *ClientInfo {
 
 // Kickoff Client killoff a client from specified service
 func (s *ServiceManager) KickoffClient(service string, id string) error {
-	services := s.GetServicesByName(service)
+	services := s.GetProtocolServices(service)
 
 	for _, service := range services {
 		if err := service.KickoffClient(id); err == nil {
@@ -165,7 +222,7 @@ func (s *ServiceManager) KickoffClient(service string, id string) error {
 // GetSessions return all sessions information for specified service
 func (s *ServiceManager) GetSessions(service string) []*SessionInfo {
 	sessions := []*SessionInfo{}
-	services := s.GetServicesByName(service)
+	services := s.GetProtocolServices(service)
 
 	for _, service := range services {
 		list := service.GetSessions()
@@ -177,7 +234,7 @@ func (s *ServiceManager) GetSessions(service string) []*SessionInfo {
 
 // GetSession return specified session information with session id
 func (s *ServiceManager) GetSession(service string, id string) *SessionInfo {
-	services := s.GetServicesByName(service)
+	services := s.GetProtocolServices(service)
 
 	for _, service := range services {
 		if info := service.GetSession(id); info != nil {
