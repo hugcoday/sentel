@@ -1,6 +1,6 @@
 // Interface exported by the server
 syntax = "proto3";
-package api;
+package apiagent;
 
 service Api {
     rpc Version(VersionRequest) returns (VersionReply){}
@@ -78,14 +78,14 @@ message SessionsReply{
 
 message SessionInfo {
     string ClientId           = 1;
-	string CleanSession       = 2;
-	string MessageMaxInflight = 3; 
-	string MessageInflight    = 4; 
-	string MessageInQueue     = 5; 
-	string MessageDropped     = 6; 
-	string AwaitingRel        = 7;
-	string AwaitingComp       = 8; 
-	string AwaitingAck        = 9; 
+	bool CleanSession       = 2;
+	uint64 MessageMaxInflight = 3; 
+	uint64 MessageInflight    = 4; 
+	uint64 MessageInQueue     = 5; 
+	uint64 MessageDropped     = 6; 
+	uint64 AwaitingRel        = 7;
+	uint64 AwaitingComp       = 8; 
+	uint64 AwaitingAck        = 9; 
 	string CreatedAt          = 10; 
 }
 

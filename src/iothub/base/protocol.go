@@ -11,11 +11,26 @@
 
 package base
 
+import "io"
+
 type ClientInfo struct {
 	UserName     string
 	CleanSession bool
 	PeerName     string
 	ConnectTime  string
+}
+
+type SessionInfo struct {
+	ClientId           string
+	CleanSession       bool
+	MessageMaxInflight uint64
+	MessageInflight    uint64
+	MessageInQueue     uint64
+	MessageDropped     uint64
+	AwaitingRel        uint64
+	AwaitingComp       uint64
+	AwaitingAck        uint64
+	CreatedAt          string
 }
 
 type ProtocolService interface {
@@ -29,4 +44,54 @@ type ProtocolService interface {
 	// Session
 	GetSessions() []*SessionInfo
 	GetSession(id string) *SessionInfo
+}
+
+type SessionObserver interface {
+	OnGetMountPoint() string
+	OnConnect(s Session, userdata interface{}) error
+	OnDisconnect(s Session, userdta interface{}) error
+	OnPublish(s Session, userdata interface{}) error
+	OnMessage(s Session, userdata interface{}) error
+	OnSubscribe(s Session, userdata interface{}) error
+	OnUnsubscribe(s Session, userdata interface{}) error
+	OnAuthenticate(s Session, username string, password string) error
+}
+
+type Session interface {
+	// Identifier get session identifier
+	Identifier() string
+	// Info return session information
+	Info() *SessionInfo
+	// GetService get the service ower for current session
+	Service() Service
+	// Handle indicate service to handle the packet
+	Handle() error
+	// Destroy will release current session
+	Destroy() error
+	// RegisterObserver register observer on session
+	RegisterObserver(SessionObserver)
+	// Get Stats
+	GetStats() *Stats
+	// Get Metrics
+	GetMetrics() *Metrics
+}
+
+type Packet interface {
+	// PacketType return type name of packet
+	PacketType() string
+
+	// DecodeFromReader decode packet from given reader
+	DecodeFromReader(r io.Reader, df DecodeFeedback) error
+
+	// DecodeFromBytes decode packet from given
+	DecodeFromBytes(data []uint8, df DecodeFeedback) error
+
+	// SerializeTo writes the serialized form of the packet into the serialize buffer
+	SerializeTo(buf SerializeBuffer, opts SerializeOptions) error
+
+	// Clear clear packet content and payload
+	Clear()
+
+	// Length return length of the packet
+	Length() int
 }

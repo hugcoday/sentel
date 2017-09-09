@@ -10,7 +10,7 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package api
+package apiagent
 
 var Configs = map[string]string{
 	"listten":  "localhost:1883",

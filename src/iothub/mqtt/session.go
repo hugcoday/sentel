@@ -135,7 +135,7 @@ func (s *mqttSession) RegisterObserver(o base.SessionObserver) {
 }
 func (s *mqttSession) GetStats() *base.Stats     { return s.stats }
 func (s *mqttSession) GetMetrics() *base.Metrics { return s.metrics }
-func (s *mqttSession) Info() base.SessionInfo    { return nil }
+func (s *mqttSession) Info() *base.SessionInfo   { return nil }
 
 // launchPacketSendHandler launch goroutine to send packet queued for client
 func (s *mqttSession) launchPacketSendHandler() {
