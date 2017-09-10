@@ -1,6 +1,6 @@
 // Interface exported by the server
 syntax = "proto3";
-package authagent;
+package auth;
 
 service AuthService {
     // Get version of Authlet service

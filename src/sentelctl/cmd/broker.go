@@ -14,7 +14,7 @@ package cmd
 
 import (
 	"fmt"
-	pb "iothub/apiagent"
+	pb "iothub/api"
 
 	"github.com/spf13/cobra"
 )

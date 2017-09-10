@@ -1,6 +1,6 @@
 // Interface exported by the server
 syntax = "proto3";
-package apiagent;
+package api;
 
 service Api {
     rpc Version(VersionRequest) returns (VersionReply){}

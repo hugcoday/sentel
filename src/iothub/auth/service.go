@@ -10,7 +10,7 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package authagent
+package auth
 
 import (
 	"libs"
@@ -35,7 +35,7 @@ func NewAuthService(c libs.Config) (*AuthService, error) {
 	address := ":50051"
 	server := &AuthService{config: c, wg: sync.WaitGroup{}}
 
-	if addr, err := c.String("authagent", "address"); err == nil && address != "" {
+	if addr, err := c.String("auth", "address"); err == nil && address != "" {
 		address = addr
 	}
 

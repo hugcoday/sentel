@@ -13,7 +13,7 @@
 package api
 
 import (
-	pb "iothub/apiagent"
+	pb "iothub/api"
 
 	"github.com/golang/glog"
 	context "golang.org/x/net/context"

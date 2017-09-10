@@ -10,7 +10,7 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package authagent
+package auth
 
 import (
 	"errors"
@@ -87,7 +87,7 @@ func NewAuthApi(c libs.Config) (*AuthApi, error) {
 	address := ""
 	api := &AuthApi{config: c}
 
-	if address, err := c.String("authagent", "address"); err != nil || address == "" {
+	if address, err := c.String("auth", "address"); err != nil || address == "" {
 		return nil, fmt.Errorf("Invalid autlet address:'%s'", address)
 	}
 	conn, err := grpc.Dial(address, grpc.WithInsecure())

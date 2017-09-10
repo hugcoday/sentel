@@ -16,7 +16,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	auth "iothub/authagent"
+	auth "iothub/auth"
 	"iothub/base"
 	"libs"
 	"net"

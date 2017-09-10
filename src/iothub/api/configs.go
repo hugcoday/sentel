@@ -10,4 +10,9 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package authagent
+package api
+
+var Configs = map[string]string{
+	"listten":  "localhost:1883",
+	"loglevel": "debug",
+}
