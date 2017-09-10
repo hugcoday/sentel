@@ -14,6 +14,7 @@ package cmd
 
 import (
 	"fmt"
+	pb "iothub/api"
 
 	"github.com/spf13/cobra"
 )
@@ -21,8 +22,42 @@ import (
 var routesCmd = &cobra.Command{
 	Use:   "routes",
 	Short: "List routes informations of broker",
-	Long:  `All software has versions. This is Hugo's`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Routes:")
-	},
+	Long:  `List all routes ro routes for specific topic`,
+	Run:   routesCmdHandler,
+}
+
+func routesCmdHandler(cmd *cobra.Command, args []string) {
+	if len(args) < 1 || len(args) > 2 {
+		fmt.Println("Usage error, please see help")
+		return
+	}
+	req := &pb.RoutesRequest{Category: args[0], Service: ""}
+	switch args[0] {
+	case "list":
+		if len(args) == 2 {
+			req.Service = args[1]
+		}
+		if reply, err := sentelApi.Routes(req); err != nil {
+			fmt.Printf("Error:%v", err)
+			return
+		} else {
+			for _, info := range reply.Routes {
+				fmt.Printf("%s ->%v", info.Topic, info.Route)
+			}
+		}
+	case "show":
+		if len(args) != 2 {
+			fmt.Println("Usage error, please see help")
+			return
+		}
+		req.Topic = args[1]
+		if reply, err := sentelApi.Routes(req); err != nil {
+			fmt.Printf("Error:%v", err)
+			return
+		} else {
+			for _, info := range reply.Routes {
+				fmt.Printf("%s ->%v", info.Topic, info.Route)
+			}
+		}
+	}
 }

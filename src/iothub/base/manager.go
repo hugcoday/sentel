@@ -233,3 +233,28 @@ func (s *ServiceManager) GetSession(serviceName string, id string) *SessionInfo 
 	}
 	return nil
 }
+
+// GetRoutes return route table information for specified service
+func (s *ServiceManager) GetRoutes(serviceName string) []*RouteInfo {
+	routes := []*RouteInfo{}
+	services := s.GetProtocolServices(serviceName)
+
+	for _, service := range services {
+		list := service.GetRoutes()
+		routes = append(routes, list...)
+	}
+	return routes
+}
+
+// GetRoute return route information for specified topic
+func (s *ServiceManager) GetRoute(serviceName string, topic string) *RouteInfo {
+	services := s.GetProtocolServices(serviceName)
+
+	for _, service := range services {
+		route := service.GetRoute(topic)
+		if route != nil {
+			return route
+		}
+	}
+	return nil
+}

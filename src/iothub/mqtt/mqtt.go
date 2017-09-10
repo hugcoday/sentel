@@ -129,6 +129,8 @@ func (m *mqtt) KickoffClient(id string) error        { return nil }
 
 func (m *mqtt) GetSessions(conditions map[string]bool) []*base.SessionInfo { return nil }
 func (m *mqtt) GetSession(id string) *base.SessionInfo                     { return nil }
+func (m *mqtt) GetRoutes() []*base.RouteInfo                               { return nil }
+func (m *mqtt) GetRoute() *base.RouteInfo                                  { return nil }
 
 // Start is mainloop for mqtt service
 func (m *mqtt) Start() error {

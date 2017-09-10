@@ -95,8 +95,29 @@ func (s *ApiService) Cluster(ctx context.Context, req *ClusterRequest) (*Cluster
 	return nil, nil
 }
 
+// Routes delegate routes command
 func (s *ApiService) Routes(ctx context.Context, req *RoutesRequest) (*RoutesReply, error) {
-	return nil, nil
+	mgr := base.GetServiceManager()
+	reply := &RoutesReply{
+		Routes: []*RouteInfo{},
+		Header: &ReplyMessageHeader{Success: true},
+	}
+
+	switch req.Category {
+	case "list":
+		routes := mgr.GetRoutes(req.Service)
+		for _, route := range routes {
+			reply.Routes = append(reply.Routes, &RouteInfo{Topic: route.Topic, Route: route.Route})
+		}
+	case "show":
+		route := mgr.GetRoute(req.Service, req.Topic)
+		if route != nil {
+			reply.Routes = append(reply.Routes, &RouteInfo{Topic: route.Topic, Route: route.Route})
+		}
+	default:
+		return nil, fmt.Errorf("Invalid route command category:%s", req.Category)
+	}
+	return reply, nil
 }
 
 func (s *ApiService) Status(ctx context.Context, req *StatusRequest) (*StatusReply, error) {
@@ -108,10 +129,10 @@ func (s *ApiService) Broker(ctx context.Context, req *BrokerRequest) (*BrokerRep
 	mgr := base.GetServiceManager()
 	switch req.Category {
 	case "stats":
-		stats := mgr.GetStats("mqtt")
+		stats := mgr.GetStats(req.Service)
 		return &BrokerReply{Stats: stats}, nil
 	case "metrics":
-		metrics := mgr.GetMetrics("mqtt")
+		metrics := mgr.GetMetrics(req.Service)
 		return &BrokerReply{Metrics: metrics}, nil
 	default:
 	}
@@ -141,7 +162,7 @@ func (s *ApiService) Clients(ctx context.Context, req *ClientsRequest) (*Clients
 	switch req.Category {
 	case "list":
 		// Get all client information for specified service
-		clients := mgr.GetClients("mqtt")
+		clients := mgr.GetClients(req.Service)
 		for _, client := range clients {
 			reply.Clients = append(reply.Clients,
 				&ClientInfo{
@@ -153,7 +174,7 @@ func (s *ApiService) Clients(ctx context.Context, req *ClientsRequest) (*Clients
 		}
 	case "show":
 		// Get client information for specified client id
-		if client := mgr.GetClient("mqtt", req.ClientId); client != nil {
+		if client := mgr.GetClient(req.Service, req.ClientId); client != nil {
 			reply.Clients = append(reply.Clients,
 				&ClientInfo{
 					UserName:     client.UserName,
@@ -163,7 +184,7 @@ func (s *ApiService) Clients(ctx context.Context, req *ClientsRequest) (*Clients
 				})
 		}
 	case "kick":
-		if err := mgr.KickoffClient("mqtt", req.ClientId); err != nil {
+		if err := mgr.KickoffClient(req.Service, req.ClientId); err != nil {
 			reply.Header.Success = false
 			reply.Header.Reason = fmt.Sprintf("%v", err)
 		}
@@ -182,7 +203,7 @@ func (s *ApiService) Sessions(ctx context.Context, req *SessionsRequest) (*Sessi
 	}
 	switch req.Category {
 	case "list":
-		sessions := mgr.GetSessions("mqtt", req.Conditions)
+		sessions := mgr.GetSessions(req.Service, req.Conditions)
 		for _, session := range sessions {
 			reply.Sessions = append(reply.Sessions,
 				&SessionInfo{
@@ -199,7 +220,7 @@ func (s *ApiService) Sessions(ctx context.Context, req *SessionsRequest) (*Sessi
 				})
 		}
 	case "show":
-		session := mgr.GetSession("mqtt", req.ClientId)
+		session := mgr.GetSession(req.Service, req.ClientId)
 		if session != nil {
 			reply.Sessions = append(reply.Sessions,
 				&SessionInfo{

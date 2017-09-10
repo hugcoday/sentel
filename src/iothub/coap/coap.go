@@ -138,3 +138,6 @@ func (m *coap) KickoffClient(id string) error        { return nil }
 
 func (m *coap) GetSessions(conditions map[string]bool) []*base.SessionInfo { return nil }
 func (m *coap) GetSession(id string) *base.SessionInfo                     { return nil }
+
+func (m *coap) GetRoutes() []*base.RouteInfo { return nil }
+func (m *coap) GetRoute() *base.RouteInfo    { return nil }

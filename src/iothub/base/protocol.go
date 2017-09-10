@@ -33,6 +33,11 @@ type SessionInfo struct {
 	CreatedAt          string
 }
 
+type RouteInfo struct {
+	Topic string
+	Route []string
+}
+
 type ProtocolService interface {
 	// Stats and Metrics
 	GetStats() *Stats
@@ -41,9 +46,14 @@ type ProtocolService interface {
 	GetClients() []*ClientInfo
 	GetClient(id string) *ClientInfo
 	KickoffClient(id string) error
+
 	// Session
 	GetSessions(conditions map[string]bool) []*SessionInfo
 	GetSession(id string) *SessionInfo
+
+	// Route info
+	GetRoutes() []*RouteInfo
+	GetRoute(id string) *RouteInfo
 }
 
 type SessionObserver interface {
