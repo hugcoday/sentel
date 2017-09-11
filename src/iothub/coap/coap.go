@@ -129,7 +129,12 @@ func (m *coap) Start() error {
 func (m *coap) Stop() {}
 
 // Name
-func (m *coap) Name() string                         { return "coap" }
+func (m *coap) Info() *base.ServiceInfo {
+	return &base.ServiceInfo{
+		ServiceName: "coap",
+	}
+}
+
 func (m *coap) GetMetrics() *base.Metrics            { return nil }
 func (m *coap) GetStats() *base.Stats                { return nil }
 func (m *coap) GetClients() []*base.ClientInfo       { return nil }
@@ -149,3 +154,6 @@ func (m *coap) GetTopic(id string) *base.TopicInfo { return nil }
 // SubscriptionInfo
 func (m *coap) GetSubscriptions() []*base.SubscriptionInfo       { return nil }
 func (m *coap) GetSubscription(id string) *base.SubscriptionInfo { return nil }
+
+// Service Info
+func (m *coap) GetServiceInfo() *base.ServiceInfo { return nil }

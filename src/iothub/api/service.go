@@ -59,7 +59,11 @@ func (m *ApiServiceFactory) New(protocol string, c libs.Config, ch chan base.Ser
 }
 
 // Name
-func (s *ApiService) Name() string { return "apiservice" }
+func (s *ApiService) Info() *base.ServiceInfo {
+	return &base.ServiceInfo{
+		ServiceName: "apiservice",
+	}
+}
 
 // Start
 func (s *ApiService) Start() error {
@@ -143,10 +147,36 @@ func (s *ApiService) Plugins(ctx context.Context, req *PluginsRequest) (*Plugins
 	return nil, nil
 }
 
+// Services delegate  services command
 func (s *ApiService) Services(ctx context.Context, req *ServicesRequest) (*ServicesReply, error) {
+	mgr := base.GetServiceManager()
+	reply := &ServicesReply{
+		Header:   &ReplyMessageHeader{Success: true},
+		Services: []*ServiceInfo{},
+	}
+	switch req.Category {
+	case "list":
+		services := mgr.GetAllServiceInfo()
+		for _, service := range services {
+			reply.Services = append(reply.Services,
+				&ServiceInfo{
+					ServiceName:    service.ServiceName,
+					Listen:         service.Listen,
+					Acceptors:      service.Acceptors,
+					MaxClients:     service.MaxClients,
+					CurrentClients: service.CurrentClients,
+					ShutdownCount:  service.ShutdownCount,
+				})
+		}
+
+	case "start":
+	case "stop":
+	}
+
 	return nil, nil
 }
 
+//Subscriptions delete subscriptions command
 func (s *ApiService) Subscriptions(ctx context.Context, req *SubscriptionsRequest) (*SubscriptionsReply, error) {
 	mgr := base.GetServiceManager()
 	reply := &SubscriptionsReply{

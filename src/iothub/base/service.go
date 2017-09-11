@@ -19,8 +19,17 @@ import (
 	"github.com/golang/glog"
 )
 
+// ServiceInfo
+type ServiceInfo struct {
+	ServiceName    string
+	Listen         string
+	Acceptors      uint64
+	MaxClients     uint64
+	CurrentClients uint64
+	ShutdownCount  uint64
+}
 type Service interface {
-	Name() string // mqtt:tcp, mqtt:ssl
+	Info() *ServiceInfo
 	Start() error
 	Stop()
 }

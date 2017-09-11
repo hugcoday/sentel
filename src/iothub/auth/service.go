@@ -13,6 +13,7 @@
 package auth
 
 import (
+	"iothub/base"
 	"libs"
 	"net"
 	"sync"
@@ -49,6 +50,13 @@ func NewAuthService(c libs.Config) (*AuthService, error) {
 	RegisterAuthServiceServer(server.srv, server)
 	reflection.Register(server.srv)
 	return server, nil
+}
+
+// Info
+func (s *AuthService) Info() *base.ServiceInfo {
+	return &base.ServiceInfo{
+		ServiceName: "auth",
+	}
 }
 
 // Start

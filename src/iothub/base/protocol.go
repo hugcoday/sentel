@@ -55,6 +55,9 @@ type SubscriptionInfo struct {
 }
 
 type ProtocolService interface {
+	// Service Infomation
+	GetServiceInfo() *ServiceInfo
+
 	// Stats and Metrics
 	GetStats() *Stats
 	GetMetrics() *Metrics

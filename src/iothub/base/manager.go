@@ -308,3 +308,13 @@ func (s *ServiceManager) GetSubscription(serviceName string, sub string) *Subscr
 	}
 	return nil
 }
+
+// GetAllServiceInfo return all service information
+func (s *ServiceManager) GetAllServiceInfo() []*ServiceInfo {
+	services := []*ServiceInfo{}
+
+	for _, service := range s.services {
+		services = append(services, service.Info())
+	}
+	return services
+}

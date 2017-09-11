@@ -27,5 +27,6 @@ var statusCmd = &cobra.Command{
 		if _, err := sentelApi.Status(&pb.StatusRequest{}); err != nil {
 			fmt.Println("Error:%v", err)
 		}
+		fmt.Println("Node 'sentel@127.0.0.1' is started")
 	},
 }

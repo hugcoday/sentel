@@ -47,8 +47,12 @@ func (m *DashboardServiceFactory) New(protocol string, c libs.Config, ch chan ba
 
 }
 
-// Name
-func (s *DashboardService) Name() string { return "apiservice" }
+// Info
+func (m *DashboardService) Info() *base.ServiceInfo {
+	return &base.ServiceInfo{
+		ServiceName: "dashboard",
+	}
+}
 
 // Start
 func (s *DashboardService) Start() error {

@@ -73,12 +73,32 @@ message RouteInfo {
 }
 
 // Status
-message StatusRequest{}
-message StatusReply{}
+message StatusRequest{ }
+message StatusReply {
+    ReplyMessageHeader Header = 1;
+}
 message PluginsRequest{}
 message PluginsReply{}
-message ServicesRequest{}
-message ServicesReply{}
+
+// Service
+message ServicesRequest{
+    string Category = 1;
+    string ServiceName = 2;
+    string Listen = 3;
+}
+message ServicesReply {
+    ReplyMessageHeader Header = 1;
+    repeated ServiceInfo Services = 2;
+}
+
+message ServiceInfo {
+    string ServiceName = 1;
+    string Listen = 2;
+    uint64 Acceptors = 3;
+    uint64 MaxClients = 4;
+    uint64 CurrentClients = 5;
+    uint64 ShutdownCount = 6;
+}
 
 // Subscription
 message SubscriptionsRequest{

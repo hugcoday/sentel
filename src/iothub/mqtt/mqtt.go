@@ -121,6 +121,13 @@ func (m *mqtt) registerSession(s base.Session) {
 	m.mutex.Unlock()
 }
 
+// Info
+func (m *mqtt) Info() *base.ServiceInfo {
+	return &base.ServiceInfo{
+		ServiceName: "mqtt",
+	}
+}
+
 // Stats and Metrics
 func (m *mqtt) GetStats() *base.Stats     { return m.stats }
 func (m *mqtt) GetMetrics() *base.Metrics { return m.metrics }
@@ -145,6 +152,9 @@ func (m *mqtt) GetTopic(id string) *base.TopicInfo { return nil }
 // SubscriptionInfo
 func (m *mqtt) GetSubscriptions() []*base.SubscriptionInfo       { return nil }
 func (m *mqtt) GetSubscription(id string) *base.SubscriptionInfo { return nil }
+
+// Service Info
+func (m *mqtt) GetServiceInfo() *base.ServiceInfo { return nil }
 
 // Start is mainloop for mqtt service
 func (m *mqtt) Start() error {
