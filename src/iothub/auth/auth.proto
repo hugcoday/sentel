@@ -1,8 +1,8 @@
 // Interface exported by the server
 syntax = "proto3";
-package authlet;
+package auth;
 
-service Authlet {
+service AuthService {
     // Get version of Authlet service
     rpc GetVersion(AuthRequest) returns (AuthReply) {}
 

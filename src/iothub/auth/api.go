@@ -10,7 +10,7 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package authlet
+package auth
 
 import (
 	"errors"
@@ -32,19 +32,19 @@ const (
 )
 
 // AuthPlugin interface for security
-type AuthletApi struct {
+type AuthApi struct {
 	config libs.Config
-	client AuthletClient
+	client AuthServiceClient
 	conn   *grpc.ClientConn
 }
 
-func (auth *AuthletApi) GetVersion(ctx context.Context) int {
+func (auth *AuthApi) GetVersion(ctx context.Context) int {
 	reply, _ := auth.client.GetVersion(ctx, &AuthRequest{})
 	version, _ := strconv.Atoi(reply.Version)
 	return version
 }
 
-func (auth *AuthletApi) CheckAcl(ctx context.Context, clientid string, username string, topic string, access string) error {
+func (auth *AuthApi) CheckAcl(ctx context.Context, clientid string, username string, topic string, access string) error {
 	reply, err := auth.client.CheckAcl(ctx, &AuthRequest{
 		Clientid: clientid,
 		Username: username,
@@ -57,7 +57,7 @@ func (auth *AuthletApi) CheckAcl(ctx context.Context, clientid string, username 
 	return nil
 }
 
-func (auth *AuthletApi) CheckUserNameAndPassword(ctx context.Context, username string, password string) error {
+func (auth *AuthApi) CheckUserNameAndPassword(ctx context.Context, username string, password string) error {
 	reply, err := auth.client.CheckUserNameAndPassword(ctx, &AuthRequest{
 		Username: username,
 		Password: password,
@@ -71,7 +71,7 @@ func (auth *AuthletApi) CheckUserNameAndPassword(ctx context.Context, username s
 	return nil
 }
 
-func (auth *AuthletApi) GetPskKey(ctx context.Context, hint string, identity string) (string, error) {
+func (auth *AuthApi) GetPskKey(ctx context.Context, hint string, identity string) (string, error) {
 	reply, err := auth.client.GetPskKey(ctx, &AuthRequest{
 		Hint:     hint,
 		Username: identity,
@@ -79,23 +79,23 @@ func (auth *AuthletApi) GetPskKey(ctx context.Context, hint string, identity str
 	return reply.Key, err
 }
 
-func (auth *AuthletApi) Close() {
+func (auth *AuthApi) Close() {
 	auth.conn.Close()
 }
 
-func New(c libs.Config) (*AuthletApi, error) {
+func NewAuthApi(c libs.Config) (*AuthApi, error) {
 	address := ""
-	api := &AuthletApi{config: c}
+	api := &AuthApi{config: c}
 
-	if address, err := c.String("authlet", "address"); err != nil || address == "" {
+	if address, err := c.String("auth", "address"); err != nil || address == "" {
 		return nil, fmt.Errorf("Invalid autlet address:'%s'", address)
 	}
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
-		glog.Fatalf("Failed to connect with authlet:%s", err)
+		glog.Fatalf("Failed to connect with authagent:%s", err)
 		return nil, err
 	}
-	api.client = NewAuthletClient(conn)
+	api.client = NewAuthServiceClient(conn)
 	api.conn = conn
 	return api, nil
 }

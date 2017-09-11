@@ -12,6 +12,19 @@
 
 package mqtt
 
+// MQTT specified session infor
+const (
+	infoCleanSession       = "clean_session"
+	infoMessageMaxInflight = "inflight_max"
+	infoMessageInflight    = "message_in_flight"
+	infoMessageInQueue     = "message_in_queue"
+	infoMessageDropped     = "message_dropped"
+	infoAwaitingRel        = "message_awaiting_rel"
+	infoAwaitingComp       = "message_awaitng_comp"
+	infoAwaitingAck        = "message_aiwaiting _ack"
+	infoCreatedAt          = "created_at"
+)
+
 // Stats declarations
 const (
 	statClientsMax         = "clients/max"

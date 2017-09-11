@@ -88,8 +88,11 @@ func (m *MqttFactory) New(protocol string, c libs.Config, ch chan base.ServiceCo
 	}
 	return t, nil
 }
- 
+
 // MQTT Service
+
+// Name
+func (m *mqtt) Name() string { return "matt" }
 
 func (m *mqtt) NewSession(conn net.Conn) (base.Session, error) {
 	id := m.createSessionId()
@@ -119,6 +122,15 @@ func (m *mqtt) registerSession(s base.Session) {
 }
 func (m *mqtt) GetStats() *base.Stats     { return m.stats }
 func (m *mqtt) GetMetrics() *base.Metrics { return m.metrics }
+
+func (m *mqtt) GetClients() []*base.ClientInfo       { return nil }
+func (m *mqtt) GetClient(id string) *base.ClientInfo { return nil }
+func (m *mqtt) KickoffClient(id string) error        { return nil }
+
+func (m *mqtt) GetSessions(conditions map[string]bool) []*base.SessionInfo { return nil }
+func (m *mqtt) GetSession(id string) *base.SessionInfo                     { return nil }
+func (m *mqtt) GetRoutes() []*base.RouteInfo                               { return nil }
+func (m *mqtt) GetRoute() *base.RouteInfo                                  { return nil }
 
 // Start is mainloop for mqtt service
 func (m *mqtt) Start() error {

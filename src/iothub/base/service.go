@@ -15,43 +15,39 @@ import (
 	"errors"
 	"fmt"
 	"libs"
-	"strings"
 
 	"github.com/golang/glog"
 )
 
-var (
-	_serviceFactories map[string]ServiceFactory = make(map[string]ServiceFactory)
-)
-
 type Service interface {
+	Name() string // mqtt:tcp, mqtt:ssl
 	Start() error
 	Stop()
-	GetStats() *Stats
-	GetMetrics() *Metrics
 }
 
 type ServiceFactory interface {
-	New(protocol string, c libs.Config, ch chan ServiceCommand) (Service, error)
+	New(name string, c libs.Config, ch chan ServiceCommand) (Service, error)
 }
 
-func RegisterService(name string, protocol string, configs map[string]string, factory ServiceFactory) {
-	s := name + ":" + protocol
-	libs.RegisterConfig(s, configs)
-	_serviceFactories[s] = factory
+var (
+	_serviceFactories = make(map[string]ServiceFactory)
+)
+
+// RegisterService register service with name and protocol specified
+func RegisterService(name string, configs map[string]string, factory ServiceFactory) {
+	libs.RegisterConfig(name, configs)
+	_serviceFactories[name] = factory
 }
 
+// CreateService create service instance according to service name
 func CreateService(name string, c libs.Config, ch chan ServiceCommand) (Service, error) {
-	if _serviceFactories[name] == nil {
+	if _, ok := _serviceFactories[name]; ok {
 		return nil, fmt.Errorf("Service '%s' is not registered", name)
 	}
-	ps := strings.Split(name, ":")
-	if len(ps) != 2 {
-		return nil, fmt.Errorf("Service '%s' is not rightly configured", name)
-	}
-	return _serviceFactories[name].New(ps[1], c, ch)
+	return _serviceFactories[name].New(name, c, ch)
 }
 
+// CheckAllRegisteredServices check all registered service simplily
 func CheckAllRegisteredServices() error {
 	if len(_serviceFactories) == 0 {
 		return errors.New("No service registered")

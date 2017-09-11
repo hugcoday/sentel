@@ -16,7 +16,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"iothub/authlet"
+	auth "iothub/auth"
 	"iothub/base"
 	"libs"
 	"net"
@@ -53,7 +53,7 @@ type mqttSession struct {
 	mgr               *mqtt
 	config            libs.Config
 	storage           Storage
-	authapi           *authlet.AuthletApi
+	authapi           *auth.AuthApi
 	conn              net.Conn
 	id                string
 	state             uint8
@@ -91,7 +91,7 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 	if err != nil {
 		qsize = 10
 	}
-	authapi, err := authlet.New(m.config)
+	authapi, err := auth.NewAuthApi(m.config)
 	if err != nil {
 		return nil, err
 	}
@@ -135,6 +135,7 @@ func (s *mqttSession) RegisterObserver(o base.SessionObserver) {
 }
 func (s *mqttSession) GetStats() *base.Stats     { return s.stats }
 func (s *mqttSession) GetMetrics() *base.Metrics { return s.metrics }
+func (s *mqttSession) Info() *base.SessionInfo   { return nil }
 
 // launchPacketSendHandler launch goroutine to send packet queued for client
 func (s *mqttSession) launchPacketSendHandler() {
@@ -488,7 +489,7 @@ func (s *mqttSession) handleConnect() error {
 	s.storage.DeleteMessageWithValidator(
 		clientid,
 		func(msg StorageMessage) bool {
-			err := s.authapi.CheckAcl(context.Background(), clientid, username, willTopic, authlet.AclActionRead)
+			err := s.authapi.CheckAcl(context.Background(), clientid, username, willTopic, auth.AclActionRead)
 			if err != nil {
 				return false
 			}
@@ -659,9 +660,9 @@ func (s *mqttSession) handlePublish() error {
 	}
 	// Check for topic access
 	if s.observer != nil {
-		err := s.authapi.CheckAcl(context.Background(), s.id, s.username, topic, authlet.AclActionWrite)
+		err := s.authapi.CheckAcl(context.Background(), s.id, s.username, topic, auth.AclActionWrite)
 		switch err {
-		case authlet.ErrorAclDenied:
+		case auth.ErrorAclDenied:
 			return mqttErrorInvalidProtocol
 		default:
 			return err

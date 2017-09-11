@@ -10,7 +10,7 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package authlet
+package auth
 
 import (
 	"libs"
@@ -23,19 +23,19 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-type AuthServer struct {
+type AuthService struct {
 	config   libs.Config
 	wg       sync.WaitGroup
 	listener net.Listener
 	srv      *grpc.Server
 }
 
-// NewAuthServer create authentication server
-func NewAuthServer(c libs.Config) (*AuthServer, error) {
+// NewAuthService create authentication server
+func NewAuthService(c libs.Config) (*AuthService, error) {
 	address := ":50051"
-	server := &AuthServer{config: c, wg: sync.WaitGroup{}}
+	server := &AuthService{config: c, wg: sync.WaitGroup{}}
 
-	if addr, err := c.String("authlet", "address"); err == nil && address != "" {
+	if addr, err := c.String("auth", "address"); err == nil && address != "" {
 		address = addr
 	}
 
@@ -46,46 +46,46 @@ func NewAuthServer(c libs.Config) (*AuthServer, error) {
 	}
 	server.listener = lis
 	server.srv = grpc.NewServer()
-	RegisterAuthletServer(server.srv, server)
+	RegisterAuthServiceServer(server.srv, server)
 	reflection.Register(server.srv)
 	return server, nil
 }
 
 // Start
-func (s *AuthServer) Start() {
-	go func(s *AuthServer) {
+func (s *AuthService) Start() {
+	go func(s *AuthService) {
 		s.srv.Serve(s.listener)
 		s.wg.Add(1)
 	}(s)
 }
 
 // Stop
-func (s *AuthServer) Stop() {
+func (s *AuthService) Stop() {
 	s.listener.Close()
 	s.wg.Wait()
 }
 
 // Wait
-func (s *AuthServer) Wait() {
+func (s *AuthService) Wait() {
 	s.wg.Wait()
 }
 
 // Get version of Authlet service
-func (s *AuthServer) GetVersion(context.Context, *AuthRequest) (*AuthReply, error) {
+func (s *AuthService) GetVersion(context.Context, *AuthRequest) (*AuthReply, error) {
 	return nil, nil
 }
 
 // Check acl based on client id, user name and topic
-func (s *AuthServer) CheckAcl(context.Context, *AuthRequest) (*AuthReply, error) {
+func (s *AuthService) CheckAcl(context.Context, *AuthRequest) (*AuthReply, error) {
 	return nil, nil
 }
 
 // Check user name and password
-func (s *AuthServer) CheckUserNameAndPassword(context.Context, *AuthRequest) (*AuthReply, error) {
+func (s *AuthService) CheckUserNameAndPassword(context.Context, *AuthRequest) (*AuthReply, error) {
 	return nil, nil
 }
 
 // Get PSK key
-func (s *AuthServer) GetPskKey(context.Context, *AuthRequest) (*AuthReply, error) {
+func (s *AuthService) GetPskKey(context.Context, *AuthRequest) (*AuthReply, error) {
 	return nil, nil
 }

@@ -128,5 +128,16 @@ func (m *coap) Start() error {
 
 func (m *coap) Stop() {}
 
-func (m *coap) GetMetrics() *base.Metrics { return nil }
-func (m *coap) GetStats() *base.Stats     { return nil }
+// Name
+func (m *coap) Name() string                         { return "coap" }
+func (m *coap) GetMetrics() *base.Metrics            { return nil }
+func (m *coap) GetStats() *base.Stats                { return nil }
+func (m *coap) GetClients() []*base.ClientInfo       { return nil }
+func (m *coap) GetClient(id string) *base.ClientInfo { return nil }
+func (m *coap) KickoffClient(id string) error        { return nil }
+
+func (m *coap) GetSessions(conditions map[string]bool) []*base.SessionInfo { return nil }
+func (m *coap) GetSession(id string) *base.SessionInfo                     { return nil }
+
+func (m *coap) GetRoutes() []*base.RouteInfo { return nil }
+func (m *coap) GetRoute() *base.RouteInfo    { return nil }

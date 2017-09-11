@@ -12,12 +12,16 @@ It has these top-level messages:
 	VersionReply
 	BrokerRequest
 	BrokerReply
+	ClientsRequest
+	ClientsReply
+	ClientInfo
 	AdminsRequest
 	AdminsReply
 	ClusterRequest
 	ClusterReply
 	RoutesRequest
 	RoutesReply
+	RouteInfo
 	StatusRequest
 	StatusReply
 	PluginsRequest
@@ -26,12 +30,12 @@ It has these top-level messages:
 	ServicesReply
 	SubscriptionsRequest
 	SubscriptionsReply
-	ClientsRequest
-	ClientsReply
 	SessionsRequest
 	SessionsReply
+	SessionInfo
 	TopicsRequest
 	TopicsReply
+	ReplyMessageHeader
 */
 package api
 
@@ -65,7 +69,7 @@ func (*VersionRequest) ProtoMessage()               {}
 func (*VersionRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
 
 type VersionReply struct {
-	Version string `protobuf:"bytes,1,opt,name=version" json:"version,omitempty"`
+	Version string `protobuf:"bytes,1,opt,name=Version" json:"Version,omitempty"`
 }
 
 func (m *VersionReply) Reset()                    { *m = VersionReply{} }
@@ -82,7 +86,8 @@ func (m *VersionReply) GetVersion() string {
 
 // Broker
 type BrokerRequest struct {
-	Category string `protobuf:"bytes,1,opt,name=category" json:"category,omitempty"`
+	Category string `protobuf:"bytes,1,opt,name=Category" json:"Category,omitempty"`
+	Service  string `protobuf:"bytes,2,opt,name=Service" json:"Service,omitempty"`
 }
 
 func (m *BrokerRequest) Reset()                    { *m = BrokerRequest{} }
@@ -97,15 +102,30 @@ func (m *BrokerRequest) GetCategory() string {
 	return ""
 }
 
+func (m *BrokerRequest) GetService() string {
+	if m != nil {
+		return m.Service
+	}
+	return ""
+}
+
 type BrokerReply struct {
-	Stats   map[string]uint64 `protobuf:"bytes,1,rep,name=stats" json:"stats,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
-	Metrics map[string]uint64 `protobuf:"bytes,2,rep,name=metrics" json:"metrics,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	Header  *ReplyMessageHeader `protobuf:"bytes,1,opt,name=Header" json:"Header,omitempty"`
+	Stats   map[string]uint64   `protobuf:"bytes,2,rep,name=Stats" json:"Stats,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	Metrics map[string]uint64   `protobuf:"bytes,3,rep,name=Metrics" json:"Metrics,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
 }
 
 func (m *BrokerReply) Reset()                    { *m = BrokerReply{} }
 func (m *BrokerReply) String() string            { return proto.CompactTextString(m) }
 func (*BrokerReply) ProtoMessage()               {}
 func (*BrokerReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
+
+func (m *BrokerReply) GetHeader() *ReplyMessageHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
 
 func (m *BrokerReply) GetStats() map[string]uint64 {
 	if m != nil {
@@ -121,13 +141,110 @@ func (m *BrokerReply) GetMetrics() map[string]uint64 {
 	return nil
 }
 
+// Clients
+type ClientsRequest struct {
+	Category string `protobuf:"bytes,1,opt,name=Category" json:"Category,omitempty"`
+	Service  string `protobuf:"bytes,2,opt,name=Service" json:"Service,omitempty"`
+	ClientId string `protobuf:"bytes,3,opt,name=ClientId" json:"ClientId,omitempty"`
+}
+
+func (m *ClientsRequest) Reset()                    { *m = ClientsRequest{} }
+func (m *ClientsRequest) String() string            { return proto.CompactTextString(m) }
+func (*ClientsRequest) ProtoMessage()               {}
+func (*ClientsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{4} }
+
+func (m *ClientsRequest) GetCategory() string {
+	if m != nil {
+		return m.Category
+	}
+	return ""
+}
+
+func (m *ClientsRequest) GetService() string {
+	if m != nil {
+		return m.Service
+	}
+	return ""
+}
+
+func (m *ClientsRequest) GetClientId() string {
+	if m != nil {
+		return m.ClientId
+	}
+	return ""
+}
+
+type ClientsReply struct {
+	Header  *ReplyMessageHeader `protobuf:"bytes,1,opt,name=Header" json:"Header,omitempty"`
+	Clients []*ClientInfo       `protobuf:"bytes,2,rep,name=Clients" json:"Clients,omitempty"`
+}
+
+func (m *ClientsReply) Reset()                    { *m = ClientsReply{} }
+func (m *ClientsReply) String() string            { return proto.CompactTextString(m) }
+func (*ClientsReply) ProtoMessage()               {}
+func (*ClientsReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{5} }
+
+func (m *ClientsReply) GetHeader() *ReplyMessageHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+func (m *ClientsReply) GetClients() []*ClientInfo {
+	if m != nil {
+		return m.Clients
+	}
+	return nil
+}
+
+type ClientInfo struct {
+	UserName     string `protobuf:"bytes,1,opt,name=UserName" json:"UserName,omitempty"`
+	CleanSession bool   `protobuf:"varint,2,opt,name=CleanSession" json:"CleanSession,omitempty"`
+	PeerName     string `protobuf:"bytes,3,opt,name=PeerName" json:"PeerName,omitempty"`
+	ConnectTime  string `protobuf:"bytes,4,opt,name=ConnectTime" json:"ConnectTime,omitempty"`
+}
+
+func (m *ClientInfo) Reset()                    { *m = ClientInfo{} }
+func (m *ClientInfo) String() string            { return proto.CompactTextString(m) }
+func (*ClientInfo) ProtoMessage()               {}
+func (*ClientInfo) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{6} }
+
+func (m *ClientInfo) GetUserName() string {
+	if m != nil {
+		return m.UserName
+	}
+	return ""
+}
+
+func (m *ClientInfo) GetCleanSession() bool {
+	if m != nil {
+		return m.CleanSession
+	}
+	return false
+}
+
+func (m *ClientInfo) GetPeerName() string {
+	if m != nil {
+		return m.PeerName
+	}
+	return ""
+}
+
+func (m *ClientInfo) GetConnectTime() string {
+	if m != nil {
+		return m.ConnectTime
+	}
+	return ""
+}
+
 type AdminsRequest struct {
 }
 
 func (m *AdminsRequest) Reset()                    { *m = AdminsRequest{} }
 func (m *AdminsRequest) String() string            { return proto.CompactTextString(m) }
 func (*AdminsRequest) ProtoMessage()               {}
-func (*AdminsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{4} }
+func (*AdminsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{7} }
 
 type AdminsReply struct {
 }
@@ -135,7 +252,7 @@ type AdminsReply struct {
 func (m *AdminsReply) Reset()                    { *m = AdminsReply{} }
 func (m *AdminsReply) String() string            { return proto.CompactTextString(m) }
 func (*AdminsReply) ProtoMessage()               {}
-func (*AdminsReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{5} }
+func (*AdminsReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{8} }
 
 type ClusterRequest struct {
 }
@@ -143,7 +260,7 @@ type ClusterRequest struct {
 func (m *ClusterRequest) Reset()                    { *m = ClusterRequest{} }
 func (m *ClusterRequest) String() string            { return proto.CompactTextString(m) }
 func (*ClusterRequest) ProtoMessage()               {}
-func (*ClusterRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{6} }
+func (*ClusterRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{9} }
 
 type ClusterReply struct {
 }
@@ -151,31 +268,97 @@ type ClusterReply struct {
 func (m *ClusterReply) Reset()                    { *m = ClusterReply{} }
 func (m *ClusterReply) String() string            { return proto.CompactTextString(m) }
 func (*ClusterReply) ProtoMessage()               {}
-func (*ClusterReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{7} }
+func (*ClusterReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{10} }
 
+// Routes
 type RoutesRequest struct {
+	Category string `protobuf:"bytes,1,opt,name=Category" json:"Category,omitempty"`
+	Service  string `protobuf:"bytes,2,opt,name=Service" json:"Service,omitempty"`
+	Topic    string `protobuf:"bytes,3,opt,name=Topic" json:"Topic,omitempty"`
 }
 
 func (m *RoutesRequest) Reset()                    { *m = RoutesRequest{} }
 func (m *RoutesRequest) String() string            { return proto.CompactTextString(m) }
 func (*RoutesRequest) ProtoMessage()               {}
-func (*RoutesRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{8} }
+func (*RoutesRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{11} }
+
+func (m *RoutesRequest) GetCategory() string {
+	if m != nil {
+		return m.Category
+	}
+	return ""
+}
+
+func (m *RoutesRequest) GetService() string {
+	if m != nil {
+		return m.Service
+	}
+	return ""
+}
+
+func (m *RoutesRequest) GetTopic() string {
+	if m != nil {
+		return m.Topic
+	}
+	return ""
+}
 
 type RoutesReply struct {
+	Header *ReplyMessageHeader `protobuf:"bytes,1,opt,name=Header" json:"Header,omitempty"`
+	Routes []*RouteInfo        `protobuf:"bytes,2,rep,name=Routes" json:"Routes,omitempty"`
 }
 
 func (m *RoutesReply) Reset()                    { *m = RoutesReply{} }
 func (m *RoutesReply) String() string            { return proto.CompactTextString(m) }
 func (*RoutesReply) ProtoMessage()               {}
-func (*RoutesReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{9} }
+func (*RoutesReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{12} }
 
+func (m *RoutesReply) GetHeader() *ReplyMessageHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+func (m *RoutesReply) GetRoutes() []*RouteInfo {
+	if m != nil {
+		return m.Routes
+	}
+	return nil
+}
+
+type RouteInfo struct {
+	Topic string   `protobuf:"bytes,1,opt,name=Topic" json:"Topic,omitempty"`
+	Route []string `protobuf:"bytes,2,rep,name=Route" json:"Route,omitempty"`
+}
+
+func (m *RouteInfo) Reset()                    { *m = RouteInfo{} }
+func (m *RouteInfo) String() string            { return proto.CompactTextString(m) }
+func (*RouteInfo) ProtoMessage()               {}
+func (*RouteInfo) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{13} }
+
+func (m *RouteInfo) GetTopic() string {
+	if m != nil {
+		return m.Topic
+	}
+	return ""
+}
+
+func (m *RouteInfo) GetRoute() []string {
+	if m != nil {
+		return m.Route
+	}
+	return nil
+}
+
+// Status
 type StatusRequest struct {
 }
 
 func (m *StatusRequest) Reset()                    { *m = StatusRequest{} }
 func (m *StatusRequest) String() string            { return proto.CompactTextString(m) }
 func (*StatusRequest) ProtoMessage()               {}
-func (*StatusRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{10} }
+func (*StatusRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{14} }
 
 type StatusReply struct {
 }
@@ -183,7 +366,7 @@ type StatusReply struct {
 func (m *StatusReply) Reset()                    { *m = StatusReply{} }
 func (m *StatusReply) String() string            { return proto.CompactTextString(m) }
 func (*StatusReply) ProtoMessage()               {}
-func (*StatusReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{11} }
+func (*StatusReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{15} }
 
 type PluginsRequest struct {
 }
@@ -191,7 +374,7 @@ type PluginsRequest struct {
 func (m *PluginsRequest) Reset()                    { *m = PluginsRequest{} }
 func (m *PluginsRequest) String() string            { return proto.CompactTextString(m) }
 func (*PluginsRequest) ProtoMessage()               {}
-func (*PluginsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{12} }
+func (*PluginsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{16} }
 
 type PluginsReply struct {
 }
@@ -199,7 +382,7 @@ type PluginsReply struct {
 func (m *PluginsReply) Reset()                    { *m = PluginsReply{} }
 func (m *PluginsReply) String() string            { return proto.CompactTextString(m) }
 func (*PluginsReply) ProtoMessage()               {}
-func (*PluginsReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{13} }
+func (*PluginsReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{17} }
 
 type ServicesRequest struct {
 }
@@ -207,7 +390,7 @@ type ServicesRequest struct {
 func (m *ServicesRequest) Reset()                    { *m = ServicesRequest{} }
 func (m *ServicesRequest) String() string            { return proto.CompactTextString(m) }
 func (*ServicesRequest) ProtoMessage()               {}
-func (*ServicesRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{14} }
+func (*ServicesRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{18} }
 
 type ServicesReply struct {
 }
@@ -215,7 +398,7 @@ type ServicesReply struct {
 func (m *ServicesReply) Reset()                    { *m = ServicesReply{} }
 func (m *ServicesReply) String() string            { return proto.CompactTextString(m) }
 func (*ServicesReply) ProtoMessage()               {}
-func (*ServicesReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{15} }
+func (*ServicesReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{19} }
 
 type SubscriptionsRequest struct {
 }
@@ -223,7 +406,7 @@ type SubscriptionsRequest struct {
 func (m *SubscriptionsRequest) Reset()                    { *m = SubscriptionsRequest{} }
 func (m *SubscriptionsRequest) String() string            { return proto.CompactTextString(m) }
 func (*SubscriptionsRequest) ProtoMessage()               {}
-func (*SubscriptionsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{16} }
+func (*SubscriptionsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{20} }
 
 type SubscriptionsReply struct {
 }
@@ -231,47 +414,169 @@ type SubscriptionsReply struct {
 func (m *SubscriptionsReply) Reset()                    { *m = SubscriptionsReply{} }
 func (m *SubscriptionsReply) String() string            { return proto.CompactTextString(m) }
 func (*SubscriptionsReply) ProtoMessage()               {}
-func (*SubscriptionsReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{17} }
+func (*SubscriptionsReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{21} }
 
-type ClientsRequest struct {
-}
-
-func (m *ClientsRequest) Reset()                    { *m = ClientsRequest{} }
-func (m *ClientsRequest) String() string            { return proto.CompactTextString(m) }
-func (*ClientsRequest) ProtoMessage()               {}
-func (*ClientsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{18} }
-
-type ClientsReply struct {
-}
-
-func (m *ClientsReply) Reset()                    { *m = ClientsReply{} }
-func (m *ClientsReply) String() string            { return proto.CompactTextString(m) }
-func (*ClientsReply) ProtoMessage()               {}
-func (*ClientsReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{19} }
-
+// Session
 type SessionsRequest struct {
+	Category   string          `protobuf:"bytes,1,opt,name=Category" json:"Category,omitempty"`
+	Service    string          `protobuf:"bytes,2,opt,name=Service" json:"Service,omitempty"`
+	ClientId   string          `protobuf:"bytes,3,opt,name=ClientId" json:"ClientId,omitempty"`
+	Conditions map[string]bool `protobuf:"bytes,4,rep,name=Conditions" json:"Conditions,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
 }
 
 func (m *SessionsRequest) Reset()                    { *m = SessionsRequest{} }
 func (m *SessionsRequest) String() string            { return proto.CompactTextString(m) }
 func (*SessionsRequest) ProtoMessage()               {}
-func (*SessionsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{20} }
+func (*SessionsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{22} }
+
+func (m *SessionsRequest) GetCategory() string {
+	if m != nil {
+		return m.Category
+	}
+	return ""
+}
+
+func (m *SessionsRequest) GetService() string {
+	if m != nil {
+		return m.Service
+	}
+	return ""
+}
+
+func (m *SessionsRequest) GetClientId() string {
+	if m != nil {
+		return m.ClientId
+	}
+	return ""
+}
+
+func (m *SessionsRequest) GetConditions() map[string]bool {
+	if m != nil {
+		return m.Conditions
+	}
+	return nil
+}
 
 type SessionsReply struct {
+	Header   *ReplyMessageHeader `protobuf:"bytes,1,opt,name=Header" json:"Header,omitempty"`
+	Sessions []*SessionInfo      `protobuf:"bytes,2,rep,name=Sessions" json:"Sessions,omitempty"`
 }
 
 func (m *SessionsReply) Reset()                    { *m = SessionsReply{} }
 func (m *SessionsReply) String() string            { return proto.CompactTextString(m) }
 func (*SessionsReply) ProtoMessage()               {}
-func (*SessionsReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{21} }
+func (*SessionsReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{23} }
 
+func (m *SessionsReply) GetHeader() *ReplyMessageHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+func (m *SessionsReply) GetSessions() []*SessionInfo {
+	if m != nil {
+		return m.Sessions
+	}
+	return nil
+}
+
+type SessionInfo struct {
+	ClientId           string `protobuf:"bytes,1,opt,name=ClientId" json:"ClientId,omitempty"`
+	CleanSession       bool   `protobuf:"varint,2,opt,name=CleanSession" json:"CleanSession,omitempty"`
+	MessageMaxInflight uint64 `protobuf:"varint,3,opt,name=MessageMaxInflight" json:"MessageMaxInflight,omitempty"`
+	MessageInflight    uint64 `protobuf:"varint,4,opt,name=MessageInflight" json:"MessageInflight,omitempty"`
+	MessageInQueue     uint64 `protobuf:"varint,5,opt,name=MessageInQueue" json:"MessageInQueue,omitempty"`
+	MessageDropped     uint64 `protobuf:"varint,6,opt,name=MessageDropped" json:"MessageDropped,omitempty"`
+	AwaitingRel        uint64 `protobuf:"varint,7,opt,name=AwaitingRel" json:"AwaitingRel,omitempty"`
+	AwaitingComp       uint64 `protobuf:"varint,8,opt,name=AwaitingComp" json:"AwaitingComp,omitempty"`
+	AwaitingAck        uint64 `protobuf:"varint,9,opt,name=AwaitingAck" json:"AwaitingAck,omitempty"`
+	CreatedAt          string `protobuf:"bytes,10,opt,name=CreatedAt" json:"CreatedAt,omitempty"`
+}
+
+func (m *SessionInfo) Reset()                    { *m = SessionInfo{} }
+func (m *SessionInfo) String() string            { return proto.CompactTextString(m) }
+func (*SessionInfo) ProtoMessage()               {}
+func (*SessionInfo) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{24} }
+
+func (m *SessionInfo) GetClientId() string {
+	if m != nil {
+		return m.ClientId
+	}
+	return ""
+}
+
+func (m *SessionInfo) GetCleanSession() bool {
+	if m != nil {
+		return m.CleanSession
+	}
+	return false
+}
+
+func (m *SessionInfo) GetMessageMaxInflight() uint64 {
+	if m != nil {
+		return m.MessageMaxInflight
+	}
+	return 0
+}
+
+func (m *SessionInfo) GetMessageInflight() uint64 {
+	if m != nil {
+		return m.MessageInflight
+	}
+	return 0
+}
+
+func (m *SessionInfo) GetMessageInQueue() uint64 {
+	if m != nil {
+		return m.MessageInQueue
+	}
+	return 0
+}
+
+func (m *SessionInfo) GetMessageDropped() uint64 {
+	if m != nil {
+		return m.MessageDropped
+	}
+	return 0
+}
+
+func (m *SessionInfo) GetAwaitingRel() uint64 {
+	if m != nil {
+		return m.AwaitingRel
+	}
+	return 0
+}
+
+func (m *SessionInfo) GetAwaitingComp() uint64 {
+	if m != nil {
+		return m.AwaitingComp
+	}
+	return 0
+}
+
+func (m *SessionInfo) GetAwaitingAck() uint64 {
+	if m != nil {
+		return m.AwaitingAck
+	}
+	return 0
+}
+
+func (m *SessionInfo) GetCreatedAt() string {
+	if m != nil {
+		return m.CreatedAt
+	}
+	return ""
+}
+
+// Topic
 type TopicsRequest struct {
 }
 
 func (m *TopicsRequest) Reset()                    { *m = TopicsRequest{} }
 func (m *TopicsRequest) String() string            { return proto.CompactTextString(m) }
 func (*TopicsRequest) ProtoMessage()               {}
-func (*TopicsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{22} }
+func (*TopicsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{25} }
 
 type TopicsReply struct {
 }
@@ -279,19 +584,48 @@ type TopicsReply struct {
 func (m *TopicsReply) Reset()                    { *m = TopicsReply{} }
 func (m *TopicsReply) String() string            { return proto.CompactTextString(m) }
 func (*TopicsReply) ProtoMessage()               {}
-func (*TopicsReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{23} }
+func (*TopicsReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{26} }
+
+// Message Header
+type ReplyMessageHeader struct {
+	Success bool   `protobuf:"varint,1,opt,name=Success" json:"Success,omitempty"`
+	Reason  string `protobuf:"bytes,2,opt,name=Reason" json:"Reason,omitempty"`
+}
+
+func (m *ReplyMessageHeader) Reset()                    { *m = ReplyMessageHeader{} }
+func (m *ReplyMessageHeader) String() string            { return proto.CompactTextString(m) }
+func (*ReplyMessageHeader) ProtoMessage()               {}
+func (*ReplyMessageHeader) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{27} }
+
+func (m *ReplyMessageHeader) GetSuccess() bool {
+	if m != nil {
+		return m.Success
+	}
+	return false
+}
+
+func (m *ReplyMessageHeader) GetReason() string {
+	if m != nil {
+		return m.Reason
+	}
+	return ""
+}
 
 func init() {
 	proto.RegisterType((*VersionRequest)(nil), "api.VersionRequest")
 	proto.RegisterType((*VersionReply)(nil), "api.VersionReply")
 	proto.RegisterType((*BrokerRequest)(nil), "api.BrokerRequest")
 	proto.RegisterType((*BrokerReply)(nil), "api.BrokerReply")
+	proto.RegisterType((*ClientsRequest)(nil), "api.ClientsRequest")
+	proto.RegisterType((*ClientsReply)(nil), "api.ClientsReply")
+	proto.RegisterType((*ClientInfo)(nil), "api.ClientInfo")
 	proto.RegisterType((*AdminsRequest)(nil), "api.AdminsRequest")
 	proto.RegisterType((*AdminsReply)(nil), "api.AdminsReply")
 	proto.RegisterType((*ClusterRequest)(nil), "api.ClusterRequest")
 	proto.RegisterType((*ClusterReply)(nil), "api.ClusterReply")
 	proto.RegisterType((*RoutesRequest)(nil), "api.RoutesRequest")
 	proto.RegisterType((*RoutesReply)(nil), "api.RoutesReply")
+	proto.RegisterType((*RouteInfo)(nil), "api.RouteInfo")
 	proto.RegisterType((*StatusRequest)(nil), "api.StatusRequest")
 	proto.RegisterType((*StatusReply)(nil), "api.StatusReply")
 	proto.RegisterType((*PluginsRequest)(nil), "api.PluginsRequest")
@@ -300,12 +634,12 @@ func init() {
 	proto.RegisterType((*ServicesReply)(nil), "api.ServicesReply")
 	proto.RegisterType((*SubscriptionsRequest)(nil), "api.SubscriptionsRequest")
 	proto.RegisterType((*SubscriptionsReply)(nil), "api.SubscriptionsReply")
-	proto.RegisterType((*ClientsRequest)(nil), "api.ClientsRequest")
-	proto.RegisterType((*ClientsReply)(nil), "api.ClientsReply")
 	proto.RegisterType((*SessionsRequest)(nil), "api.SessionsRequest")
 	proto.RegisterType((*SessionsReply)(nil), "api.SessionsReply")
+	proto.RegisterType((*SessionInfo)(nil), "api.SessionInfo")
 	proto.RegisterType((*TopicsRequest)(nil), "api.TopicsRequest")
 	proto.RegisterType((*TopicsReply)(nil), "api.TopicsReply")
+	proto.RegisterType((*ReplyMessageHeader)(nil), "api.ReplyMessageHeader")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -746,38 +1080,64 @@ var _Api_serviceDesc = grpc.ServiceDesc{
 func init() { proto.RegisterFile("api.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 527 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0x94, 0x54, 0x5d, 0x6f, 0xd3, 0x30,
-	0x14, 0x6d, 0x5a, 0xba, 0x6e, 0xb7, 0x9f, 0x33, 0x15, 0x84, 0x20, 0xa4, 0x2a, 0x4f, 0x95, 0x90,
-	0x2a, 0x58, 0x25, 0x98, 0xf6, 0x36, 0xd0, 0x1e, 0x91, 0x50, 0x8a, 0x78, 0xcf, 0x82, 0x35, 0x59,
-	0xcb, 0x1a, 0x63, 0x3b, 0x95, 0xf2, 0x17, 0xf8, 0xb3, 0xfc, 0x05, 0x64, 0xfb, 0xda, 0xb5, 0xc7,
-	0x5e, 0xf6, 0x56, 0x9f, 0x7b, 0xcf, 0xfd, 0x3a, 0x27, 0x85, 0xb3, 0x92, 0xb3, 0x0d, 0x17, 0x8d,
-	0x6a, 0xc8, 0xa0, 0xe4, 0x2c, 0x5f, 0xc0, 0xec, 0x27, 0x15, 0x92, 0x35, 0xfb, 0x82, 0xfe, 0x6e,
-	0xa9, 0x54, 0xf9, 0x1a, 0x26, 0x1e, 0xe1, 0x75, 0x47, 0x52, 0x18, 0x1d, 0xec, 0x3b, 0x4d, 0x56,
-	0xc9, 0xfa, 0xac, 0x70, 0xcf, 0xfc, 0x3d, 0x4c, 0xbf, 0x88, 0xe6, 0x9e, 0x0a, 0xa4, 0x92, 0x0c,
-	0x4e, 0xab, 0x52, 0xd1, 0xbb, 0x46, 0x74, 0x98, 0xeb, 0xdf, 0xf9, 0xdf, 0x04, 0xc6, 0x2e, 0x5b,
-	0x97, 0xfd, 0x08, 0x43, 0xa9, 0x4a, 0x25, 0xd3, 0x64, 0x35, 0x58, 0x8f, 0x2f, 0xde, 0x6e, 0xf4,
-	0x60, 0x41, 0xc2, 0x66, 0xa7, 0xa3, 0x37, 0x7b, 0x25, 0xba, 0xc2, 0x66, 0x92, 0xcf, 0x30, 0x7a,
-	0xa0, 0x4a, 0xb0, 0x4a, 0xa6, 0x7d, 0x43, 0x7a, 0xf7, 0x1f, 0xe9, 0x9b, 0x8d, 0x5b, 0x9a, 0xcb,
-	0xce, 0x2e, 0x01, 0x8e, 0xd5, 0xc8, 0x02, 0x06, 0xf7, 0xd4, 0x0d, 0xa8, 0x7f, 0x92, 0x25, 0x0c,
-	0x0f, 0x65, 0xdd, 0xd2, 0xb4, 0xbf, 0x4a, 0xd6, 0x2f, 0x0a, 0xfb, 0xb8, 0xea, 0x5f, 0x26, 0xd9,
-	0x15, 0x4c, 0xc2, 0x92, 0xcf, 0xe1, 0xe6, 0x73, 0x98, 0x5e, 0xff, 0x7a, 0x60, 0x7b, 0xe9, 0x2e,
-	0x3b, 0x85, 0xb1, 0x03, 0x78, 0xdd, 0xe9, 0xd3, 0x7f, 0xad, 0x5b, 0xa9, 0xfc, 0xfd, 0xf2, 0x19,
-	0x4c, 0x3c, 0xa2, 0x33, 0xe6, 0x30, 0x2d, 0x9a, 0x56, 0xd1, 0xb0, 0x82, 0x03, 0x30, 0xae, 0xf7,
-	0x6a, 0xc3, 0xb8, 0x03, 0xb0, 0xc3, 0xf7, 0xba, 0xbd, 0x0b, 0x46, 0x98, 0xc1, 0xc4, 0x23, 0x3a,
-	0xe3, 0x1c, 0xe6, 0x3b, 0x2a, 0x0e, 0xac, 0x3a, 0xf6, 0xd0, 0x45, 0x3d, 0xa4, 0x73, 0x5e, 0xc1,
-	0x72, 0xd7, 0xde, 0xca, 0x4a, 0x30, 0xae, 0x58, 0x73, 0xac, 0xb5, 0x04, 0xf2, 0x08, 0xf7, 0x5b,
-	0x31, 0xba, 0x57, 0x32, 0xda, 0x0a, 0x11, 0xdf, 0x53, 0xca, 0xb0, 0x94, 0xe9, 0xe9, 0x20, 0xdc,
-	0xec, 0x47, 0xc3, 0x59, 0x15, 0x6e, 0xe6, 0x00, 0x5e, 0x77, 0x17, 0x7f, 0x86, 0x30, 0xb8, 0xe6,
-	0x8c, 0x6c, 0x61, 0x84, 0x66, 0x25, 0x2f, 0x8d, 0x19, 0x62, 0x33, 0x67, 0xe7, 0x31, 0xa8, 0x4b,
-	0xf7, 0xc8, 0x07, 0x38, 0xb1, 0x3a, 0x10, 0x62, 0xc2, 0x91, 0x4a, 0xd9, 0x22, 0xc2, 0x2c, 0x63,
-	0x0b, 0x23, 0x14, 0x06, 0xdb, 0xc4, 0xc2, 0x61, 0x9b, 0x48, 0x3b, 0xd3, 0xc6, 0x8a, 0x85, 0x6d,
-	0x22, 0x29, 0xb1, 0x4d, 0xa8, 0xa6, 0x61, 0x58, 0xf9, 0x90, 0x11, 0x89, 0x8b, 0x8c, 0x50, 0x5f,
-	0xc3, 0xb0, 0xf6, 0x47, 0x46, 0xf4, 0x3d, 0x22, 0x23, 0xf8, 0x3e, 0xec, 0x2a, 0xe8, 0x00, 0x5c,
-	0x25, 0x76, 0x08, 0xae, 0x12, 0x99, 0xa4, 0x47, 0x3e, 0xc1, 0xa9, 0xf3, 0x04, 0x59, 0xda, 0x31,
-	0x62, 0xd7, 0x64, 0xe4, 0x11, 0x6a, 0x79, 0x37, 0x30, 0x8d, 0x2c, 0x42, 0xde, 0xd8, 0xb4, 0x27,
-	0xec, 0x94, 0xbd, 0x7e, 0x2a, 0x14, 0x9c, 0xdf, 0x38, 0xc8, 0x9f, 0x3f, 0x74, 0x98, 0x3f, 0x7f,
-	0x60, 0x32, 0x9c, 0xd9, 0x7a, 0xca, 0xcf, 0x1c, 0xb9, 0xce, 0xcf, 0x1c, 0x1a, 0xcf, 0x9c, 0xd4,
-	0x3a, 0x0d, 0x4f, 0x1a, 0xf9, 0x10, 0x4f, 0x1a, 0x58, 0x31, 0xef, 0xdd, 0x9e, 0x98, 0xff, 0xd3,
-	0xed, 0xbf, 0x00, 0x00, 0x00, 0xff, 0xff, 0xdf, 0x86, 0xbf, 0x1f, 0x5c, 0x05, 0x00, 0x00,
+	// 929 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0xdd, 0x6e, 0x1b, 0x45,
+	0x14, 0x8e, 0x7f, 0x63, 0x1f, 0xc7, 0x76, 0x3a, 0x58, 0xed, 0xb2, 0x80, 0x14, 0xad, 0x50, 0x15,
+	0x24, 0x64, 0x20, 0x91, 0x68, 0x55, 0x89, 0x0b, 0xe3, 0x06, 0xd1, 0x8b, 0xa0, 0xb2, 0x29, 0xdc,
+	0x70, 0xb5, 0x59, 0x4f, 0xcc, 0x90, 0xf5, 0xee, 0xb2, 0x3b, 0x5b, 0xf0, 0x2b, 0xf4, 0x29, 0x78,
+	0x3c, 0x5e, 0x02, 0x09, 0xcd, 0x99, 0x33, 0xe3, 0x19, 0x37, 0x12, 0x90, 0x8a, 0xbb, 0x3d, 0xdf,
+	0xf9, 0x3f, 0x73, 0xe6, 0xdb, 0x81, 0x61, 0x52, 0x8a, 0x79, 0x59, 0x15, 0xb2, 0x60, 0x9d, 0xa4,
+	0x14, 0xd1, 0x31, 0x4c, 0x7e, 0xe4, 0x55, 0x2d, 0x8a, 0x3c, 0xe6, 0xbf, 0x36, 0xbc, 0x96, 0xd1,
+	0x29, 0x1c, 0x59, 0xa4, 0xcc, 0xb6, 0x2c, 0x80, 0x43, 0x92, 0x83, 0xd6, 0x49, 0xeb, 0x74, 0x18,
+	0x1b, 0x31, 0xba, 0x80, 0xf1, 0xd7, 0x55, 0x71, 0xcb, 0x2b, 0x72, 0x65, 0x21, 0x0c, 0x96, 0x89,
+	0xe4, 0xeb, 0xa2, 0xda, 0x92, 0xad, 0x95, 0x55, 0x98, 0x2b, 0x5e, 0xbd, 0x16, 0x29, 0x0f, 0xda,
+	0x3a, 0x0c, 0x89, 0xd1, 0x1f, 0x6d, 0x18, 0x99, 0x38, 0x2a, 0xe1, 0x67, 0xd0, 0xff, 0x96, 0x27,
+	0x2b, 0x5e, 0x61, 0x8c, 0xd1, 0xd9, 0xa3, 0xb9, 0xaa, 0x19, 0x75, 0x97, 0xbc, 0xae, 0x93, 0x35,
+	0xd7, 0xea, 0x98, 0xcc, 0xd8, 0x17, 0xd0, 0xbb, 0x92, 0x89, 0xac, 0x83, 0xf6, 0x49, 0xe7, 0x74,
+	0x74, 0xf6, 0x01, 0xda, 0x3b, 0x11, 0xe7, 0xa8, 0xbd, 0xc8, 0x65, 0xb5, 0x8d, 0xb5, 0x25, 0x7b,
+	0x02, 0x87, 0x97, 0x5c, 0x56, 0x22, 0xad, 0x83, 0x0e, 0x3a, 0x7d, 0xf4, 0x96, 0x13, 0xe9, 0xb5,
+	0x9b, 0xb1, 0x0e, 0x9f, 0x02, 0xec, 0xa2, 0xb1, 0x63, 0xe8, 0xdc, 0x72, 0xd3, 0xab, 0xfa, 0x64,
+	0x33, 0xe8, 0xbd, 0x4e, 0xb2, 0x46, 0x37, 0xd9, 0x8d, 0xb5, 0xf0, 0xac, 0xfd, 0xb4, 0x15, 0x3e,
+	0x83, 0x23, 0x37, 0xe4, 0x7f, 0xf1, 0x8d, 0xae, 0x61, 0xb2, 0xcc, 0x04, 0xcf, 0x65, 0xfd, 0x4e,
+	0xa3, 0x46, 0x2f, 0x8c, 0xf3, 0x62, 0x15, 0x74, 0xc8, 0x8b, 0xe4, 0xe8, 0x17, 0x38, 0xb2, 0x39,
+	0xee, 0x75, 0x0c, 0x9f, 0xc0, 0x21, 0x05, 0xa0, 0x83, 0x98, 0xa2, 0x07, 0x25, 0xc8, 0x6f, 0x8a,
+	0xd8, 0xe8, 0xa3, 0x37, 0x2d, 0x80, 0x1d, 0xae, 0xca, 0xfa, 0xa1, 0xe6, 0xd5, 0x77, 0xc9, 0x86,
+	0x9b, 0x66, 0x8c, 0xcc, 0x22, 0x55, 0x16, 0x4f, 0xf2, 0x2b, 0x5e, 0xe3, 0x0e, 0xaa, 0x8e, 0x06,
+	0xb1, 0x87, 0x29, 0xff, 0x97, 0x9c, 0xfc, 0xa9, 0x2d, 0x23, 0xb3, 0x13, 0x18, 0x2d, 0x8b, 0x3c,
+	0xe7, 0xa9, 0x7c, 0x25, 0x36, 0x3c, 0xe8, 0xa2, 0xda, 0x85, 0xa2, 0x29, 0x8c, 0x17, 0xab, 0x8d,
+	0xc8, 0xcd, 0x6c, 0xa3, 0x31, 0x8c, 0x0c, 0x50, 0x66, 0x5b, 0x75, 0x45, 0x96, 0x59, 0x53, 0x4b,
+	0xbb, 0xe7, 0xd1, 0x44, 0xd5, 0x44, 0x88, 0xb2, 0xf8, 0x09, 0xc6, 0x71, 0xd1, 0x48, 0xfe, 0x8e,
+	0xa7, 0x33, 0x83, 0xde, 0xab, 0xa2, 0x14, 0x29, 0xf5, 0xa0, 0x85, 0xe8, 0x06, 0x46, 0x26, 0xf8,
+	0xbd, 0x8e, 0xe5, 0x31, 0xf4, 0xb5, 0x3f, 0x9d, 0xca, 0x44, 0x3b, 0x28, 0x08, 0x0f, 0x85, 0xb4,
+	0xd1, 0x13, 0x18, 0x5a, 0x70, 0x57, 0x4a, 0xcb, 0x29, 0x45, 0xa1, 0x68, 0x82, 0x91, 0x86, 0xb1,
+	0x16, 0xd4, 0xfc, 0xd4, 0x95, 0x68, 0xdc, 0xf9, 0x19, 0x80, 0xe6, 0xf7, 0x32, 0x6b, 0xd6, 0xce,
+	0x80, 0x27, 0x70, 0x64, 0x11, 0x65, 0xf1, 0x00, 0xa6, 0x34, 0x03, 0x6b, 0xa2, 0x82, 0x5a, 0x48,
+	0xd9, 0x3c, 0x84, 0xd9, 0x55, 0x73, 0x5d, 0xa7, 0x95, 0x28, 0xa5, 0x28, 0x76, 0xb1, 0x66, 0xc0,
+	0xf6, 0x70, 0x65, 0xfd, 0x67, 0x4b, 0x85, 0xc4, 0xed, 0xf8, 0xff, 0xae, 0x0c, 0x7b, 0x0e, 0xb0,
+	0x2c, 0xf2, 0x95, 0xc0, 0xc4, 0x41, 0x17, 0xc7, 0xfb, 0x31, 0x8e, 0x77, 0x2f, 0xf7, 0x7c, 0x67,
+	0xa6, 0xf9, 0xc4, 0xf1, 0x0b, 0xbf, 0x82, 0xe9, 0x9e, 0xfa, 0x9f, 0xb8, 0x61, 0xe0, 0x72, 0x43,
+	0xae, 0x26, 0x65, 0xb2, 0xdd, 0x6b, 0x43, 0x3e, 0x85, 0x81, 0x89, 0x40, 0x3b, 0x72, 0xec, 0x36,
+	0x81, 0x5b, 0x62, 0x2d, 0xa2, 0xbf, 0xda, 0x30, 0x72, 0x34, 0xde, 0x80, 0x5a, 0x7b, 0x03, 0xfa,
+	0x37, 0x97, 0x77, 0x0e, 0x8c, 0xca, 0xba, 0x4c, 0x7e, 0x7f, 0x91, 0xdf, 0x64, 0x62, 0xfd, 0xb3,
+	0xc4, 0x51, 0x77, 0xe3, 0x3b, 0x34, 0xec, 0x14, 0xa6, 0x84, 0x5a, 0xe3, 0x2e, 0x1a, 0xef, 0xc3,
+	0xec, 0x31, 0x4c, 0x2c, 0xf4, 0x7d, 0xc3, 0x1b, 0x1e, 0xf4, 0xd0, 0x70, 0x0f, 0x75, 0xec, 0x9e,
+	0x57, 0x45, 0x59, 0xf2, 0x55, 0xd0, 0xf7, 0xec, 0x08, 0x55, 0x54, 0xb2, 0xf8, 0x2d, 0x11, 0x52,
+	0xe4, 0xeb, 0x98, 0x67, 0xc1, 0x21, 0x1a, 0xb9, 0x90, 0xea, 0xd7, 0x88, 0xcb, 0x62, 0x53, 0x06,
+	0x03, 0x34, 0xf1, 0x30, 0x37, 0xca, 0x22, 0xbd, 0x0d, 0x86, 0x7e, 0x94, 0x45, 0x7a, 0xcb, 0x3e,
+	0x84, 0xe1, 0xb2, 0xe2, 0x89, 0xe4, 0xab, 0x85, 0x0c, 0x00, 0x47, 0xba, 0x03, 0xd4, 0xcd, 0xc0,
+	0xdb, 0xe8, 0x5e, 0x37, 0x03, 0xa8, 0xd5, 0xff, 0x06, 0xd8, 0xdb, 0x67, 0x8d, 0x0b, 0xde, 0xa4,
+	0x29, 0xaf, 0x6b, 0x3c, 0xa4, 0x41, 0x6c, 0x44, 0xf6, 0x10, 0xfa, 0x31, 0x4f, 0x6a, 0x3a, 0x9d,
+	0x61, 0x4c, 0xd2, 0xd9, 0x9b, 0x1e, 0x74, 0x16, 0xa5, 0x60, 0xe7, 0xf6, 0xff, 0xcf, 0xde, 0xc3,
+	0xb5, 0xf0, 0xdf, 0x0b, 0xe1, 0x03, 0x1f, 0x54, 0x25, 0x1c, 0xb0, 0xcf, 0xa1, 0xaf, 0x29, 0x94,
+	0x31, 0x54, 0x7b, 0x04, 0x1b, 0x1e, 0x7b, 0x98, 0xf6, 0x38, 0x57, 0x7f, 0x0f, 0xe4, 0x54, 0x4a,
+	0xe3, 0x73, 0x2e, 0xa5, 0xf1, 0x68, 0x17, 0xd3, 0x68, 0xf6, 0xa2, 0x34, 0x1e, 0x0b, 0x53, 0x1a,
+	0x87, 0x3c, 0xb5, 0x87, 0xe6, 0x26, 0xf2, 0xf0, 0x98, 0x8b, 0x3c, 0x5c, 0xf2, 0x42, 0x0f, 0xfd,
+	0x2c, 0x20, 0x0f, 0xef, 0xc9, 0x43, 0x1e, 0xce, 0xbb, 0x41, 0xb7, 0x42, 0xf4, 0x46, 0xad, 0xf8,
+	0xf4, 0x47, 0xad, 0x78, 0x0c, 0x78, 0xc0, 0xbe, 0x54, 0x97, 0x50, 0x13, 0x1e, 0x9b, 0xd1, 0xf5,
+	0xf3, 0x28, 0x31, 0x64, 0x7b, 0xa8, 0xf6, 0xbb, 0x80, 0xb1, 0xc7, 0x7f, 0xec, 0x7d, 0x6d, 0x76,
+	0x07, 0x57, 0x86, 0x8f, 0xee, 0x52, 0x39, 0xe3, 0xc7, 0x9f, 0xb3, 0x1d, 0xbf, 0xfb, 0xde, 0xb0,
+	0xe3, 0xdf, 0x3d, 0x10, 0x4c, 0xcd, 0x9a, 0x16, 0x6c, 0xcd, 0x1e, 0xef, 0xd9, 0x9a, 0x1d, 0x7e,
+	0xd2, 0x23, 0xd5, 0x1b, 0x4b, 0x23, 0xf5, 0xf6, 0x99, 0x46, 0xea, 0xae, 0xf4, 0xc1, 0x75, 0x1f,
+	0x9f, 0xac, 0xe7, 0x7f, 0x07, 0x00, 0x00, 0xff, 0xff, 0x6a, 0x04, 0x5e, 0xfa, 0xbf, 0x0a, 0x00,
+	0x00,
 }
