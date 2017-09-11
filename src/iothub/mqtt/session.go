@@ -76,10 +76,10 @@ type mqttSession struct {
 	sendPacketChannel chan *mqttPacket
 	sendMsgChannel    chan *mqttMessage
 	waitgroup         sync.WaitGroup
-
-	// resume field
 	stats             *base.Stats
 	metrics           *base.Metrics
+
+	// resume field
 	msgs              []*mqttMessage
 	storedMsgs        map[uint16]*mqttMessage
 }
