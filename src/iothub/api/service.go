@@ -148,7 +148,34 @@ func (s *ApiService) Services(ctx context.Context, req *ServicesRequest) (*Servi
 }
 
 func (s *ApiService) Subscriptions(ctx context.Context, req *SubscriptionsRequest) (*SubscriptionsReply, error) {
-	return nil, nil
+	mgr := base.GetServiceManager()
+	reply := &SubscriptionsReply{
+		Header:        &ReplyMessageHeader{Success: true},
+		Subscriptions: []*SubscriptionInfo{},
+	}
+	switch req.Category {
+	case "list":
+		subs := mgr.GetSubscriptions(req.Service)
+		for _, sub := range subs {
+			reply.Subscriptions = append(reply.Subscriptions,
+				&SubscriptionInfo{
+					ClientId:  sub.ClientId,
+					Topic:     sub.Topic,
+					Attribute: sub.Attribute,
+				})
+		}
+	case "show":
+		sub := mgr.GetSubscription(req.Service, req.Subscription)
+		if sub != nil {
+			reply.Subscriptions = append(reply.Subscriptions,
+				&SubscriptionInfo{
+					ClientId:  sub.ClientId,
+					Topic:     sub.Topic,
+					Attribute: sub.Attribute,
+				})
+		}
+	}
+	return reply, nil
 }
 
 // Clients delegate clients command implementation in sentel
@@ -241,5 +268,30 @@ func (s *ApiService) Sessions(ctx context.Context, req *SessionsRequest) (*Sessi
 }
 
 func (s *ApiService) Topics(ctx context.Context, req *TopicsRequest) (*TopicsReply, error) {
-	return nil, nil
+	mgr := base.GetServiceManager()
+	reply := &TopicsReply{
+		Header: &ReplyMessageHeader{Success: true},
+		Topics: []*TopicInfo{},
+	}
+	switch req.Category {
+	case "list":
+		topics := mgr.GetTopics(req.Service)
+		for _, topic := range topics {
+			reply.Topics = append(reply.Topics,
+				&TopicInfo{
+					Topic:     topic.Topic,
+					Attribute: topic.Attribute,
+				})
+		}
+	case "show":
+		topic := mgr.GetTopic(req.Service, req.Topic)
+		if topic != nil {
+			reply.Topics = append(reply.Topics,
+				&TopicInfo{
+					Topic:     topic.Topic,
+					Attribute: topic.Attribute,
+				})
+		}
+	}
+	return reply, nil
 }

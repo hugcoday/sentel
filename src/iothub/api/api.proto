@@ -79,8 +79,23 @@ message PluginsRequest{}
 message PluginsReply{}
 message ServicesRequest{}
 message ServicesReply{}
-message SubscriptionsRequest{}
-message SubscriptionsReply{}
+
+// Subscription
+message SubscriptionsRequest{
+    string Service = 1;
+    string Category = 2;
+    string Subscription = 3;
+}
+message SubscriptionsReply{
+    ReplyMessageHeader Header = 1;
+    repeated SubscriptionInfo Subscriptions = 2;
+}
+
+message SubscriptionInfo {
+    string ClientId = 1;
+    string Topic = 2;
+    string Attribute = 3;
+}
 
 // Session
 message SessionsRequest{
@@ -108,8 +123,20 @@ message SessionInfo {
 }
 
 // Topic
-message TopicsRequest{}
-message TopicsReply{}
+message TopicsRequest{
+    string Service = 1;
+    string Category = 2;
+    string Topic = 3;
+}
+message TopicsReply{
+    ReplyMessageHeader Header = 1;
+    repeated TopicInfo Topics = 2;
+}
+
+message TopicInfo {
+    string Topic = 1;
+    string Attribute = 2;
+}
 
 // Message Header
 message ReplyMessageHeader {

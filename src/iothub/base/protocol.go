@@ -13,6 +13,7 @@ package base
 
 import "io"
 
+// ClientInfo
 type ClientInfo struct {
 	UserName     string
 	CleanSession bool
@@ -20,6 +21,7 @@ type ClientInfo struct {
 	ConnectTime  string
 }
 
+// SessionInfo
 type SessionInfo struct {
 	ClientId           string
 	CleanSession       bool
@@ -33,15 +35,30 @@ type SessionInfo struct {
 	CreatedAt          string
 }
 
+// RouteInfo
 type RouteInfo struct {
 	Topic string
 	Route []string
+}
+
+// TopicInfo
+type TopicInfo struct {
+	Topic     string
+	Attribute string
+}
+
+// SubscriptionInfo
+type SubscriptionInfo struct {
+	ClientId  string
+	Topic     string
+	Attribute string
 }
 
 type ProtocolService interface {
 	// Stats and Metrics
 	GetStats() *Stats
 	GetMetrics() *Metrics
+
 	// Client
 	GetClients() []*ClientInfo
 	GetClient(id string) *ClientInfo
@@ -54,6 +71,14 @@ type ProtocolService interface {
 	// Route info
 	GetRoutes() []*RouteInfo
 	GetRoute(id string) *RouteInfo
+
+	// Topic info
+	GetTopics() []*TopicInfo
+	GetTopic(id string) *TopicInfo
+
+	// SubscriptionInfo
+	GetSubscriptions() []*SubscriptionInfo
+	GetSubscription(id string) *SubscriptionInfo
 }
 
 type SessionObserver interface {

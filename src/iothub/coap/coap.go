@@ -141,3 +141,11 @@ func (m *coap) GetSession(id string) *base.SessionInfo                     { ret
 
 func (m *coap) GetRoutes() []*base.RouteInfo { return nil }
 func (m *coap) GetRoute() *base.RouteInfo    { return nil }
+
+// Topic info
+func (m *coap) GetTopics() []*base.TopicInfo       { return nil }
+func (m *coap) GetTopic(id string) *base.TopicInfo { return nil }
+
+// SubscriptionInfo
+func (m *coap) GetSubscriptions() []*base.SubscriptionInfo       { return nil }
+func (m *coap) GetSubscription(id string) *base.SubscriptionInfo { return nil }

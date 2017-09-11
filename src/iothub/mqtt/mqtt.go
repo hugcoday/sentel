@@ -120,17 +120,31 @@ func (m *mqtt) registerSession(s base.Session) {
 	m.sessions[s.Identifier()] = s
 	m.mutex.Unlock()
 }
+
+// Stats and Metrics
 func (m *mqtt) GetStats() *base.Stats     { return m.stats }
 func (m *mqtt) GetMetrics() *base.Metrics { return m.metrics }
 
+// Client
 func (m *mqtt) GetClients() []*base.ClientInfo       { return nil }
 func (m *mqtt) GetClient(id string) *base.ClientInfo { return nil }
 func (m *mqtt) KickoffClient(id string) error        { return nil }
 
+// Session Info
 func (m *mqtt) GetSessions(conditions map[string]bool) []*base.SessionInfo { return nil }
 func (m *mqtt) GetSession(id string) *base.SessionInfo                     { return nil }
-func (m *mqtt) GetRoutes() []*base.RouteInfo                               { return nil }
-func (m *mqtt) GetRoute() *base.RouteInfo                                  { return nil }
+
+// Route Info
+func (m *mqtt) GetRoutes() []*base.RouteInfo { return nil }
+func (m *mqtt) GetRoute() *base.RouteInfo    { return nil }
+
+// Topic info
+func (m *mqtt) GetTopics() []*base.TopicInfo       { return nil }
+func (m *mqtt) GetTopic(id string) *base.TopicInfo { return nil }
+
+// SubscriptionInfo
+func (m *mqtt) GetSubscriptions() []*base.SubscriptionInfo       { return nil }
+func (m *mqtt) GetSubscription(id string) *base.SubscriptionInfo { return nil }
 
 // Start is mainloop for mqtt service
 func (m *mqtt) Start() error {

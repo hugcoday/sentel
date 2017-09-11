@@ -258,3 +258,53 @@ func (s *ServiceManager) GetRoute(serviceName string, topic string) *RouteInfo {
 	}
 	return nil
 }
+
+// GetTopics return topic informaiton for specified service
+func (s *ServiceManager) GetTopics(serviceName string) []*TopicInfo {
+	topics := []*TopicInfo{}
+	services := s.GetProtocolServices(serviceName)
+
+	for _, service := range services {
+		list := service.GetTopics()
+		topics = append(topics, list...)
+	}
+	return topics
+}
+
+// GetTopic return topic information for specified topic
+func (s *ServiceManager) GetTopic(serviceName string, topic string) *TopicInfo {
+	services := s.GetProtocolServices(serviceName)
+
+	for _, service := range services {
+		info := service.GetTopic(topic)
+		if info != nil {
+			return info
+		}
+	}
+	return nil
+}
+
+// GetSubscriptions return subscription informaiton for specified service
+func (s *ServiceManager) GetSubscriptions(serviceName string) []*SubscriptionInfo {
+	subs := []*SubscriptionInfo{}
+	services := s.GetProtocolServices(serviceName)
+
+	for _, service := range services {
+		list := service.GetSubscriptions()
+		subs = append(subs, list...)
+	}
+	return subs
+}
+
+// GetSubscription return subscription information for specified topic
+func (s *ServiceManager) GetSubscription(serviceName string, sub string) *SubscriptionInfo {
+	services := s.GetProtocolServices(serviceName)
+
+	for _, service := range services {
+		info := service.GetSubscription(sub)
+		if info != nil {
+			return info
+		}
+	}
+	return nil
+}
