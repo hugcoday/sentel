@@ -15,20 +15,26 @@ package mqtt
 
 import (
 	"errors"
+	"strings"
 	"libs"
 
 	"github.com/golang/glog"
 )
 
+type subLeaf struct {
+	qos      uint8
+}
+
 type subNode struct {
-	id  string
-	qos uint8
+	level    string
+	children map[string]*subNode
+	subs     map[string]*subLeaf
 }
 
 type localStorage struct {
 	config   libs.Config
 	sessions map[string]*mqttSession
-	subs     map[string][]subNode
+	root     subNode
 }
 
 // Open local storage
@@ -147,17 +153,36 @@ func (l *localStorage) RegisterSession(s *mqttSession) error {
 // 	return nil, nil
 // }
 
+func (l *localStorage) findNode(node *subNode, lev string) *subNode {
+	for k, v := range node.children {
+		if k == lev {
+			return v
+		}
+	}
+
+	tmp := &subNode{
+		level:    lev,
+		children: make(map[string]*subNode),
+		subs:     make(map[string]*subLeaf),
+	}
+
+	node.children[lev] = tmp
+
+	return tmp
+}
+
 // Subscription
 func (l *localStorage) AddSubscription(sessionid string, topic string, qos uint8) error {
-	var node subNode
-	node.id = sessionid
-	node.qos = qos
-	if _, ok := l.subs[topic]; ok {
-		l.subs[topic] = append(l.subs[topic], node)
-	} else {
-		l.subs[topic] = make([]subNode, 1)
-		l.subs[topic][0] = node
+	var node *subNode = &l.root
+	s := strings.Split(topic, "/")
+	for _, level := range s {
+		node = l.findNode(node, level)
 	}
+
+	node.subs[sessionid] = &subLeaf {
+		qos:        qos,
+	}
+
 	return nil
 }
 
@@ -166,19 +191,14 @@ func (l *localStorage) RetainSubscription(sessionid string, topic string, qos ui
 }
 
 func (l *localStorage) RemoveSubscription(sessionid string, topic string) error {
-	if _, ok := l.subs[topic]; ok {
-		var index int
-		var value subNode
-		for index, value = range l.subs[topic] {
-			if value.id == sessionid {
-				break
-			}
-		}
+	var node *subNode = &l.root
+	s := strings.Split(topic, "/")
+	for _, level := range s {
+		node = l.findNode(node, level)
+	}
 
-		copy(l.subs[topic][index:], l.subs[topic][index+1:])
-		l.subs[topic] = l.subs[topic][:len(l.subs[topic])-1]
-	} else {
-		return errors.New("Topic name is not exists")
+	if _, ok := node.subs[sessionid]; ok {
+		delete(node.subs, sessionid)
 	}
 
 	return nil
@@ -228,7 +248,6 @@ func (l *localStorageFactory) New(c libs.Config) (Storage, error) {
 	d := &localStorage{
 		config:   c,
 		sessions: make(map[string]*mqttSession),
-		subs:     make(map[string][]subNode),
 	}
 	return d, nil
 }
