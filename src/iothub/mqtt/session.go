@@ -76,12 +76,12 @@ type mqttSession struct {
 	sendPacketChannel chan *mqttPacket
 	sendMsgChannel    chan *mqttMessage
 	waitgroup         sync.WaitGroup
+	stats             *base.Stats
+	metrics           *base.Metrics
 
 	// resume field
-	stats      *base.Stats
-	metrics    *base.Metrics
-	msgs       []*mqttMessage
-	storedMsgs map[uint16]*mqttMessage
+	msgs              []*mqttMessage
+	storedMsgs        map[uint16]*mqttMessage
 }
 
 // newMqttSession create new session  for each client connection
