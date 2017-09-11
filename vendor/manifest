@@ -8,6 +8,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/Knetic/govaluate",
+			"repository": "https://github.com/Knetic/govaluate",
+			"revision": "89a078c30383b31e1b72bec86907910914227d9f",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/Shopify/sarama",
 			"repository": "https://github.com/Shopify/sarama",
 			"revision": "2fd980e23bdcbb8edeb78fc704de0c39a6567ffc",
@@ -20,9 +26,77 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/astaxie/beego",
+			"repository": "https://github.com/astaxie/beego",
+			"revision": "3162da131da68f38e85765781c9d1cc419963e67",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/beego/goyaml2",
+			"repository": "https://github.com/beego/goyaml2",
+			"revision": "5545475820ddd4db3f90a4900d44b65d077d702d",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/beego/x2j",
+			"repository": "https://github.com/beego/x2j",
+			"revision": "a0352aadc5420072ebe692481a5d6913d77f8cf0",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/belogik/goes",
+			"repository": "https://github.com/belogik/goes",
+			"revision": "e54d722c3aff588e4c737fe11c07359019240824",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/bmizerany/pq",
 			"repository": "https://github.com/bmizerany/pq",
 			"revision": "da2b95e392c172df0be322eadc19a90b0f771548",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/bradfitz/gomemcache/memcache",
+			"repository": "https://github.com/bradfitz/gomemcache",
+			"revision": "1952afaa557dc08e8e0d89eafab110fb501c1a2b",
+			"branch": "master",
+			"path": "/memcache"
+		},
+		{
+			"importpath": "github.com/casbin/casbin",
+			"repository": "https://github.com/casbin/casbin",
+			"revision": "cd98ca66a8c4581860bea619c4986d3df3da6189",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/cloudflare/golz4",
+			"repository": "https://github.com/cloudflare/golz4",
+			"revision": "ef862a3cdc58a6f1fee4e3af3d44fbe279194cde",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/couchbase/go-couchbase",
+			"repository": "https://github.com/couchbase/go-couchbase",
+			"revision": "195945aa8fd23ea4772883396fd6b31730035eff",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/couchbase/gomemcached",
+			"repository": "https://github.com/couchbase/gomemcached",
+			"revision": "70b5cd4e71d0714b3aaf449c6d23bbe0dc094c37",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/couchbase/goutils/logging",
+			"repository": "https://github.com/couchbase/goutils",
+			"revision": "7a02f3df0ea980574216f469c192985a2083b957",
+			"branch": "master",
+			"path": "/logging"
+		},
+		{
+			"importpath": "github.com/cupcake/rdb",
+			"repository": "https://github.com/cupcake/rdb",
+			"revision": "43ba34106c765f2111c0dc7b74cdf8ee437411e0",
 			"branch": "master"
 		},
 		{
@@ -64,6 +138,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/edsrzf/mmap-go",
+			"repository": "https://github.com/edsrzf/mmap-go",
+			"revision": "0bce6a6887123b67a60366d2c9fe2dfb74289d2e",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/fatih/camelcase",
 			"repository": "https://github.com/fatih/camelcase",
 			"revision": "f6a740d52f961c60348ebb109adde9f4635d7540",
@@ -80,6 +160,20 @@
 			"repository": "https://github.com/fsnotify/fsnotify",
 			"revision": "4da3e2cfbabc9f751898f250b49f2439785783a1",
 			"branch": "master"
+		},
+		{
+			"importpath": "github.com/garyburd/redigo/internal",
+			"repository": "https://github.com/garyburd/redigo",
+			"revision": "b925df3cc15d8646e9b5b333ebaf3011385aba11",
+			"branch": "master",
+			"path": "/internal"
+		},
+		{
+			"importpath": "github.com/garyburd/redigo/redis",
+			"repository": "https://github.com/garyburd/redigo",
+			"revision": "b925df3cc15d8646e9b5b333ebaf3011385aba11",
+			"branch": "master",
+			"path": "/redis"
 		},
 		{
 			"importpath": "github.com/go-sql-driver/mysql",
@@ -104,6 +198,13 @@
 			"repository": "https://github.com/go-xorm/xorm",
 			"revision": "a10b5aba4bb97b30daa74e7c0363d3084ede0514",
 			"branch": "master"
+		},
+		{
+			"importpath": "github.com/gogo/protobuf/proto",
+			"repository": "https://github.com/gogo/protobuf",
+			"revision": "2adc21fd136931e0388e278825291678e1d98309",
+			"branch": "master",
+			"path": "/proto"
 		},
 		{
 			"importpath": "github.com/golang/glog",
@@ -290,6 +391,89 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/siddontang/go/filelock",
+			"repository": "https://github.com/siddontang/go",
+			"revision": "cb568a3e5cc06256f91a2da5a87455f717eb33f4",
+			"branch": "master",
+			"path": "/filelock"
+		},
+		{
+			"importpath": "github.com/siddontang/go/hack",
+			"repository": "https://github.com/siddontang/go",
+			"revision": "cb568a3e5cc06256f91a2da5a87455f717eb33f4",
+			"branch": "master",
+			"path": "/hack"
+		},
+		{
+			"importpath": "github.com/siddontang/go/ioutil2",
+			"repository": "https://github.com/siddontang/go",
+			"revision": "cb568a3e5cc06256f91a2da5a87455f717eb33f4",
+			"branch": "master",
+			"path": "/ioutil2"
+		},
+		{
+			"importpath": "github.com/siddontang/go/log",
+			"repository": "https://github.com/siddontang/go",
+			"revision": "cb568a3e5cc06256f91a2da5a87455f717eb33f4",
+			"branch": "master",
+			"path": "/log"
+		},
+		{
+			"importpath": "github.com/siddontang/go/num",
+			"repository": "https://github.com/siddontang/go",
+			"revision": "cb568a3e5cc06256f91a2da5a87455f717eb33f4",
+			"branch": "master",
+			"path": "/num"
+		},
+		{
+			"importpath": "github.com/siddontang/go/snappy",
+			"repository": "https://github.com/siddontang/go",
+			"revision": "cb568a3e5cc06256f91a2da5a87455f717eb33f4",
+			"branch": "master",
+			"path": "/snappy"
+		},
+		{
+			"importpath": "github.com/siddontang/go/sync2",
+			"repository": "https://github.com/siddontang/go",
+			"revision": "cb568a3e5cc06256f91a2da5a87455f717eb33f4",
+			"branch": "master",
+			"path": "/sync2"
+		},
+		{
+			"importpath": "github.com/siddontang/ledisdb/config",
+			"repository": "https://github.com/siddontang/ledisdb",
+			"revision": "57a07edd1a2e45e5e812db7aabfc9c7fb43dc7e6",
+			"branch": "master",
+			"path": "/config"
+		},
+		{
+			"importpath": "github.com/siddontang/ledisdb/ledis",
+			"repository": "https://github.com/siddontang/ledisdb",
+			"revision": "57a07edd1a2e45e5e812db7aabfc9c7fb43dc7e6",
+			"branch": "master",
+			"path": "/ledis"
+		},
+		{
+			"importpath": "github.com/siddontang/ledisdb/rpl",
+			"repository": "https://github.com/siddontang/ledisdb",
+			"revision": "57a07edd1a2e45e5e812db7aabfc9c7fb43dc7e6",
+			"branch": "master",
+			"path": "/rpl"
+		},
+		{
+			"importpath": "github.com/siddontang/ledisdb/store",
+			"repository": "https://github.com/siddontang/ledisdb",
+			"revision": "57a07edd1a2e45e5e812db7aabfc9c7fb43dc7e6",
+			"branch": "master",
+			"path": "/store"
+		},
+		{
+			"importpath": "github.com/siddontang/rdb",
+			"repository": "https://github.com/siddontang/rdb",
+			"revision": "fc89ed2e418d27e3ea76e708e54276d2b44ae9cf",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/spf13/afero",
 			"repository": "https://github.com/spf13/afero",
 			"revision": "ee1bd8ee15a1306d1f9201acc41ef39cd9f99a1b",
@@ -333,6 +517,20 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/ssdb/gossdb/ssdb",
+			"repository": "https://github.com/ssdb/gossdb",
+			"revision": "96753833c5cc3ea638335ecf9b1cf1b5f8901ca3",
+			"branch": "master",
+			"path": "/ssdb"
+		},
+		{
+			"importpath": "github.com/syndtr/goleveldb/leveldb",
+			"repository": "https://github.com/syndtr/goleveldb",
+			"revision": "b89cc31ef7977104127d34c1bd31ebd1a9db2199",
+			"branch": "master",
+			"path": "/leveldb"
+		},
+		{
 			"importpath": "github.com/valyala/bytebufferpool",
 			"repository": "https://github.com/valyala/bytebufferpool",
 			"revision": "e746df99fe4a3986f4d4f79e13c1e0117ce9c2f7",
@@ -342,6 +540,12 @@
 			"importpath": "github.com/valyala/fasttemplate",
 			"repository": "https://github.com/valyala/fasttemplate",
 			"revision": "dcecefd839c4193db0d35b88ec65b4c12d360ab0",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/wendal/errors",
+			"repository": "https://github.com/wendal/errors",
+			"revision": "f66c77a7882b399795a8987ebf87ef64a427417e",
 			"branch": "master"
 		},
 		{

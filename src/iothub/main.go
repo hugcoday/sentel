@@ -16,6 +16,7 @@ import (
 	"flag"
 	"iothub/api"
 	"iothub/base"
+	"iothub/dashboard"
 	"iothub/mqtt"
 	"libs"
 
@@ -61,5 +62,5 @@ func init() {
 	base.RegisterService("mqtt:ssl", mqtt.Configs, &mqtt.MqttFactory{})
 	base.RegisterService("mqtt:ws", mqtt.Configs, &mqtt.MqttFactory{})
 	base.RegisterService("api", api.Configs, &api.ApiServiceFactory{})
-	//	base.RegisterService("dashboard", dashboard.Configs, &dashboard.dashboardFactory{})
+	base.RegisterService("dashboard", dashboard.Configs, &dashboard.DashboardServiceFactory{})
 }
