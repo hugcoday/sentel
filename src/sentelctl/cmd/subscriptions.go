@@ -14,6 +14,7 @@ package cmd
 
 import (
 	"fmt"
+	pb "iothub/api"
 
 	"github.com/spf13/cobra"
 )
@@ -22,7 +23,48 @@ var subscriptionsCmd = &cobra.Command{
 	Use:   "subscriptions",
 	Short: "List all subscriptions of the broker",
 	Long:  `All software has versions. This is Hugo's`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Subscriptions:")
-	},
+	Run:   subscriptionsCmdHandler,
+}
+
+func subscriptionsCmdHandler(cmd *cobra.Command, args []string) {
+	if len(args) < 1 || len(args) > 2 {
+		fmt.Println("Usage error, please see help")
+		return
+	}
+
+	req := &pb.SubscriptionsRequest{Category: args[0]}
+
+	switch args[0] {
+	case "list": // Print topic list
+		reply, err := sentelApi.Subscriptions(req)
+		if err != nil {
+			fmt.Println("Error:%v", err)
+			return
+		}
+		for _, sub := range reply.Subscriptions {
+			fmt.Printf("clientid:%s, topic:%s, attribute:%s",
+				sub.ClientId, sub.Topic, sub.Attribute)
+		}
+	case "show":
+		if len(args) != 2 {
+			fmt.Println("Usage error, please see help")
+			return
+		}
+		req.Subscription = args[1]
+		if reply, err := sentelApi.Subscriptions(req); err != nil {
+			fmt.Println("Error:%v", err)
+			return
+		} else if len(reply.Subscriptions) != 1 {
+			fmt.Println("Error:sentel server return multiple subscriptions")
+			return
+		} else {
+			sub := reply.Subscriptions[0]
+			fmt.Printf("clientid:%s, topic:%s, attribute:%s",
+				sub.ClientId, sub.Topic, sub.Attribute)
+
+		}
+	default:
+		fmt.Println("Usage error, please see help")
+		return
+	}
 }

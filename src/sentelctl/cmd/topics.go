@@ -14,6 +14,7 @@ package cmd
 
 import (
 	"fmt"
+	pb "iothub/api"
 
 	"github.com/spf13/cobra"
 )
@@ -21,8 +22,46 @@ import (
 var topicsCmd = &cobra.Command{
 	Use:   "topics",
 	Short: "List all topics of the broker",
-	Long:  `All software has versions. This is Hugo's`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Topics:")
-	},
+	Long:  `List All topics of the broker and inquery detail topic information`,
+	Run:   topicsCmdHandler,
+}
+
+func topicsCmdHandler(cmd *cobra.Command, args []string) {
+	if len(args) < 1 || len(args) > 2 {
+		fmt.Println("Usage error, please see help")
+		return
+	}
+
+	req := &pb.TopicsRequest{Category: args[0]}
+
+	switch args[0] {
+	case "list": // Print topic list
+		reply, err := sentelApi.Topics(req)
+		if err != nil {
+			fmt.Println("Error:%v", err)
+			return
+		}
+		for _, topic := range reply.Topics {
+			fmt.Printf("%s, %s", topic.Topic, topic.Attribute)
+		}
+	case "show":
+		if len(args) != 2 {
+			fmt.Println("Usage error, please see help")
+			return
+		}
+		req.Topic = args[1]
+		if reply, err := sentelApi.Topics(req); err != nil {
+			fmt.Println("Error:%v", err)
+			return
+		} else if len(reply.Topics) != 1 {
+			fmt.Println("Error:sentel server return multiple topics")
+			return
+		} else {
+			topic := reply.Topics[0]
+			fmt.Printf("%s, %s", topic.Topic, topic.Attribute)
+		}
+	default:
+		fmt.Println("Usage error, please see help")
+		return
+	}
 }
