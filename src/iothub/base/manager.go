@@ -60,6 +60,8 @@ func NewServiceManager(c libs.Config) (*ServiceManager, error) {
 	services := strings.Split(items, ",")
 	// Create service for each protocol
 	for _, name := range services {
+		// Format service name
+		name = strings.Trim(name, " ")
 		ch := make(chan ServiceCommand)
 		service, err := CreateService(name, c, ch)
 		if err != nil {

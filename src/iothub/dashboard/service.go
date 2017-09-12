@@ -42,6 +42,7 @@ func (m *DashboardServiceFactory) New(protocol string, c libs.Config, ch chan ba
 	if addr, err := c.String("dashboard", "listen"); err == nil && addr != "" {
 		service.listen = addr
 	}
+	beego.SetViewsPath("../src/iothub/dashboard/views")
 
 	return service, nil
 

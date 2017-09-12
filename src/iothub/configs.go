@@ -17,7 +17,7 @@ var allDefaultConfigs = map[string]map[string]string{
 		"host":     "localhost:4145",
 		"loglevel": "debug",
 		"kafka":    "",
-		"services": "mqtt:tcp,coap:udp, mqtt:ws, mqtt:ssl, mqtt:api",
+		"services": "mqtt:tcp,coap:udp, mqtt:ws, mqtt:ssl, api,dashboard",
 	},
 	"storage": {
 		"repository": "local",

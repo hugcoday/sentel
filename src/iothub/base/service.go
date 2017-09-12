@@ -44,16 +44,21 @@ var (
 
 // RegisterService register service with name and protocol specified
 func RegisterService(name string, configs map[string]string, factory ServiceFactory) {
+	if _, ok := _serviceFactories[name]; ok {
+		glog.Errorf("Service '%s' is not registered", name)
+	}
 	libs.RegisterConfig(name, configs)
 	_serviceFactories[name] = factory
 }
 
 // CreateService create service instance according to service name
 func CreateService(name string, c libs.Config, ch chan ServiceCommand) (Service, error) {
-	if _, ok := _serviceFactories[name]; ok {
-		return nil, fmt.Errorf("Service '%s' is not registered", name)
+	glog.Infof("Creating service '%s'...", name)
+
+	if factory, ok := _serviceFactories[name]; ok && factory != nil {
+		return _serviceFactories[name].New(name, c, ch)
 	}
-	return _serviceFactories[name].New(name, c, ch)
+	return nil, fmt.Errorf("Invalid service '%s'", name)
 }
 
 // CheckAllRegisteredServices check all registered service simplily
