@@ -13,13 +13,13 @@
 package dashboard
 
 import (
+	"html/template"
+	"io"
 	"iothub/base"
 	"libs"
 	"sync"
 
-	_ "iothub/dashboard/routers"
-
-	"github.com/astaxie/beego"
+	"github.com/labstack/echo"
 )
 
 type DashboardService struct {
@@ -27,6 +27,7 @@ type DashboardService struct {
 	chn    chan base.ServiceCommand
 	wg     sync.WaitGroup
 	listen string
+	e      *echo.Echo
 }
 
 // DashboardServiceFactory
@@ -37,15 +38,20 @@ func (m *DashboardServiceFactory) New(protocol string, c libs.Config, ch chan ba
 	service := &DashboardService{
 		config: c, wg: sync.WaitGroup{},
 		listen: "localhost:8080",
+		e:      echo.New(),
 	}
+
+	//	service.e.Renderer = &Template{
+	//		templates: template.Must(template.ParseGlob("../src/iothub/dashboard/views/*.html")),
+	//	}
 
 	if addr, err := c.String("dashboard", "listen"); err == nil && addr != "" {
 		service.listen = addr
 	}
-	beego.SetViewsPath("../src/iothub/dashboard/views")
 
+	service.e.Static("/static", "../src/iothub/dashboard/static")
+	service.e.File("/", "../src/iothub/dashboard/views/index.html")
 	return service, nil
-
 }
 
 // Info
@@ -58,8 +64,8 @@ func (m *DashboardService) Info() *base.ServiceInfo {
 // Start
 func (s *DashboardService) Start() error {
 	go func(s *DashboardService) {
-		beego.Run(s.listen)
 		s.wg.Add(1)
+		s.e.Start(s.listen)
 	}(s)
 	return nil
 }
@@ -74,4 +80,12 @@ func (s *DashboardService) Stop() {
 // Wait
 func (s *DashboardService) Wait() {
 	s.wg.Wait()
+}
+
+type Template struct {
+	templates *template.Template
+}
+
+func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.templates.ExecuteTemplate(w, name, data)
 }
