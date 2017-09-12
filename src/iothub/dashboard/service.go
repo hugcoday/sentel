@@ -49,7 +49,9 @@ func (m *DashboardServiceFactory) New(protocol string, c libs.Config, ch chan ba
 		service.listen = addr
 	}
 
-	service.e.Static("/static", "../src/iothub/dashboard/static")
+	service.e.Static("views/assets", "../src/iothub/dashboard/assets")
+	service.e.Static("views/static", "../src/iothub/dashboard/static")
+	service.e.Static("views", "../src/iothub/dashboard/views")
 	service.e.File("/", "../src/iothub/dashboard/views/index.html")
 	return service, nil
 }
