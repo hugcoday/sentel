@@ -27,7 +27,6 @@ type DashboardService struct {
 	chn    chan base.ServiceCommand
 	wg     sync.WaitGroup
 	listen string
-	e      *echo.Echo
 }
 
 // DashboardServiceFactory
@@ -38,7 +37,6 @@ func (m *DashboardServiceFactory) New(protocol string, c libs.Config, ch chan ba
 	service := &DashboardService{
 		config: c, wg: sync.WaitGroup{},
 		listen: "localhost:8080",
-		e:      echo.New(),
 	}
 
 	//	service.e.Renderer = &Template{
@@ -49,10 +47,6 @@ func (m *DashboardServiceFactory) New(protocol string, c libs.Config, ch chan ba
 		service.listen = addr
 	}
 
-	service.e.Static("views/assets", "../src/iothub/dashboard/assets")
-	service.e.Static("views/static", "../src/iothub/dashboard/static")
-	service.e.Static("views", "../src/iothub/dashboard/views")
-	service.e.File("/", "../src/iothub/dashboard/views/index.html")
 	return service, nil
 }
 
@@ -67,7 +61,6 @@ func (m *DashboardService) Info() *base.ServiceInfo {
 func (s *DashboardService) Start() error {
 	go func(s *DashboardService) {
 		s.wg.Add(1)
-		s.e.Start(s.listen)
 	}(s)
 	return nil
 }
