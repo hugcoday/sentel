@@ -13,7 +13,7 @@ all: build
 
 .PHONY: build
 build: .GOPATH/.ok conductor hubmanager iothub sentelctl tools
-	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/iothub
+	@echo "building completed!" 
 
 ### Code not in the repository root? Another binary? Add to the path like this.
 # .PHONY: otherbin
@@ -23,26 +23,31 @@ build: .GOPATH/.ok conductor hubmanager iothub sentelctl tools
 
 .PHONY: conductor
 conductor: .GOPATH/.ok
+	@echo $@
 	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/conductor
 
 
 .PHONY: hubmanager
 hubmanager: .GOPATH/.ok
+	@echo $@
 	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/hubmanager
 
 
 .PHONY: iothub
 iothub: .GOPATH/.ok
+	@echo $@
 	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/iothub
 
 
 .PHONY: sentelctl
 sentelctl: .GOPATH/.ok
+	@echo $@
 	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/sentelctl
 
 
 .PHONY: tools
 tools: .GOPATH/.ok
+	@echo $@
 	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/tools/mqtt
 
 ##### ^^^^^^ EDIT ABOVE ^^^^^^ #####
