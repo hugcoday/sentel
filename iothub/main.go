@@ -17,7 +17,6 @@ import (
 
 	"github.com/cloustone/sentel/iothub/api"
 	"github.com/cloustone/sentel/iothub/base"
-	"github.com/cloustone/sentel/iothub/dashboard"
 	"github.com/cloustone/sentel/iothub/mqtt"
 	"github.com/cloustone/sentel/libs"
 
@@ -62,6 +61,6 @@ func init() {
 	base.RegisterService("mqtt:tcp", mqtt.Configs, &mqtt.MqttFactory{})
 	base.RegisterService("mqtt:ssl", mqtt.Configs, &mqtt.MqttFactory{})
 	base.RegisterService("mqtt:ws", mqtt.Configs, &mqtt.MqttFactory{})
-	base.RegisterService("api", api.Configs, &api.RpcApiServiceFactory{})
-	base.RegisterService("dashboard", dashboard.Configs, &dashboard.DashboardServiceFactory{})
+	base.RegisterService("rpc-api", api.RpcConfigs, &api.RpcApiServiceFactory{})
+	base.RegisterService("rest-api", api.RestConfigs, &api.RestApiServiceFactory{})
 }
