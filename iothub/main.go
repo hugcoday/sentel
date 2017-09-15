@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	configFileFullPath = flag.String("c", "../etc/sentel/iothub.conf", "config file")
+	configFileFullPath = flag.String("c", "./etc/sentel/iothub.conf", "config file")
 )
 
 func main() {
