@@ -62,6 +62,6 @@ func init() {
 	base.RegisterService("mqtt:tcp", mqtt.Configs, &mqtt.MqttFactory{})
 	base.RegisterService("mqtt:ssl", mqtt.Configs, &mqtt.MqttFactory{})
 	base.RegisterService("mqtt:ws", mqtt.Configs, &mqtt.MqttFactory{})
-	base.RegisterService("api", api.Configs, &api.ApiServiceFactory{})
+	base.RegisterService("api", api.Configs, &api.RpcApiServiceFactory{})
 	base.RegisterService("dashboard", dashboard.Configs, &dashboard.DashboardServiceFactory{})
 }
