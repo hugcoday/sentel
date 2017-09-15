@@ -12,12 +12,7 @@
 
 package api
 
-var RpcConfigs = map[string]string{
-	"listen":   "localhost:1883",
-	"loglevel": "debug",
-}
-
-var RestConfigs = map[string]string{
-	"listen":   "localhost:8080",
+var Configs = map[string]string{
+	"listen":   "localhost:50051",
 	"loglevel": "debug",
 }

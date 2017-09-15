@@ -26,7 +26,7 @@ import (
 )
 
 var (
-	configFileFullPath = flag.String("c", "./etc/sentel/hubmanager.conf", "config file")
+	configFileFullPath = flag.String("c", "hubmanager.conf", "config file")
 )
 
 func main() {

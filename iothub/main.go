@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	configFileFullPath = flag.String("c", "../iothub/conf/sentel/iothub.conf", "config file")
+	configFileFullPath = flag.String("c", "iothub.conf", "config file")
 )
 
 func main() {
@@ -61,6 +61,5 @@ func init() {
 	base.RegisterService("mqtt:tcp", mqtt.Configs, &mqtt.MqttFactory{})
 	base.RegisterService("mqtt:ssl", mqtt.Configs, &mqtt.MqttFactory{})
 	base.RegisterService("mqtt:ws", mqtt.Configs, &mqtt.MqttFactory{})
-	base.RegisterService("rpc-api", api.RpcConfigs, &api.RpcApiServiceFactory{})
-	base.RegisterService("rest-api", api.RestConfigs, &api.RestApiServiceFactory{})
+	base.RegisterService("api", api.Configs, &api.ApiServiceFactory{})
 }

@@ -110,7 +110,7 @@ func (c *globalConfig) MustInt(section string, key string) int {
 
 func (c *globalConfig) MustString(section string, key string) string {
 	if _allConfigSections[section] == nil {
-		glog.Fatal("Invalid configuration item:%s:%s", section, key)
+		glog.Fatalf("Invalid configuration item:%s:%s", section, key)
 		os.Exit(0)
 	}
 	return _allConfigSections[section].items[key]
@@ -123,7 +123,7 @@ func (c *globalConfig) SetValue(section string, key string, valu string) {
 func NewWithConfigFile(fileName string, moreFiles ...string) (Config, error) {
 	cfg, err := goconfig.LoadConfigFile(fileName, moreFiles...)
 	if err != nil {
-		return nil, fmt.Errorf("Configuration loading failed:%s", err)
+		glog.Warningf("Configuration loading failed:%s", err)
 	}
 	// For all config section in _allConfigSections, get section and item to overide
 	for name, section := range _allConfigSections {
