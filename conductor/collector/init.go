@@ -12,31 +12,6 @@
 
 package collector
 
-import "encoding/json"
-
-// Notification objects from iothub node
-
-// Metric
-type Metric struct {
-	NodeName string            `json:"nodeName"`
-	Servide  string            `json:"service"`
-	Values   map[string]uint64 `json:"values"`
-	encoded  []byte
-	err      error
-}
-
-func (p *Metric) ensureEncoded() {
-	if p.encoded == nil && p.err == nil {
-		p.encoded, p.err = json.Marshal(p)
-	}
-}
-
-func (p *Metric) Length() int {
-	p.ensureEncoded()
-	return len(p.encoded)
-}
-
-func (p *Metric) Encode() ([]byte, error) {
-	p.ensureEncoded()
-	return p.encoded, p.err
+func init() {
+	registerTopicObject(&Stats{})
 }

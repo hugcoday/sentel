@@ -13,6 +13,7 @@
 package collector
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -95,31 +96,5 @@ func (s *CollectorService) Stop() {
 
 // handleNotifications handle notification from kafka
 func (s *CollectorService) handleNotifications(topic string, value []byte) error {
-	switch topic {
-	default:
-		return s.handleSessionNotifications(value)
-	}
-	return nil
-}
-
-// handleSessionNotifications handle session notification  from kafka
-func (s *CollectorService) handleSessionNotifications(value []byte) error {
-	/*
-		// Decode value received form mqtt node
-		var topics []SessionTopic
-		if err := json.Unmarshal(value, &topics); err != nil {
-			glog.Errorf("Mqtt session notifications failure:%s", err)
-			return err
-		}
-		// Get local ip address
-		for _, topic := range topics {
-			switch topic.Action {
-			case ObjectActionUpdate:
-			case ObjectActionDelete:
-			case ObjectActionRegister:
-			default:
-			}
-		}
-	*/
-	return nil
+	return handleTopicObject(s, context.Background(), topic, value)
 }

@@ -16,7 +16,9 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
+	"github.com/cloustone/sentel/conductor/collector"
 	"github.com/cloustone/sentel/libs"
 
 	"github.com/golang/glog"
@@ -31,9 +33,11 @@ const (
 
 type ServiceManager struct {
 	sync.Once
+	nodeName string                         // Node name
 	config   libs.Config                    // Global config
 	services map[string]Service             // All service created by config.Protocols
 	chs      map[string]chan ServiceCommand // Notification channel for each service
+	ticker   *time.Ticker                   // Timer to scheduler report  service
 }
 
 const serviceManagerVersion = "0.1"
@@ -83,12 +87,62 @@ func (s *ServiceManager) Start() error {
 	for _, service := range s.services {
 		go service.Start()
 	}
+	// launch hub reporter
+	s.launchHubReporter()
 	// Wait all service to terminate in main context
 	for name, ch := range s.chs {
 		<-ch
 		glog.Info("Servide(%s) is terminated", name)
 	}
 	return nil
+}
+
+// launchHubReporter launch hub stats reporer
+func (s *ServiceManager) launcHubReporter() {
+	// Launch timer scheduler
+	duration, err := s.config.Int("iothub", "report_duration")
+	if err != nil {
+		duration = 1
+	}
+	if s.ticker == nil {
+		s.ticker = time.NewTicker(duration * time.Second)
+	}
+	go func(*ServiceManager) {
+		for {
+			select {
+			case <-s.ticker.C:
+				s.reportHubStats()
+			}
+		}
+	}(s)
+}
+
+// stopHubReporter stop hub stats reporter
+func (s *ServiceManager) stopHubReprter() {
+	if s.ticker != nil {
+		s.ticker.Stop()
+	}
+}
+
+// reportHubStats report current iothub stats
+func (s *ServiceManager) reportHubStats() {
+	// Stats
+	stats := s.GetStats("mqtt")
+	collector.AsyncReport(s.config, collector.TopicNameStats,
+		&collector.Stats{
+			NodeName: s.nodeName,
+			Service:  "mqtt",
+			Values:   stats.Get(),
+		})
+
+	// Metrics
+	metrics := s.GetMetrics("mqtt")
+	collector.AsyncReport(s.config, collector.TopicNameMetrics,
+		&collector.Metrics{
+			NodeName: s.nodeName,
+			Service:  "mqtt",
+			Values:   metrics.Get(),
+		})
 }
 
 // StartService launch specified service
@@ -129,6 +183,17 @@ func (s *ServiceManager) GetServicesByName(name string) []Service {
 	for k, service := range s.services {
 		if strings.IndexAny(k, name) >= 0 {
 			services = append(services, service)
+		}
+	}
+	return services
+}
+
+// GetAllProtocolServices() return all protocol services
+func (s *ServiceManager) GetAllProtocolServices() []ProtocolService {
+	services := []ProtocolService{}
+	for k, service := range s.services {
+		if p, ok := service.(ProtocolService); ok {
+			services = append(services, p)
 		}
 	}
 	return services

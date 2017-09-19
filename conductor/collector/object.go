@@ -12,6 +12,11 @@
 
 package collector
 
+import (
+	"context"
+	"fmt"
+)
+
 const (
 	TopicNameNode         = "/cluster/nodes"
 	TopicNameClient       = "/cluster/clients"
@@ -29,3 +34,23 @@ const (
 	ObjectActionDelete     = "delete"
 	ObjectActionUpdate     = "update"
 )
+
+type topicObject interface {
+	name() string
+	handleTopic(s *CollectorService, ctx context.Context, value []byte) error
+}
+
+var _topicObjects map[string]topicObject = make(map[string]topicObject)
+
+func registerTopicObject(t topicObject) {
+	if _, ok := _topicObjects[t.name()]; !ok {
+		_topicObjects[t.name()] = t
+	}
+}
+
+func handleTopicObject(s *CollectorService, ctx context.Context, topic string, value []byte) error {
+	if obj, ok := _topicObjects[topic]; ok && obj != nil {
+		return obj.handleTopic(s, ctx, value)
+	}
+	return fmt.Errorf("No valid handler for topic:%s", topic)
+}
