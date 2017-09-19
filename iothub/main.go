@@ -18,6 +18,7 @@ import (
 	"github.com/cloustone/sentel/iothub/api"
 	"github.com/cloustone/sentel/iothub/base"
 	"github.com/cloustone/sentel/iothub/mqtt"
+	"github.com/cloustone/sentel/iothub/report"
 	"github.com/cloustone/sentel/libs"
 
 	"github.com/golang/glog"
@@ -51,7 +52,7 @@ func main() {
 		glog.Fatal("Failed to launch ServiceManager")
 		return
 	}
-	glog.Error(mgr.Start())
+	glog.Error(mgr.Run())
 }
 
 func init() {
@@ -62,4 +63,5 @@ func init() {
 	base.RegisterService("mqtt:ssl", mqtt.Configs, &mqtt.MqttFactory{})
 	base.RegisterService("mqtt:ws", mqtt.Configs, &mqtt.MqttFactory{})
 	base.RegisterService("api", api.Configs, &api.ApiServiceFactory{})
+	base.RegisterService("report", report.Configs, &report.ReportServiceFactory{})
 }

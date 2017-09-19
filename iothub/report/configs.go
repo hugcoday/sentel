@@ -10,33 +10,6 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package collector
+package report
 
-import "encoding/json"
-
-// Notification objects from iothub node
-
-// Node
-type Node struct {
-	NodeName  string `json:"nodeName"`
-	NodeIp    string `json:"nodeIp"`
-	CreatedAt string `json:"name"`
-	encoded   []byte
-	err       error
-}
-
-func (p *Node) ensureEncoded() {
-	if p.encoded == nil && p.err == nil {
-		p.encoded, p.err = json.Marshal(p)
-	}
-}
-
-func (p *Node) Length() int {
-	p.ensureEncoded()
-	return len(p.encoded)
-}
-
-func (p *Node) Encode() ([]byte, error) {
-	p.ensureEncoded()
-	return p.encoded, p.err
-}
+var Configs = map[string]string{}

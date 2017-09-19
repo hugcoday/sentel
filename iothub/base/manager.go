@@ -16,13 +16,17 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
-	"github.com/cloustone/sentel/conductor/collector"
 	"github.com/cloustone/sentel/libs"
 
 	"github.com/golang/glog"
 )
+
+type HubNodeInfo struct {
+	NodeName  string
+	NodeIp    string
+	CreatedAt string
+}
 
 type ServiceCommand int
 
@@ -37,7 +41,6 @@ type ServiceManager struct {
 	config   libs.Config                    // Global config
 	services map[string]Service             // All service created by config.Protocols
 	chs      map[string]chan ServiceCommand // Notification channel for each service
-	ticker   *time.Ticker                   // Timer to scheduler report  service
 }
 
 const serviceManagerVersion = "0.1"
@@ -82,67 +85,17 @@ func NewServiceManager(c libs.Config) (*ServiceManager, error) {
 }
 
 // Run launch all serices and wait to terminate
-func (s *ServiceManager) Start() error {
+func (s *ServiceManager) Run() error {
 	// Run all service
 	for _, service := range s.services {
 		go service.Start()
 	}
-	// launch hub reporter
-	s.launchHubReporter()
 	// Wait all service to terminate in main context
 	for name, ch := range s.chs {
 		<-ch
 		glog.Info("Servide(%s) is terminated", name)
 	}
 	return nil
-}
-
-// launchHubReporter launch hub stats reporer
-func (s *ServiceManager) launchHubReporter() {
-	// Launch timer scheduler
-	duration, err := s.config.Int("iothub", "report_duration")
-	if err != nil {
-		duration = 1
-	}
-	if s.ticker == nil {
-		s.ticker = time.NewTicker(time.Duration(duration) * time.Second)
-	}
-	go func(*ServiceManager) {
-		for {
-			select {
-			case <-s.ticker.C:
-				s.reportHubStats()
-			}
-		}
-	}(s)
-}
-
-// stopHubReporter stop hub stats reporter
-func (s *ServiceManager) stopHubReprter() {
-	if s.ticker != nil {
-		s.ticker.Stop()
-	}
-}
-
-// reportHubStats report current iothub stats
-func (s *ServiceManager) reportHubStats() {
-	// Stats
-	stats := s.GetStats("mqtt")
-	collector.AsyncReport(s.config, collector.TopicNameStats,
-		&collector.Stats{
-			NodeName: s.nodeName,
-			Service:  "mqtt",
-			Values:   stats,
-		})
-
-	// Metrics
-	metrics := s.GetMetrics("mqtt")
-	collector.AsyncReport(s.config, collector.TopicNameMetric,
-		&collector.Metric{
-			NodeName: s.nodeName,
-			Service:  "mqtt",
-			Values:   metrics,
-		})
 }
 
 // StartService launch specified service
@@ -210,6 +163,11 @@ func (s *ServiceManager) GetProtocolServices(name string) []ProtocolService {
 		}
 	}
 	return services
+}
+
+// Node info
+func (s *ServiceManager) GetNodeInfo() *HubNodeInfo {
+	return &HubNodeInfo{}
 }
 
 // Version
