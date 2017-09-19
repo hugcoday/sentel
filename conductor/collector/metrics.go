@@ -19,7 +19,7 @@ import "encoding/json"
 // Metric
 type Metric struct {
 	NodeName string            `json:"nodeName"`
-	Servide  string            `json:"service"`
+	Service  string            `json:"service"`
 	Values   map[string]uint64 `json:"values"`
 	encoded  []byte
 	err      error

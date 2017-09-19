@@ -22,7 +22,7 @@ import (
 // Stat
 type Stats struct {
 	NodeName string            `json:"nodeName"`
-	Servide  string            `json:"service"`
+	Service  string            `json:"service"`
 	Action   string            `json:"action"`
 	Values   map[string]uint64 `json:"values"`
 	encoded  []byte

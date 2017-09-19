@@ -98,14 +98,14 @@ func (s *ServiceManager) Start() error {
 }
 
 // launchHubReporter launch hub stats reporer
-func (s *ServiceManager) launcHubReporter() {
+func (s *ServiceManager) launchHubReporter() {
 	// Launch timer scheduler
 	duration, err := s.config.Int("iothub", "report_duration")
 	if err != nil {
 		duration = 1
 	}
 	if s.ticker == nil {
-		s.ticker = time.NewTicker(duration * time.Second)
+		s.ticker = time.NewTicker(time.Duration(duration) * time.Second)
 	}
 	go func(*ServiceManager) {
 		for {
@@ -132,16 +132,16 @@ func (s *ServiceManager) reportHubStats() {
 		&collector.Stats{
 			NodeName: s.nodeName,
 			Service:  "mqtt",
-			Values:   stats.Get(),
+			Values:   stats,
 		})
 
 	// Metrics
 	metrics := s.GetMetrics("mqtt")
-	collector.AsyncReport(s.config, collector.TopicNameMetrics,
-		&collector.Metrics{
+	collector.AsyncReport(s.config, collector.TopicNameMetric,
+		&collector.Metric{
 			NodeName: s.nodeName,
 			Service:  "mqtt",
-			Values:   metrics.Get(),
+			Values:   metrics,
 		})
 }
 
@@ -191,7 +191,7 @@ func (s *ServiceManager) GetServicesByName(name string) []Service {
 // GetAllProtocolServices() return all protocol services
 func (s *ServiceManager) GetAllProtocolServices() []ProtocolService {
 	services := []ProtocolService{}
-	for k, service := range s.services {
+	for _, service := range s.services {
 		if p, ok := service.(ProtocolService); ok {
 			services = append(services, p)
 		}
