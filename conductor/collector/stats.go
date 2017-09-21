@@ -17,8 +17,6 @@ import (
 	"encoding/json"
 )
 
-// Notification objects from iothub node
-
 // Stat
 type Stats struct {
 	NodeName string            `json:"nodeName"`

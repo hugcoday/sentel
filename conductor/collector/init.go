@@ -13,5 +13,6 @@
 package collector
 
 func init() {
+	registerTopicObject(&Node{})
 	registerTopicObject(&Stats{})
 }

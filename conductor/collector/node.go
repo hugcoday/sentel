@@ -12,15 +12,16 @@
 
 package collector
 
-import "encoding/json"
-
-// Notification objects from iothub node
+import (
+	"context"
+	"encoding/json"
+)
 
 // Node
 type Node struct {
 	NodeName  string `json:"nodeName"`
 	NodeIp    string `json:"nodeIp"`
-	CreatedAt string `json:"name"`
+	CreatedAt string `json:"createdAt"`
 	encoded   []byte
 	err       error
 }
@@ -39,4 +40,10 @@ func (p *Node) Length() int {
 func (p *Node) Encode() ([]byte, error) {
 	p.ensureEncoded()
 	return p.encoded, p.err
+}
+
+func (p *Node) name() string { return TopicNameNode }
+
+func (p *Node) handleTopic(s *CollectorService, ctx context.Context, value []byte) error {
+	return nil
 }
