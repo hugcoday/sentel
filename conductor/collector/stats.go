@@ -68,7 +68,7 @@ func (p *Stats) handleTopic(service *CollectorService, ctx context.Context, valu
 	}
 	defer session.Close()
 	session.SetMode(mgo.Monotonic, true)
-	c := session.DB("iothub.nodes").C("stats")
+	c := session.DB("iothub").C("stats")
 
 	for _, topic := range stats {
 		switch topic.Action {

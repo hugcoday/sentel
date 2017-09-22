@@ -15,6 +15,9 @@ package collector
 import (
 	"context"
 	"encoding/json"
+	"errors"
+
+	"gopkg.in/mgo.v2"
 )
 
 // Node
@@ -44,6 +47,32 @@ func (p *Node) Encode() ([]byte, error) {
 
 func (p *Node) name() string { return TopicNameNode }
 
-func (p *Node) handleTopic(s *CollectorService, ctx context.Context, value []byte) error {
+func (p *Node) handleTopic(service *CollectorService, ctx context.Context, value []byte) error {
+	var nodes []Node
+	if err := json.Unmarshal(value, nodes); err != nil {
+		return err
+	}
+
+	// mongo config
+	hosts, err := service.config.String("mongo", "hosts")
+	if err != nil || hosts == "" {
+		return errors.New("Invalid mongo configuration")
+	}
+
+	session, err := mgo.Dial(hosts)
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+	session.SetMode(mgo.Monotonic, true)
+	c := session.DB("iothub").C("nodes")
+
+	for _, topic := range nodes {
+		c.Insert(&Node{
+			NodeName:  topic.NodeName,
+			NodeIp:    topic.NodeIp,
+			CreatedAt: topic.CreatedAt,
+		})
+	}
 	return nil
 }
