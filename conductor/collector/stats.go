@@ -15,16 +15,21 @@ package collector
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"time"
+
+	"gopkg.in/mgo.v2"
 )
 
 // Stat
 type Stats struct {
-	NodeName string            `json:"nodeName"`
-	Service  string            `json:"service"`
-	Action   string            `json:"action"`
-	Values   map[string]uint64 `json:"values"`
-	encoded  []byte
-	err      error
+	NodeName   string `json:"nodeName"`
+	Service    string `json:"service"`
+	Action     string `json:"action"`
+	UpdateTime time.Time
+	Values     map[string]uint64 `json:"values"`
+	encoded    []byte
+	err        error
 }
 
 func (p *Stats) ensureEncoded() {
@@ -45,14 +50,35 @@ func (p *Stats) Encode() ([]byte, error) {
 
 func (p *Stats) name() string { return TopicNameStats }
 
-func (p *Stats) handleTopic(s *CollectorService, ctx context.Context, value []byte) error {
+func (p *Stats) handleTopic(service *CollectorService, ctx context.Context, value []byte) error {
 	var stats []Stats
 	if err := json.Unmarshal(value, stats); err != nil {
 		return err
 	}
+
+	// mongo config
+	hosts, err := service.config.String("mongo", "hosts")
+	if err != nil || hosts == "" {
+		return errors.New("Invalid mongo configuration")
+	}
+
+	session, err := mgo.Dial(hosts)
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+	session.SetMode(mgo.Monotonic, true)
+	c := session.DB("iothub.nodes").C("stats")
+
 	for _, topic := range stats {
 		switch topic.Action {
 		case ObjectActionUpdate:
+			c.Insert(&Stats{
+				NodeName:   topic.NodeName,
+				Service:    topic.Service,
+				Values:     topic.Values,
+				UpdateTime: time.Now(),
+			})
 		case ObjectActionDelete:
 		case ObjectActionRegister:
 		default:
