@@ -96,5 +96,9 @@ func (s *CollectorService) Stop() {
 
 // handleNotifications handle notification from kafka
 func (s *CollectorService) handleNotifications(topic string, value []byte) error {
-	return handleTopicObject(s, context.Background(), topic, value)
+	if err := handleTopicObject(s, context.Background(), topic, value); err != nil {
+		glog.Error(err)
+		return err
+	}
+	return nil
 }

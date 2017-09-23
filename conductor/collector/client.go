@@ -12,13 +12,25 @@
 
 package collector
 
-import "encoding/json"
+import (
+	"context"
+	"encoding/json"
+	"errors"
+
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
+)
 
 // Client
 type Client struct {
-	ClientId    string `json:"clientId"`
-	CleanClient bool   `json:"cleanClient"`
-	CreatedAt   string `json:"createdAt"`
+	ClientId        string `json:"clientId"`
+	UserName        string `json:"userName"`
+	IpAddress       string `json:"ipAddress"`
+	Port            uint16 `json:"port"`
+	CleanSession    bool   `json:"cleanSession"`
+	ProtocolVersion string `json:"protocolVersion"`
+	Keepalive       uint16 `json:"keepalive"`
+	ConnectedAt     string `json:"connectedAt"`
 
 	encoded []byte
 	err     error
@@ -38,4 +50,35 @@ func (p *Client) Length() int {
 func (p *Client) Encode() ([]byte, error) {
 	p.ensureEncoded()
 	return p.encoded, p.err
+}
+
+func (p *Client) name() string { return TopicNameClient }
+
+func (p *Client) handleTopic(service *CollectorService, ctx context.Context, value []byte) error {
+	var client Client
+	if err := json.Unmarshal(value, client); err != nil {
+		return err
+	}
+
+	// mongo config
+	hosts, err := service.config.String("mongo", "hosts")
+	if err != nil || hosts == "" {
+		return errors.New("Invalid mongo configuration")
+	}
+
+	session, err := mgo.Dial(hosts)
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+	session.SetMode(mgo.Monotonic, true)
+	c := session.DB("iothub").C("clients")
+
+	result := Client{}
+	if err := c.Find(bson.M{"ClientId": client.ClientId}).One(&result); err == nil {
+		// Existed client found
+		return c.Update(result, client)
+	} else {
+		return c.Insert(client)
+	}
 }
