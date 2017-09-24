@@ -15,8 +15,6 @@ package collector
 import (
 	"context"
 	"time"
-
-	"gopkg.in/mgo.v2"
 )
 
 // Stat
@@ -32,13 +30,12 @@ type Stats struct {
 func (p *Stats) name() string { return TopicNameStats }
 
 func (p *Stats) handleTopic(service *CollectorService, ctx context.Context) error {
-	session, err := mgo.Dial(service.mongoHosts)
+	db, err := service.getDatabase()
 	if err != nil {
 		return err
 	}
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
-	c := session.DB("iothub").C("stats")
+	defer db.Session.Close()
+	c := db.C("stats")
 
 	switch p.Action {
 	case ObjectActionUpdate:

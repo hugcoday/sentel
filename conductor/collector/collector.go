@@ -118,3 +118,13 @@ func (s *CollectorService) handleNotifications(topic string, value []byte) error
 	}
 	return nil
 }
+
+func (s *CollectorService) getDatabase() (*mgo.Database, error) {
+	session, err := mgo.Dial(s.mongoHosts)
+	if err != nil {
+		glog.Fatalf("Failed to connect with mongo:%s", s.mongoHosts)
+		return nil, err
+	}
+	session.SetMode(mgo.Monotonic, true)
+	return session.DB("iothub"), nil
+}

@@ -12,10 +12,49 @@
 
 package collector
 
+import (
+	"context"
+
+	"gopkg.in/mgo.v2/bson"
+)
+
 // Session
 type Session struct {
 	topicBase
-	ClientId     string `json:"clientId"`
-	CleanSession bool   `json:"cleanSession"`
-	CreatedAt    string `json:"createdAt"`
+	Action             string `json:"action"`
+	ClientId           string `json:"clientId"`
+	CleanSession       bool   `json:"cleanSession"`
+	MessageMaxInflight uint64 `json:"messageMaxInflight"`
+	MessageInflight    uint64 `json:"messageInflight"`
+	MessageInQueue     uint64 `json:"messageInQueue"`
+	MessageDropped     uint64 `json:"messageDropped"`
+	AwaitingRel        uint64 `json:"awaitingRel"`
+	AwaitingComp       uint64 `json:"awaitingComp"`
+	AwaitingAck        uint64 `json:"awaitingAck"`
+	CreatedAt          string `json:"createdAt"`
+}
+
+func (p *Session) name() string { return TopicNameSubscription }
+
+func (p *Session) handleTopic(service *CollectorService, ctx context.Context) error {
+	db, err := service.getDatabase()
+	if err != nil {
+		return err
+	}
+	defer db.Session.Close()
+	c := db.C("subscriptions")
+
+	switch p.Action {
+	case ObjectActionUpdate:
+		result := Session{}
+		if err := c.Find(bson.M{"ClientId": p.ClientId}).One(&result); err == nil {
+			return c.Update(result, p)
+		} else {
+			c.Insert(p)
+		}
+	case ObjectActionDelete:
+	case ObjectActionRegister:
+	default:
+	}
+	return nil
 }

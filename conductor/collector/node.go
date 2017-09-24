@@ -12,11 +12,7 @@
 
 package collector
 
-import (
-	"context"
-
-	"gopkg.in/mgo.v2"
-)
+import "context"
 
 // Node
 type Node struct {
@@ -32,13 +28,12 @@ type Node struct {
 func (p *Node) name() string { return TopicNameNode }
 
 func (p *Node) handleTopic(service *CollectorService, ctx context.Context) error {
-	session, err := mgo.Dial(service.mongoHosts)
+	db, err := service.getDatabase()
 	if err != nil {
 		return err
 	}
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
-	c := session.DB("iothub").C("nodes")
+	defer db.Session.Close()
+	c := db.C("nodes")
 
 	// update object status according to action
 	switch p.Action {

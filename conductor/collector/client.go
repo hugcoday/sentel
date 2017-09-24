@@ -15,7 +15,6 @@ package collector
 import (
 	"context"
 
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -35,13 +34,12 @@ type Client struct {
 func (p *Client) name() string { return TopicNameClient }
 
 func (p *Client) handleTopic(service *CollectorService, ctx context.Context) error {
-	session, err := mgo.Dial(service.mongoHosts)
+	db, err := service.getDatabase()
 	if err != nil {
 		return err
 	}
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
-	c := session.DB("iothub").C("clients")
+	defer db.Session.Close()
+	c := db.C("clients")
 
 	result := Client{}
 	if err := c.Find(bson.M{"ClientId": p.ClientId}).One(&result); err == nil {

@@ -15,8 +15,6 @@ package collector
 import (
 	"context"
 	"time"
-
-	"gopkg.in/mgo.v2"
 )
 
 // Metric
@@ -31,13 +29,12 @@ type Metric struct {
 func (p *Metric) name() string { return TopicNameStats }
 
 func (p *Metric) handleTopic(service *CollectorService, ctx context.Context) error {
-	session, err := mgo.Dial(service.mongoHosts)
+	db, err := service.getDatabase()
 	if err != nil {
 		return err
 	}
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
-	c := session.DB("iothub").C("metrics")
+	defer db.Session.Close()
+	c := db.C("metrics")
 
 	c.Insert(&Metric{
 		NodeName:   p.NodeName,

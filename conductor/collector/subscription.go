@@ -15,8 +15,6 @@ package collector
 import (
 	"context"
 	"time"
-
-	mgo "gopkg.in/mgo.v2"
 )
 
 // Subscription
@@ -32,13 +30,12 @@ type Subscription struct {
 func (p *Subscription) name() string { return TopicNameSubscription }
 
 func (p *Subscription) handleTopic(service *CollectorService, ctx context.Context) error {
-	session, err := mgo.Dial(service.mongoHosts)
+	db, err := service.getDatabase()
 	if err != nil {
 		return err
 	}
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
-	c := session.DB("iothub").C("subscriptions")
+	defer db.Session.Close()
+	c := db.C("subscriptions")
 
 	switch p.Action {
 	case ObjectActionUpdate:
