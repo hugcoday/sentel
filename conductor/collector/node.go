@@ -14,8 +14,6 @@ package collector
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 
 	"gopkg.in/mgo.v2"
 )
@@ -23,26 +21,18 @@ import (
 // Node
 type Node struct {
 	topicBase
-	NodeName  string `json:"nodeName"`
-	NodeIp    string `json:"nodeIp"`
-	CreatedAt string `json:"createdAt"`
+	NodeName   string `json:"nodeName"`
+	NodeIp     string `json:"nodeIp"`
+	Version    string `json:"version"`
+	CreatedAt  string `json:"createdAt"`
+	NodeStatus string `json:"nodeStatus"`
+	Action     string `json:"action"`
 }
 
 func (p *Node) name() string { return TopicNameNode }
 
-func (p *Node) handleTopic(service *CollectorService, ctx context.Context, value []byte) error {
-	var nodes []Node
-	if err := json.Unmarshal(value, nodes); err != nil {
-		return err
-	}
-
-	// mongo config
-	hosts, err := service.config.String("mongo", "hosts")
-	if err != nil || hosts == "" {
-		return errors.New("Invalid mongo configuration")
-	}
-
-	session, err := mgo.Dial(hosts)
+func (p *Node) handleTopic(service *CollectorService, ctx context.Context) error {
+	session, err := mgo.Dial(service.mongoHosts)
 	if err != nil {
 		return err
 	}
@@ -50,12 +40,13 @@ func (p *Node) handleTopic(service *CollectorService, ctx context.Context, value
 	session.SetMode(mgo.Monotonic, true)
 	c := session.DB("iothub").C("nodes")
 
-	for _, topic := range nodes {
-		c.Insert(&Node{
-			NodeName:  topic.NodeName,
-			NodeIp:    topic.NodeIp,
-			CreatedAt: topic.CreatedAt,
-		})
+	// update object status according to action
+	switch p.Action {
+	case ObjectActionRegister:
+		c.Insert(p)
+	case ObjectActionUpdate:
+	case ObjectActionUnregister:
+	case ObjectActionDelete:
 	}
 	return nil
 }

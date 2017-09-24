@@ -12,10 +12,40 @@
 
 package collector
 
+import (
+	"context"
+	"time"
+
+	mgo "gopkg.in/mgo.v2"
+)
+
 // Subscription
 type Subscription struct {
 	topicBase
-	Ip        string `json:"ip"`
-	Name      string `json:"name"`
-	CreatedAt string `json:"name"`
+	ClientId  string    `json:"clientId"`
+	Toopic    string    `json:"topic"`
+	Qos       int       `json:"qos"`
+	CreatedAt time.Time `json:"createdAt"`
+	Action    string    `json:"action"`
+}
+
+func (p *Subscription) name() string { return TopicNameSubscription }
+
+func (p *Subscription) handleTopic(service *CollectorService, ctx context.Context) error {
+	session, err := mgo.Dial(service.mongoHosts)
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+	session.SetMode(mgo.Monotonic, true)
+	c := session.DB("iothub").C("subscriptions")
+
+	switch p.Action {
+	case ObjectActionUpdate:
+		c.Insert(p)
+	case ObjectActionDelete:
+	case ObjectActionRegister:
+	default:
+	}
+	return nil
 }

@@ -23,13 +23,15 @@ import (
 	"github.com/cloustone/sentel/conductor/base"
 	"github.com/cloustone/sentel/libs"
 	"github.com/golang/glog"
+	"gopkg.in/mgo.v2"
 )
 
 type CollectorService struct {
-	config   libs.Config
-	chn      chan base.ServiceCommand
-	wg       sync.WaitGroup
-	consumer sarama.Consumer
+	config     libs.Config
+	chn        chan base.ServiceCommand
+	wg         sync.WaitGroup
+	consumer   sarama.Consumer
+	mongoHosts string // mongo hosts
 }
 
 // CollectorServiceFactory
@@ -37,20 +39,34 @@ type CollectorServiceFactory struct{}
 
 // New create apiService service factory
 func (m *CollectorServiceFactory) New(name string, c libs.Config, ch chan base.ServiceCommand) (base.Service, error) {
-	hosts, err := c.String(name, "hosts")
+	// check mongo db configuration
+	hosts, err := c.String("mongo", "hosts")
 	if err != nil || hosts == "" {
+		return nil, errors.New("Invalid mongo configuration")
+	}
+	// try connect with mongo db
+	session, err := mgo.Dial(hosts)
+	if err != nil {
+		return nil, err
+	}
+	session.Close()
+
+	// kafka
+	khosts, err := c.String(name, "hosts")
+	if err != nil || khosts == "" {
 		return nil, errors.New("Invalid kafka configuration")
 	}
-	consumer, err := sarama.NewConsumer(strings.Split(hosts, ","), nil)
+	consumer, err := sarama.NewConsumer(strings.Split(khosts, ","), nil)
 	if err != nil {
 		return nil, fmt.Errorf("Connecting with kafka:%s failed", hosts)
 	}
 
 	return &CollectorService{
-		config:   c,
-		wg:       sync.WaitGroup{},
-		chn:      ch,
-		consumer: consumer,
+		config:     c,
+		wg:         sync.WaitGroup{},
+		chn:        ch,
+		consumer:   consumer,
+		mongoHosts: hosts,
 	}, nil
 
 }

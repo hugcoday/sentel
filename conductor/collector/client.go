@@ -14,8 +14,6 @@ package collector
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -36,19 +34,8 @@ type Client struct {
 
 func (p *Client) name() string { return TopicNameClient }
 
-func (p *Client) handleTopic(service *CollectorService, ctx context.Context, value []byte) error {
-	var client Client
-	if err := json.Unmarshal(value, client); err != nil {
-		return err
-	}
-
-	// mongo config
-	hosts, err := service.config.String("mongo", "hosts")
-	if err != nil || hosts == "" {
-		return errors.New("Invalid mongo configuration")
-	}
-
-	session, err := mgo.Dial(hosts)
+func (p *Client) handleTopic(service *CollectorService, ctx context.Context) error {
+	session, err := mgo.Dial(service.mongoHosts)
 	if err != nil {
 		return err
 	}
@@ -57,10 +44,10 @@ func (p *Client) handleTopic(service *CollectorService, ctx context.Context, val
 	c := session.DB("iothub").C("clients")
 
 	result := Client{}
-	if err := c.Find(bson.M{"ClientId": client.ClientId}).One(&result); err == nil {
+	if err := c.Find(bson.M{"ClientId": p.ClientId}).One(&result); err == nil {
 		// Existed client found
-		return c.Update(result, client)
+		return c.Update(result, p)
 	} else {
-		return c.Insert(client)
+		return c.Insert(p)
 	}
 }

@@ -14,8 +14,6 @@ package collector
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"time"
 
 	"gopkg.in/mgo.v2"
@@ -33,19 +31,8 @@ type Stats struct {
 
 func (p *Stats) name() string { return TopicNameStats }
 
-func (p *Stats) handleTopic(service *CollectorService, ctx context.Context, value []byte) error {
-	var stat Stats
-	if err := json.Unmarshal(value, &stat); err != nil {
-		return err
-	}
-
-	// mongo config
-	hosts, err := service.config.String("mongo", "hosts")
-	if err != nil || hosts == "" {
-		return errors.New("Invalid mongo configuration")
-	}
-
-	session, err := mgo.Dial(hosts)
+func (p *Stats) handleTopic(service *CollectorService, ctx context.Context) error {
+	session, err := mgo.Dial(service.mongoHosts)
 	if err != nil {
 		return err
 	}
@@ -53,12 +40,12 @@ func (p *Stats) handleTopic(service *CollectorService, ctx context.Context, valu
 	session.SetMode(mgo.Monotonic, true)
 	c := session.DB("iothub").C("stats")
 
-	switch stat.Action {
+	switch p.Action {
 	case ObjectActionUpdate:
 		c.Insert(&Stats{
-			NodeName:   stat.NodeName,
-			Service:    stat.Service,
-			Values:     stat.Values,
+			NodeName:   p.NodeName,
+			Service:    p.Service,
+			Values:     p.Values,
 			UpdateTime: time.Now(),
 		})
 	case ObjectActionDelete:

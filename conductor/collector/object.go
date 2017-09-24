@@ -59,7 +59,7 @@ func (p *topicBase) Encode() ([]byte, error) {
 
 type topicObject interface {
 	name() string
-	handleTopic(s *CollectorService, ctx context.Context, value []byte) error
+	handleTopic(s *CollectorService, ctx context.Context) error
 }
 
 var _topicObjects map[string]topicObject = make(map[string]topicObject)
@@ -71,8 +71,14 @@ func registerTopicObject(t topicObject) {
 }
 
 func handleTopicObject(s *CollectorService, ctx context.Context, topic string, value []byte) error {
-	if obj, ok := _topicObjects[topic]; ok && obj != nil {
-		return obj.handleTopic(s, ctx, value)
+	obj, ok := _topicObjects[topic]
+	if !ok || obj == nil {
+		return fmt.Errorf("No valid handler for topic:%s", topic)
 	}
-	return fmt.Errorf("No valid handler for topic:%s", topic)
+
+	if err := json.Unmarshal(value, &obj); err != nil {
+		return err
+	}
+
+	return obj.handleTopic(s, ctx)
 }

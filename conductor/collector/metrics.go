@@ -14,8 +14,6 @@ package collector
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"time"
 
 	"gopkg.in/mgo.v2"
@@ -32,19 +30,8 @@ type Metric struct {
 
 func (p *Metric) name() string { return TopicNameStats }
 
-func (p *Metric) handleTopic(service *CollectorService, ctx context.Context, value []byte) error {
-	var metric Metric
-	if err := json.Unmarshal(value, &metric); err != nil {
-		return err
-	}
-
-	// mongo config
-	hosts, err := service.config.String("mongo", "hosts")
-	if err != nil || hosts == "" {
-		return errors.New("Invalid mongo configuration")
-	}
-
-	session, err := mgo.Dial(hosts)
+func (p *Metric) handleTopic(service *CollectorService, ctx context.Context) error {
+	session, err := mgo.Dial(service.mongoHosts)
 	if err != nil {
 		return err
 	}
@@ -53,9 +40,9 @@ func (p *Metric) handleTopic(service *CollectorService, ctx context.Context, val
 	c := session.DB("iothub").C("metrics")
 
 	c.Insert(&Metric{
-		NodeName:   metric.NodeName,
-		Service:    metric.Service,
-		Values:     metric.Values,
+		NodeName:   p.NodeName,
+		Service:    p.Service,
+		Values:     p.Values,
 		UpdateTime: time.Now(),
 	})
 	return nil
