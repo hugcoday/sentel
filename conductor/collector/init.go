@@ -17,4 +17,6 @@ func init() {
 	registerTopicObject(&Stats{})
 	registerTopicObject(&Metric{})
 	registerTopicObject(&Client{})
+	registerTopicObject(&Subscription{})
+	registerTopicObject(&Session{})
 }

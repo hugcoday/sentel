@@ -76,6 +76,8 @@ func handleTopicObject(s *CollectorService, ctx context.Context, topic string, v
 		return fmt.Errorf("No valid handler for topic:%s", topic)
 	}
 
+	// Maybe a cloned object should be constructed
+
 	if err := json.Unmarshal(value, &obj); err != nil {
 		return err
 	}
