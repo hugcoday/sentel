@@ -27,7 +27,8 @@ type Subscription struct {
 	Action    string    `json:"action"`
 }
 
-func (p *Subscription) name() string { return TopicNameSubscription }
+func (p *Subscription) name() string       { return TopicNameSubscription }
+func (p *Subscription) clone() topicObject { return &Subscription{} }
 
 func (p *Subscription) handleTopic(service *CollectorService, ctx context.Context) error {
 	db, err := service.getDatabase()

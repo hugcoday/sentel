@@ -31,7 +31,8 @@ type Client struct {
 	ConnectedAt     string `json:"connectedAt"`
 }
 
-func (p *Client) name() string { return TopicNameClient }
+func (p *Client) name() string       { return TopicNameClient }
+func (p *Client) clone() topicObject { return &Client{} }
 
 func (p *Client) handleTopic(service *CollectorService, ctx context.Context) error {
 	db, err := service.getDatabase()

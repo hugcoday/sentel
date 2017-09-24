@@ -26,7 +26,8 @@ type Metric struct {
 	UpdateTime time.Time         `json:"updateTime"`
 }
 
-func (p *Metric) name() string { return TopicNameStats }
+func (p *Metric) name() string       { return TopicNameStats }
+func (p *Metric) clone() topicObject { return &Metric{} }
 
 func (p *Metric) handleTopic(service *CollectorService, ctx context.Context) error {
 	db, err := service.getDatabase()

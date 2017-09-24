@@ -34,7 +34,8 @@ type Session struct {
 	CreatedAt          string `json:"createdAt"`
 }
 
-func (p *Session) name() string { return TopicNameSubscription }
+func (p *Session) name() string       { return TopicNameSubscription }
+func (p *Session) clone() topicObject { return &Session{} }
 
 func (p *Session) handleTopic(service *CollectorService, ctx context.Context) error {
 	db, err := service.getDatabase()

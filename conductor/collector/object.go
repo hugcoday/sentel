@@ -59,6 +59,7 @@ func (p *topicBase) Encode() ([]byte, error) {
 
 type topicObject interface {
 	name() string
+	clone() topicObject // Not realy clone, just construct a new object
 	handleTopic(s *CollectorService, ctx context.Context) error
 }
 
@@ -71,13 +72,11 @@ func registerTopicObject(t topicObject) {
 }
 
 func handleTopicObject(s *CollectorService, ctx context.Context, topic string, value []byte) error {
-	obj, ok := _topicObjects[topic]
-	if !ok || obj == nil {
+	if obj, ok := _topicObjects[topic]; !ok || obj == nil {
 		return fmt.Errorf("No valid handler for topic:%s", topic)
 	}
 
-	// Maybe a cloned object should be constructed
-
+	obj := _topicObjects[topic].clone()
 	if err := json.Unmarshal(value, &obj); err != nil {
 		return err
 	}

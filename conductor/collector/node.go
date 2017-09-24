@@ -25,7 +25,8 @@ type Node struct {
 	Action     string `json:"action"`
 }
 
-func (p *Node) name() string { return TopicNameNode }
+func (p *Node) name() string       { return TopicNameNode }
+func (p *Node) clone() topicObject { return &Node{} }
 
 func (p *Node) handleTopic(service *CollectorService, ctx context.Context) error {
 	db, err := service.getDatabase()
