@@ -12,31 +12,10 @@
 
 package collector
 
-import "encoding/json"
-
-// Notification objects from iothub node
-
 // Subscription
 type Subscription struct {
+	topicBase
 	Ip        string `json:"ip"`
 	Name      string `json:"name"`
 	CreatedAt string `json:"name"`
-	encoded   []byte
-	err       error
-}
-
-func (p *Subscription) ensureEncoded() {
-	if p.encoded == nil && p.err == nil {
-		p.encoded, p.err = json.Marshal(p)
-	}
-}
-
-func (p *Subscription) Length() int {
-	p.ensureEncoded()
-	return len(p.encoded)
-}
-
-func (p *Subscription) Encode() ([]byte, error) {
-	p.ensureEncoded()
-	return p.encoded, p.err
 }

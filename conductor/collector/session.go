@@ -12,30 +12,10 @@
 
 package collector
 
-import "encoding/json"
-
 // Session
 type Session struct {
+	topicBase
 	ClientId     string `json:"clientId"`
 	CleanSession bool   `json:"cleanSession"`
 	CreatedAt    string `json:"createdAt"`
-
-	encoded []byte
-	err     error
-}
-
-func (p *Session) ensureEncoded() {
-	if p.encoded == nil && p.err == nil {
-		p.encoded, p.err = json.Marshal(p)
-	}
-}
-
-func (p *Session) Length() int {
-	p.ensureEncoded()
-	return len(p.encoded)
-}
-
-func (p *Session) Encode() ([]byte, error) {
-	p.ensureEncoded()
-	return p.encoded, p.err
 }

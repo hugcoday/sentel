@@ -23,6 +23,7 @@ import (
 
 // Client
 type Client struct {
+	topicBase
 	ClientId        string `json:"clientId"`
 	UserName        string `json:"userName"`
 	IpAddress       string `json:"ipAddress"`
@@ -31,25 +32,6 @@ type Client struct {
 	ProtocolVersion string `json:"protocolVersion"`
 	Keepalive       uint16 `json:"keepalive"`
 	ConnectedAt     string `json:"connectedAt"`
-
-	encoded []byte
-	err     error
-}
-
-func (p *Client) ensureEncoded() {
-	if p.encoded == nil && p.err == nil {
-		p.encoded, p.err = json.Marshal(p)
-	}
-}
-
-func (p *Client) Length() int {
-	p.ensureEncoded()
-	return len(p.encoded)
-}
-
-func (p *Client) Encode() ([]byte, error) {
-	p.ensureEncoded()
-	return p.encoded, p.err
 }
 
 func (p *Client) name() string { return TopicNameClient }

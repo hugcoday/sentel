@@ -22,27 +22,10 @@ import (
 
 // Node
 type Node struct {
+	topicBase
 	NodeName  string `json:"nodeName"`
 	NodeIp    string `json:"nodeIp"`
 	CreatedAt string `json:"createdAt"`
-	encoded   []byte
-	err       error
-}
-
-func (p *Node) ensureEncoded() {
-	if p.encoded == nil && p.err == nil {
-		p.encoded, p.err = json.Marshal(p)
-	}
-}
-
-func (p *Node) Length() int {
-	p.ensureEncoded()
-	return len(p.encoded)
-}
-
-func (p *Node) Encode() ([]byte, error) {
-	p.ensureEncoded()
-	return p.encoded, p.err
 }
 
 func (p *Node) name() string { return TopicNameNode }

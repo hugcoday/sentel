@@ -23,36 +23,19 @@ import (
 
 // Stat
 type Stats struct {
+	topicBase
 	NodeName   string `json:"nodeName"`
 	Service    string `json:"service"`
 	Action     string `json:"action"`
 	UpdateTime time.Time
 	Values     map[string]uint64 `json:"values"`
-	encoded    []byte
-	err        error
-}
-
-func (p *Stats) ensureEncoded() {
-	if p.encoded == nil && p.err == nil {
-		p.encoded, p.err = json.Marshal(p)
-	}
-}
-
-func (p *Stats) Length() int {
-	p.ensureEncoded()
-	return len(p.encoded)
-}
-
-func (p *Stats) Encode() ([]byte, error) {
-	p.ensureEncoded()
-	return p.encoded, p.err
 }
 
 func (p *Stats) name() string { return TopicNameStats }
 
 func (p *Stats) handleTopic(service *CollectorService, ctx context.Context, value []byte) error {
-	var stats []Stats
-	if err := json.Unmarshal(value, stats); err != nil {
+	var stat Stats
+	if err := json.Unmarshal(value, &stat); err != nil {
 		return err
 	}
 
@@ -70,19 +53,17 @@ func (p *Stats) handleTopic(service *CollectorService, ctx context.Context, valu
 	session.SetMode(mgo.Monotonic, true)
 	c := session.DB("iothub").C("stats")
 
-	for _, topic := range stats {
-		switch topic.Action {
-		case ObjectActionUpdate:
-			c.Insert(&Stats{
-				NodeName:   topic.NodeName,
-				Service:    topic.Service,
-				Values:     topic.Values,
-				UpdateTime: time.Now(),
-			})
-		case ObjectActionDelete:
-		case ObjectActionRegister:
-		default:
-		}
+	switch stat.Action {
+	case ObjectActionUpdate:
+		c.Insert(&Stats{
+			NodeName:   stat.NodeName,
+			Service:    stat.Service,
+			Values:     stat.Values,
+			UpdateTime: time.Now(),
+		})
+	case ObjectActionDelete:
+	case ObjectActionRegister:
+	default:
 	}
 	return nil
 }

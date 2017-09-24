@@ -14,6 +14,7 @@ package collector
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 )
 
@@ -34,6 +35,27 @@ const (
 	ObjectActionDelete     = "delete"
 	ObjectActionUpdate     = "update"
 )
+
+type topicBase struct {
+	encoded []byte
+	err     error
+}
+
+func (p *topicBase) ensureEncoded() {
+	if p.encoded == nil && p.err == nil {
+		p.encoded, p.err = json.Marshal(p)
+	}
+}
+
+func (p *topicBase) Length() int {
+	p.ensureEncoded()
+	return len(p.encoded)
+}
+
+func (p *topicBase) Encode() ([]byte, error) {
+	p.ensureEncoded()
+	return p.encoded, p.err
+}
 
 type topicObject interface {
 	name() string

@@ -12,31 +12,51 @@
 
 package collector
 
-import "encoding/json"
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"time"
 
-// Notification objects from iothub node
+	"gopkg.in/mgo.v2"
+)
 
 // Metric
 type Metric struct {
-	NodeName string            `json:"nodeName"`
-	Service  string            `json:"service"`
-	Values   map[string]uint64 `json:"values"`
-	encoded  []byte
-	err      error
+	topicBase
+	NodeName   string            `json:"nodeName"`
+	Service    string            `json:"service"`
+	Values     map[string]uint64 `json:"values"`
+	UpdateTime time.Time         `json:"updateTime"`
 }
 
-func (p *Metric) ensureEncoded() {
-	if p.encoded == nil && p.err == nil {
-		p.encoded, p.err = json.Marshal(p)
+func (p *Metric) name() string { return TopicNameStats }
+
+func (p *Metric) handleTopic(service *CollectorService, ctx context.Context, value []byte) error {
+	var metric Metric
+	if err := json.Unmarshal(value, &metric); err != nil {
+		return err
 	}
-}
 
-func (p *Metric) Length() int {
-	p.ensureEncoded()
-	return len(p.encoded)
-}
+	// mongo config
+	hosts, err := service.config.String("mongo", "hosts")
+	if err != nil || hosts == "" {
+		return errors.New("Invalid mongo configuration")
+	}
 
-func (p *Metric) Encode() ([]byte, error) {
-	p.ensureEncoded()
-	return p.encoded, p.err
+	session, err := mgo.Dial(hosts)
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+	session.SetMode(mgo.Monotonic, true)
+	c := session.DB("iothub").C("metrics")
+
+	c.Insert(&Metric{
+		NodeName:   metric.NodeName,
+		Service:    metric.Service,
+		Values:     metric.Values,
+		UpdateTime: time.Now(),
+	})
+	return nil
 }
