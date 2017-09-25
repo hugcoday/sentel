@@ -31,8 +31,20 @@ type Client struct {
 	ConnectedAt     string `json:"connectedAt"`
 }
 
-func (p *Client) name() string       { return TopicNameClient }
-func (p *Client) clone() topicObject { return &Client{} }
+func (p *Client) name() string { return TopicNameClient }
+func (p *Client) clone() topicObject {
+	return &Client{
+		topicBase:       p.topicBase,
+		ClientId:        p.ClientId,
+		UserName:        p.UserName,
+		IpAddress:       p.IpAddress,
+		Port:            p.Port,
+		CleanSession:    p.CleanSession,
+		ProtocolVersion: p.ProtocolVersion,
+		Keepalive:       p.Keepalive,
+		ConnectedAt:     p.ConnectedAt,
+	}
+}
 
 func (p *Client) handleTopic(service *CollectorService, ctx context.Context) error {
 	db, err := service.getDatabase()

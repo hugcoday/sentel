@@ -21,14 +21,23 @@ import (
 type Subscription struct {
 	topicBase
 	ClientId  string    `json:"clientId"`
-	Toopic    string    `json:"topic"`
+	Topic     string    `json:"topic"`
 	Qos       int       `json:"qos"`
 	CreatedAt time.Time `json:"createdAt"`
 	Action    string    `json:"action"`
 }
 
-func (p *Subscription) name() string       { return TopicNameSubscription }
-func (p *Subscription) clone() topicObject { return &Subscription{} }
+func (p *Subscription) name() string { return TopicNameSubscription }
+func (p *Subscription) clone() topicObject {
+	return &Subscription{
+		topicBase: p.topicBase,
+		ClientId:  p.ClientId,
+		Topic:     p.Topic,
+		Qos:       p.Qos,
+		CreatedAt: p.CreatedAt,
+		Action:    p.Action,
+	}
+}
 
 func (p *Subscription) handleTopic(service *CollectorService, ctx context.Context) error {
 	db, err := service.getDatabase()
