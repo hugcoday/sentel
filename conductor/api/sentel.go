@@ -25,9 +25,8 @@ type SentelApi struct {
 	conn   *grpc.ClientConn
 }
 
-func NewSentelApi() (*SentelApi, error) {
-	address := "localhost:50052"
-	conn, err := grpc.Dial(address, grpc.WithInsecure())
+func newSentelApi(hosts string) (*SentelApi, error) {
+	conn, err := grpc.Dial(hosts, grpc.WithInsecure())
 	if err != nil {
 		glog.Fatalf("Failed to connect with iothub:%s", err)
 		return nil, err
@@ -36,49 +35,49 @@ func NewSentelApi() (*SentelApi, error) {
 	return &SentelApi{conn: conn, rpcapi: c}, nil
 }
 
-func (s *SentelApi) Version(in *pb.VersionRequest) (*pb.VersionReply, error) {
+func (s *SentelApi) version(in *pb.VersionRequest) (*pb.VersionReply, error) {
 	return s.rpcapi.Version(context.Background(), in)
 }
-func (s *SentelApi) Admins(in *pb.AdminsRequest) (*pb.AdminsReply, error) {
+func (s *SentelApi) admins(in *pb.AdminsRequest) (*pb.AdminsReply, error) {
 	return s.rpcapi.Admins(context.Background(), in)
 }
 
-func (s *SentelApi) Cluster(in *pb.ClusterRequest) (*pb.ClusterReply, error) {
+func (s *SentelApi) cluster(in *pb.ClusterRequest) (*pb.ClusterReply, error) {
 	return s.rpcapi.Cluster(context.Background(), in)
 }
 
-func (s *SentelApi) Routes(in *pb.RoutesRequest) (*pb.RoutesReply, error) {
+func (s *SentelApi) routes(in *pb.RoutesRequest) (*pb.RoutesReply, error) {
 	return s.rpcapi.Routes(context.Background(), in)
 }
 
-func (s *SentelApi) Status(in *pb.StatusRequest) (*pb.StatusReply, error) {
+func (s *SentelApi) status(in *pb.StatusRequest) (*pb.StatusReply, error) {
 	return s.rpcapi.Status(context.Background(), in)
 }
 
-func (s *SentelApi) Broker(in *pb.BrokerRequest) (*pb.BrokerReply, error) {
+func (s *SentelApi) broker(in *pb.BrokerRequest) (*pb.BrokerReply, error) {
 	return s.rpcapi.Broker(context.Background(), in)
 }
 
-func (s *SentelApi) Plugins(in *pb.PluginsRequest) (*pb.PluginsReply, error) {
+func (s *SentelApi) plugins(in *pb.PluginsRequest) (*pb.PluginsReply, error) {
 	return s.rpcapi.Plugins(context.Background(), in)
 }
 
-func (s *SentelApi) Services(in *pb.ServicesRequest) (*pb.ServicesReply, error) {
+func (s *SentelApi) services(in *pb.ServicesRequest) (*pb.ServicesReply, error) {
 	return s.rpcapi.Services(context.Background(), in)
 }
 
-func (s *SentelApi) Subscriptions(in *pb.SubscriptionsRequest) (*pb.SubscriptionsReply, error) {
+func (s *SentelApi) subscriptions(in *pb.SubscriptionsRequest) (*pb.SubscriptionsReply, error) {
 	return s.rpcapi.Subscriptions(context.Background(), in)
 }
 
-func (s *SentelApi) Clients(in *pb.ClientsRequest) (*pb.ClientsReply, error) {
+func (s *SentelApi) clients(in *pb.ClientsRequest) (*pb.ClientsReply, error) {
 	return s.rpcapi.Clients(context.Background(), in)
 }
 
-func (s *SentelApi) Sessions(in *pb.SessionsRequest) (*pb.SessionsReply, error) {
+func (s *SentelApi) sessions(in *pb.SessionsRequest) (*pb.SessionsReply, error) {
 	return s.rpcapi.Sessions(context.Background(), in)
 }
 
-func (s *SentelApi) Topics(in *pb.TopicsRequest) (*pb.TopicsReply, error) {
+func (s *SentelApi) topics(in *pb.TopicsRequest) (*pb.TopicsReply, error) {
 	return s.rpcapi.Topics(context.Background(), in)
 }

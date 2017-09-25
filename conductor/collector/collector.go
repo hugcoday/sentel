@@ -40,7 +40,7 @@ type CollectorServiceFactory struct{}
 // New create apiService service factory
 func (m *CollectorServiceFactory) New(name string, c libs.Config, ch chan base.ServiceCommand) (base.Service, error) {
 	// check mongo db configuration
-	hosts, err := c.String("mongo", "hosts")
+	hosts, err := c.String("conductor", "mongo")
 	if err != nil || hosts == "" {
 		return nil, errors.New("Invalid mongo configuration")
 	}
