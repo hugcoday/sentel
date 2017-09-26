@@ -51,7 +51,8 @@ type StorageTopic struct {
 }
 type MessageState int
 type StorageMessage struct {
-	Id        uint
+	ID        uint
+	SourceID  string
 	Topic     string
 	Direction MessageDirection
 	State     MessageState

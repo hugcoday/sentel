@@ -35,9 +35,10 @@ const (
 )
 
 type mqttMessage struct {
-	mid     uint
-	topic   string
-	payload []uint8
-	qos     uint8
-	retain  bool
+	mid       uint16
+	direction int
+	topic     string
+	payload   []uint8
+	qos       uint8
+	retain    bool
 }

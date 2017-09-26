@@ -83,8 +83,8 @@ type mqttSession struct {
 	metrics           *base.Metrics
 
 	// resume field
-	msgs       []*mqttMessage
-	storedMsgs map[uint16]*mqttMessage
+	msgs              []*mqttMessage
+	storedMsgs        []*mqttMessage
 }
 
 // newMqttSession create new session  for each client connection
@@ -122,7 +122,7 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 		metrics:           base.NewMetrics(true),
 		sendMsgChannel:    make(chan *mqttMessage, msgqsize),
 		msgs:              make([]*mqttMessage, msgqsize),
-		storedMsgs:        make(map[uint16]*mqttMessage),
+		storedMsgs:        make([]*mqttMessage, msgqsize),
 	}
 
 	return s, nil
@@ -679,15 +679,19 @@ func (s *mqttSession) handlePublish() error {
 		s.id, dup, qos, retain, mid, topic, payloadlen)
 
 	// Check wether the message has been stored
+	dup = 0
+	var storedMsg *mqttMessage
 	if qos > 0 {
-		if _, ok := s.storedMsgs[mid]; !ok {
-			dup = 1
-		} else {
-			dup = 0
+		for _, storedMsg = range s.storedMsgs {
+			if storedMsg.mid == mid && storedMsg.direction == mqttMessageDirectionIn {
+				dup = 1
+				break
+			}
 		}
 	}
 	msg := StorageMessage{
-		Id:        uint(mid),
+		ID:        uint(mid),
+		SourceID:  s.id,
 		Direction: MessageDirectionIn,
 		State:     0,
 		Qos:       qos,

@@ -161,6 +161,16 @@ func (l *localStorage) findNode(node *subNode, lev string) *subNode {
 		}
 	}
 
+	return nil
+}
+
+func (l *localStorage) addNode(node *subNode, lev string) *subNode {
+	for k, v := range node.children {
+		if k == lev {
+			return v
+		}
+	}
+
 	tmp := &subNode{
 		level:    lev,
 		children: make(map[string]*subNode),
@@ -177,7 +187,7 @@ func (l *localStorage) AddSubscription(sessionid string, topic string, qos uint8
 	node := &l.root
 	s := strings.Split(topic, "/")
 	for _, level := range s {
-		node = l.findNode(node, level)
+		node = l.addNode(node, level)
 	}
 
 	node.subs[sessionid] = &subLeaf{
@@ -197,6 +207,9 @@ func (l *localStorage) RemoveSubscription(sessionid string, topic string) error 
 	s := strings.Split(topic, "/")
 	for _, level := range s {
 		node = l.findNode(node, level)
+		if node == nil {
+			return nil;
+		}
 	}
 
 	if _, ok := node.subs[sessionid]; ok {
@@ -223,22 +236,7 @@ func (l *localStorage) DeleteMessage(clientid string, mid uint16, direction Mess
 	return nil
 }
 
-func (l *localStorage) subSearch(clientid string, msg *StorageMessage, node *subNode, levels []string) error {
-	for k, v := range node.children {
-		if len(levels) != 0 && (k == levels[0] || k == "+") {
-			ss := append(levels[:0], levels[1:]...)
-			l.subSearch(clientid, msg, v, ss)
-			if len(ss) == 0 {
-				l.subProcess(clientid, msg, v)
-			}
-		} else if k == "#" && len(v.children) > 0 {
-			l.subProcess(clientid, msg, v)
-		}
-	}
-	return nil
-}
-
-func (l *localStorage) intsertMessage(s *mqttSession, mid uint, qos uint8, msg *StorageMessage) error {
+func (l *localStorage) insertMessage(s *mqttSession, mid uint, qos uint8, msg *StorageMessage) error {
 	/* Check whether we've already sent this message to this client
 	 * for outgoing messages only.
 	 * If retain==true then this is a stale retained message and so should be
@@ -250,30 +248,35 @@ func (l *localStorage) intsertMessage(s *mqttSession, mid uint, qos uint8, msg *
 		// TODO
 	}
 
-	outMsg := new(mqttMessage)
-	outMsg.mid = mid
-	outMsg.payload = make([]uint8, len(msg.Payload))
-	copy(outMsg.payload, msg.Payload)
-	outMsg.qos = qos
-	outMsg.retain = msg.Retain
-	outMsg.topic = msg.Topic
+	outMsg := mqttMessage {
+		mid:          uint16(mid),
+		payload:      msg.Payload,
+		qos:          qos,
+		retain:       msg.Retain,
+		topic:        msg.Topic,
+	}
 
-	s.QueueMessage(outMsg)
+	s.QueueMessage(&outMsg)
 
 	return nil
 }
 
-func (l *localStorage) subProcess(clientid string, msg *StorageMessage, node *subNode) error {
-	if msg.Retain {
+func (l *localStorage) subProcess(clientid string, msg *StorageMessage, node *subNode, setRetain bool) error {
+	if msg.Retain && setRetain {
 		node.retainMsg = msg
 	}
 
 	for k, v := range node.subs {
+		s := l.sessions[k]
+		if s.id == clientid {
+			continue
+		}
+
 		/* Check for ACL topic access. */
 		// TODO
-		s := l.sessions[k]
-		clientQos := v.qos
+
 		var msgQos uint8
+		clientQos := v.qos
 		if option, err := l.config.Bool("mqtt", "upgrade_outgoing_qos"); err != nil && option {
 			msgQos = clientQos
 		} else {
@@ -291,7 +294,26 @@ func (l *localStorage) subProcess(clientid string, msg *StorageMessage, node *su
 			mid = 0
 		}
 
-		l.intsertMessage(s, mid, msgQos, msg)
+		l.insertMessage(s, mid, msgQos, msg)
+	}
+	return nil
+}
+
+func (l *localStorage) subSearch(clientid string, msg *StorageMessage, node *subNode, levels []string, setRetain bool) error {
+	for k, v := range node.children {
+		sr := setRetain
+		if len(levels) != 0 && (k == levels[0] || k == "+") {
+			if k == "+" {
+				sr = false
+			}
+			ss := levels[1:]
+			l.subSearch(clientid, msg, v, ss, sr)
+			if len(ss) == 0 {
+				l.subProcess(clientid, msg, v, sr)
+			}
+		} else if k == "#" && len(v.children) > 0 {
+			l.subProcess(clientid, msg, v, sr)
+		}
 	}
 	return nil
 }
@@ -304,11 +326,11 @@ func (l *localStorage) QueueMessage(clientid string, msg StorageMessage) error {
 		 */
 		node := &l.root
 		for _, level := range s {
-			node = l.findNode(node, level)
+			node = l.addNode(node, level)
 		}
 	}
 
-	return l.subSearch(clientid, &msg, &l.root, s)
+	return l.subSearch(clientid, &msg, &l.root, s, true)
 }
 
 func (l *localStorage) GetMessageTotalCount(clientid string) int {
