@@ -15,11 +15,14 @@ package collector
 import (
 	"context"
 	"time"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 // Metric
 type Metric struct {
 	topicBase
+	Action     string            `json:"action"`
 	NodeName   string            `json:"nodeName"`
 	Service    string            `json:"service"`
 	Values     map[string]uint64 `json:"values"`
@@ -43,13 +46,40 @@ func (p *Metric) handleTopic(service *CollectorService, ctx context.Context) err
 		return err
 	}
 	defer db.Session.Close()
-	c := db.C("metrics")
 
-	c.Insert(&Metric{
-		NodeName:   p.NodeName,
-		Service:    p.Service,
-		Values:     p.Values,
-		UpdateTime: time.Now(),
-	})
+	switch p.Action {
+	case ObjectActionUpdate:
+		// update newest stats for the node
+		c := db.C("metrics")
+		node := Node{}
+		if err := c.Find(bson.M{"NodeName": p.NodeName}).One(&node); err != nil { // not found
+			c.Insert(&Metric{
+				NodeName:   p.NodeName,
+				Service:    p.Service,
+				Values:     p.Values,
+				UpdateTime: time.Now(),
+			})
+		} else {
+			c.Update(&node,
+				&Metric{
+					NodeName:   p.NodeName,
+					Service:    p.Service,
+					Values:     p.Values,
+					UpdateTime: time.Now(),
+				})
+		}
+		// save history data
+		c = db.C("metrics_history")
+		c.Insert(&Metric{
+			NodeName:   p.NodeName,
+			Service:    p.Service,
+			Values:     p.Values,
+			UpdateTime: time.Now(),
+		})
+	case ObjectActionDelete:
+	case ObjectActionRegister:
+	default:
+	}
 	return nil
+
 }

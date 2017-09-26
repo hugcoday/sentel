@@ -15,15 +15,17 @@ package collector
 import (
 	"context"
 	"time"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 // Stat
 type Stats struct {
 	topicBase
-	NodeName   string `json:"nodeName"`
-	Service    string `json:"service"`
-	Action     string `json:"action"`
-	UpdateTime time.Time
+	NodeName   string            `json:"nodeName"`
+	Service    string            `json:"service"`
+	Action     string            `json:"action"`
+	UpdateTime time.Time         `json:"updateTime"`
 	Values     map[string]uint64 `json:"values"`
 }
 
@@ -45,10 +47,30 @@ func (p *Stats) handleTopic(service *CollectorService, ctx context.Context) erro
 		return err
 	}
 	defer db.Session.Close()
-	c := db.C("stats")
 
 	switch p.Action {
 	case ObjectActionUpdate:
+		// update newest stats for the node
+		c := db.C("stats")
+		node := Node{}
+		if err := c.Find(bson.M{"NodeName": p.NodeName}).One(&node); err != nil { // not found
+			c.Insert(&Stats{
+				NodeName:   p.NodeName,
+				Service:    p.Service,
+				Values:     p.Values,
+				UpdateTime: time.Now(),
+			})
+		} else {
+			c.Update(&node,
+				&Stats{
+					NodeName:   p.NodeName,
+					Service:    p.Service,
+					Values:     p.Values,
+					UpdateTime: time.Now(),
+				})
+		}
+		// save history data
+		c = db.C("stats_history")
 		c.Insert(&Stats{
 			NodeName:   p.NodeName,
 			Service:    p.Service,
