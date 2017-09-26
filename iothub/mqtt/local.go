@@ -252,7 +252,8 @@ func (l *localStorage) intsertMessage(s *mqttSession, mid uint, qos uint8, msg *
 
 	outMsg := new(mqttMessage)
 	outMsg.mid = mid
-	outMsg.payload = msg.Payload
+	outMsg.payload = make([]uint8, len(msg.Payload))
+	copy(outMsg.payload, msg.Payload)
 	outMsg.qos = qos
 	outMsg.retain = msg.Retain
 	outMsg.topic = msg.Topic
