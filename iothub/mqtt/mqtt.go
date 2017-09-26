@@ -188,6 +188,7 @@ func (m *mqtt) Start() error {
 		go func(s base.Session) {
 			err := s.Handle()
 			if err != nil {
+				conn.Close()
 				glog.Error(err)
 			}
 		}(session)

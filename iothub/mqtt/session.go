@@ -302,7 +302,7 @@ func (s *mqttSession) handleConnect() error {
 	cleanSession := (cflags & 0x02) >> 1
 	will := cflags & 0x04
 	willQos := (cflags & 0x18) >> 3
-	if willQos == 3 { // qos level3 is not supported
+	if willQos >= 3 { // qos level3 is not supported
 		return fmt.Errorf("Invalid Will Qos in CONNECT from %s", s.id)
 	}
 
@@ -324,17 +324,21 @@ func (s *mqttSession) handleConnect() error {
 		if s.protocol == mqttProtocol31 {
 			s.sendConnAck(0, CONNACK_REFUSED_IDENTIFIER_REJECTED)
 		} else {
-			if cleanSession == 0 {
+			if option, err := s.config.Bool("mqtt", "allow_zero_length_clientid"); err != nil && (!option || cleanSession == 0) {
 				s.sendConnAck(0, CONNACK_REFUSED_IDENTIFIER_REJECTED)
 				return errors.New("Invalid mqtt packet with client id")
-			} else {
-				clientid = s.generateId()
 			}
+			
+			clientid = s.generateId()
 		}
 	}
+
+	// TODO: clientid_prefixes check
+
+	
 	// Deal with topc
 	var willTopic string
-	var willMsg *mqttMessage = nil
+	var willMsg *mqttMessage
 	var payload []uint8
 
 	if will > 0 {
@@ -536,7 +540,7 @@ func (s *mqttSession) disconnect() {
 
 // handleSubscribe handle subscribe packet
 func (s *mqttSession) handleSubscribe() error {
-	var payload []uint8 = make([]uint8, 0)
+	payload := make([]uint8, 0)
 
 	glog.Infof("Received SUBSCRIBE from %s", s.id)
 	if s.protocol == mqttProtocol311 {
@@ -628,7 +632,7 @@ func (s *mqttSession) handlePublish() error {
 	dup := (s.inpacket.command & 0x08) >> 3
 	qos := (s.inpacket.command & 0x06) >> 1
 	if qos == 3 {
-		return fmt.Errorf("Invalid Qos in PUBLISH from %s, disconnectiing.", s.id)
+		return fmt.Errorf("Invalid Qos in PUBLISH from %s, disconnectiing", s.id)
 	}
 	retain := (s.inpacket.command & 0x01)
 
@@ -850,4 +854,8 @@ func (s *mqttSession) QueueMessage(msg *mqttMessage) error {
 
 func (s *mqttSession) updateOutMessage(mid uint16, state int) error {
 	return nil
+}
+
+func (s *mqttSession) generateMid() uint {
+	return 0
 }

@@ -35,7 +35,7 @@ const (
 )
 
 type mqttMessage struct {
-	mid     int
+	mid     uint
 	topic   string
 	payload []uint8
 	qos     uint8

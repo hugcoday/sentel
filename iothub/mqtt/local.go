@@ -26,9 +26,10 @@ type subLeaf struct {
 }
 
 type subNode struct {
-	level    string
-	children map[string]*subNode
-	subs     map[string]*subLeaf
+	level      string
+	children   map[string]*subNode
+	subs       map[string]*subLeaf
+	retainMsg *StorageMessage
 }
 
 type localStorage struct {
@@ -96,10 +97,10 @@ func (l *localStorage) UpdateSession(s *mqttSession) error {
 func (l *localStorage) RegisterSession(s *mqttSession) error {
 	if _, ok := l.sessions[s.id]; ok {
 		return errors.New("Session id already exists")
-	} else {
-		l.sessions[s.id] = s
-		return nil
-	}
+	} 
+
+	l.sessions[s.id] = s
+	return nil
 }
 
 // Device
@@ -173,7 +174,7 @@ func (l *localStorage) findNode(node *subNode, lev string) *subNode {
 
 // Subscription
 func (l *localStorage) AddSubscription(sessionid string, topic string, qos uint8) error {
-	var node *subNode = &l.root
+	node := &l.root
 	s := strings.Split(topic, "/")
 	for _, level := range s {
 		node = l.findNode(node, level)
@@ -186,12 +187,13 @@ func (l *localStorage) AddSubscription(sessionid string, topic string, qos uint8
 	return nil
 }
 
+// RetainSubscription process RETAIN flag；
 func (l *localStorage) RetainSubscription(sessionid string, topic string, qos uint8) error {
 	return nil
 }
 
 func (l *localStorage) RemoveSubscription(sessionid string, topic string) error {
-	var node *subNode = &l.root
+	node := &l.root
 	s := strings.Split(topic, "/")
 	for _, level := range s {
 		node = l.findNode(node, level)
@@ -221,8 +223,91 @@ func (l *localStorage) DeleteMessage(clientid string, mid uint16, direction Mess
 	return nil
 }
 
-func (l *localStorage) QueueMessage(clientid string, msg StorageMessage) error {
+func (l *localStorage) subSearch(clientid string, msg *StorageMessage, node *subNode, levels []string) error {
+	for k, v := range node.children {
+		if len(levels) != 0 && (k == levels[0] || k == "+") {
+			ss := append(levels[:0], levels[1:]...)
+			l.subSearch(clientid, msg, v, ss)
+			if len(ss) == 0 {
+				l.subProcess(clientid, msg, v)
+			}
+		} else if k == "#" && len(v.children) > 0 {
+			l.subProcess(clientid, msg, v)
+		}
+	}
 	return nil
+}
+
+func (l *localStorage) intsertMessage(s *mqttSession, mid uint, qos uint8, msg *StorageMessage) error {
+	/* Check whether we've already sent this message to this client
+	 * for outgoing messages only.
+	 * If retain==true then this is a stale retained message and so should be
+	 * sent regardless. FIXME - this does mean retained messages will received
+	 * multiple times for overlapping subscriptions, although this is only the
+	 * case for SUBSCRIPTION with multiple subs in so is a minor concern.
+	 */
+	if option, err := l.config.Bool("mqtt", "allow_duplicate_messages"); err != nil && !option {
+		// TODO
+	}
+
+	outMsg := new(mqttMessage)
+	outMsg.mid = mid
+	outMsg.payload = msg.Payload
+	outMsg.qos = qos
+	outMsg.retain = msg.Retain
+	outMsg.topic = msg.Topic
+
+	s.QueueMessage(outMsg)
+
+	return nil
+}
+
+func (l *localStorage) subProcess(clientid string, msg *StorageMessage, node *subNode) error {
+	if msg.Retain {
+		node.retainMsg = msg
+	}
+
+	for k, v := range node.subs {
+		/* Check for ACL topic access. */
+		// TODO
+		s := l.sessions[k]
+		clientQos := v.qos
+		var msgQos uint8
+		if option, err := l.config.Bool("mqtt", "upgrade_outgoing_qos"); err != nil && option {
+			msgQos = clientQos
+		} else {
+			if msg.Qos > clientQos {
+				msgQos = clientQos
+			} else {
+				msgQos = msg.Qos
+			}
+		}
+
+		var mid uint
+		if msgQos > 0 {
+			mid = s.generateMid()
+		} else {
+			mid = 0
+		}
+
+		l.intsertMessage(s, mid, msgQos, msg)
+	}
+	return nil
+}
+
+func (l *localStorage) QueueMessage(clientid string, msg StorageMessage) error {
+	s := strings.Split(msg.Topic, "/")
+	if msg.Retain {
+		/* We have a message that needs to be retained, so ensure that the subscription
+		 * tree for its topic exists.
+		 */
+		node := &l.root
+		for _, level := range s {
+			node = l.findNode(node, level)
+		}
+	}
+
+	return l.subSearch(clientid, &msg, &l.root, s)
 }
 
 func (l *localStorage) GetMessageTotalCount(clientid string) int {
