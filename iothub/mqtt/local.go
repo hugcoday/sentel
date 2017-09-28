@@ -99,6 +99,7 @@ func (l *localStorage) RegisterSession(s *mqttSession) error {
 		return errors.New("Session id already exists")
 	} 
 
+	glog.Infof("RegisterSession: id is %s", s.id)
 	l.sessions[s.id] = s
 	return nil
 }
@@ -184,12 +185,15 @@ func (l *localStorage) addNode(node *subNode, lev string) *subNode {
 
 // Subscription
 func (l *localStorage) AddSubscription(sessionid string, topic string, qos uint8) error {
+	glog.Infof("AddSubscription: sessionid is %s, topic is %s, qos is %d", sessionid, topic, qos)
 	node := &l.root
 	s := strings.Split(topic, "/")
 	for _, level := range s {
+		glog.Infof("AddSubscription: level is %s", level)
 		node = l.addNode(node, level)
 	}
 
+	glog.Infof("AddSubscription: session id is %s", sessionid)
 	node.subs[sessionid] = &subLeaf{
 		qos: qos,
 	}
@@ -242,10 +246,15 @@ func (l *localStorage) subProcess(clientid string, msg *StorageMessage, node *su
 	}
 
 	for k, v := range node.subs {
-		s := l.sessions[k]
-		if s.id == clientid {
+		glog.Infof("subProcess: session id is %s", k)
+		s, ok := l.sessions[k]
+		if !ok {
+			glog.Errorf("subProcess: sessions is nil")
 			continue
 		}
+		// if s.id == clientid {
+		// 	continue
+		// }
 
 		s.sendPublish(v.qos, msg.Qos, msg.Topic)
 	}
@@ -272,7 +281,9 @@ func (l *localStorage) subSearch(clientid string, msg *StorageMessage, node *sub
 }
 
 func (l *localStorage) QueueMessage(clientid string, msg StorageMessage) error {
+	glog.Infof("QueueMessage: Message Topic is %s", msg.Topic)
 	s := strings.Split(msg.Topic, "/")
+	
 	if msg.Retain {
 		/* We have a message that needs to be retained, so ensure that the subscription
 		 * tree for its topic exists.

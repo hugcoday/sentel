@@ -59,6 +59,7 @@ type mqttSession struct {
 	authapi           auth.IAuthAPI
 	conn              net.Conn
 	id                string
+	clientID          string
 	state             uint8
 	inpacket          mqttPacket
 	bytesReceived     int64
@@ -90,7 +91,7 @@ type mqttSession struct {
 // newMqttSession create new session  for each client connection
 func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 	// Get session message queue size, if it is not set, default is 10
-	qsize, err := m.config.Int("mqtt", "session_queue_size")
+	qsize, err := m.config.Int(m.protocol, "session_queue_size")
 	if err != nil {
 		qsize = 10
 	}
@@ -99,7 +100,7 @@ func newMqttSession(m *mqtt, conn net.Conn, id string) (*mqttSession, error) {
 		return nil, err
 	}
 	var msgqsize int
-	msgqsize, err = m.config.Int("mqtt", "session_msg_queue_size")
+	msgqsize, err = m.config.Int(m.protocol, "session_msg_queue_size")
 	if err != nil {
 		msgqsize = 10
 	}
@@ -151,6 +152,10 @@ func (s *mqttSession) launchPacketSendHandler() {
 				return
 			case p := <-packetChannel:
 				for p.toprocess > 0 {
+					glog.Infof("Handler: packet len is %d", p.length)
+					for i := 0; i < p.length; i++ {
+						glog.Infof("Handler: %d", p.payload[i])
+					}
 					len, err := s.conn.Write(p.payload[p.pos:p.toprocess])
 					if err != nil {
 						glog.Fatal("Failed to send packet to '%s:%s'", s.id, err)
@@ -327,7 +332,7 @@ func (s *mqttSession) handleConnect() error {
 		if s.protocol == mqttProtocol31 {
 			s.sendConnAck(0, CONNACK_REFUSED_IDENTIFIER_REJECTED)
 		} else {
-			if option, err := s.config.Bool("mqtt", "allow_zero_length_clientid"); err != nil && (!option || cleanSession == 0) {
+			if option, err := s.config.Bool(s.mgr.protocol, "allow_zero_length_clientid"); err != nil && (!option || cleanSession == 0) {
 				s.sendConnAck(0, CONNACK_REFUSED_IDENTIFIER_REJECTED)
 				return errors.New("Invalid mqtt packet with client id")
 			}
@@ -428,7 +433,7 @@ func (s *mqttSession) handleConnect() error {
 			s.password = password
 		}
 		// Get anonymous allow configuration
-		allowAnonymous, _ := s.config.Bool("mqtt", "allow_anonymous")
+		allowAnonymous, _ := s.config.Bool(s.mgr.protocol, "allow_anonymous")
 		if usernameFlag > 0 && allowAnonymous == false {
 			// Dont allow anonymous client connection
 			s.sendConnAck(0, CONNACK_REFUSED_NOT_AUTHORIZED)
@@ -437,7 +442,7 @@ func (s *mqttSession) handleConnect() error {
 	}
 	// Check wether username will be used as client id,
 	// The connection request will be refused if the option is set
-	if option, err := s.config.Bool("mqtt", "user_name_as_client_id"); err != nil && option {
+	if option, err := s.config.Bool(s.mgr.protocol, "user_name_as_client_id"); err != nil && option {
 		if s.username != "" {
 			clientid = s.username
 		} else {
@@ -489,7 +494,7 @@ func (s *mqttSession) handleConnect() error {
 		s.willMsg.qos = willQos
 		s.willMsg.retain = willRetain
 	}
-	s.id = clientid
+	s.clientID = clientid
 	s.cleanSession = cleanSession
 	s.pingTime = nil
 	s.isDroping = false
@@ -632,6 +637,11 @@ func (s *mqttSession) handlePublish() error {
 	var err error
 	var payload []uint8
 
+	glog.Infof("packet len is %d", s.inpacket.length)
+	for i := 0; i < s.inpacket.length; i++ {
+		glog.Info(s.inpacket.payload[i])
+	}
+
 	dup := (s.inpacket.command & 0x08) >> 3
 	qos := (s.inpacket.command & 0x06) >> 1
 	if qos == 3 {
@@ -656,10 +666,11 @@ func (s *mqttSession) handlePublish() error {
 			return err
 		}
 	}
+
 	// Payload
 	payloadlen := s.inpacket.remainingLength - s.inpacket.pos
 	if payloadlen > 0 {
-		limitSize, _ := s.config.Int("mqtt", "message_size_limit")
+		limitSize, _ := s.config.Int(s.mgr.protocol, "message_size_limit")
 		if payloadlen > limitSize {
 			return mqttErrorInvalidProtocol
 		}
@@ -695,6 +706,7 @@ func (s *mqttSession) handlePublish() error {
 	msg := StorageMessage{
 		ID:        uint(mid),
 		SourceID:  s.id,
+		Topic:     topic,
 		Direction: MessageDirectionIn,
 		State:     0,
 		Qos:       qos,
@@ -844,7 +856,7 @@ func (s *mqttSession) sendPublish(subQos uint8, srcQos uint8, topic string) erro
 	// TODO
 
 	var qos uint8
-	if option, err := s.config.Bool("mqtt", "upgrade_outgoing_qos"); err != nil && option {
+	if option, err := s.config.Bool(s.mgr.protocol, "upgrade_outgoing_qos"); err != nil && option {
 		qos = subQos
 	} else {
 		if srcQos > subQos {
