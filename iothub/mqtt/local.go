@@ -236,31 +236,6 @@ func (l *localStorage) DeleteMessage(clientid string, mid uint16, direction Mess
 	return nil
 }
 
-func (l *localStorage) insertMessage(s *mqttSession, mid uint, qos uint8, msg *StorageMessage) error {
-	/* Check whether we've already sent this message to this client
-	 * for outgoing messages only.
-	 * If retain==true then this is a stale retained message and so should be
-	 * sent regardless. FIXME - this does mean retained messages will received
-	 * multiple times for overlapping subscriptions, although this is only the
-	 * case for SUBSCRIPTION with multiple subs in so is a minor concern.
-	 */
-	if option, err := l.config.Bool("mqtt", "allow_duplicate_messages"); err != nil && !option {
-		// TODO
-	}
-
-	outMsg := mqttMessage {
-		mid:          uint16(mid),
-		payload:      msg.Payload,
-		qos:          qos,
-		retain:       msg.Retain,
-		topic:        msg.Topic,
-	}
-
-	s.QueueMessage(&outMsg)
-
-	return nil
-}
-
 func (l *localStorage) subProcess(clientid string, msg *StorageMessage, node *subNode, setRetain bool) error {
 	if msg.Retain && setRetain {
 		node.retainMsg = msg
@@ -272,29 +247,7 @@ func (l *localStorage) subProcess(clientid string, msg *StorageMessage, node *su
 			continue
 		}
 
-		/* Check for ACL topic access. */
-		// TODO
-
-		var msgQos uint8
-		clientQos := v.qos
-		if option, err := l.config.Bool("mqtt", "upgrade_outgoing_qos"); err != nil && option {
-			msgQos = clientQos
-		} else {
-			if msg.Qos > clientQos {
-				msgQos = clientQos
-			} else {
-				msgQos = msg.Qos
-			}
-		}
-
-		var mid uint
-		if msgQos > 0 {
-			mid = s.generateMid()
-		} else {
-			mid = 0
-		}
-
-		l.insertMessage(s, mid, msgQos, msg)
+		s.sendPublish(v.qos, msg.Qos, msg.Topic)
 	}
 	return nil
 }

@@ -57,6 +57,9 @@ const (
 
 type mqttPacket struct {
 	command         uint8
+	dup             bool
+	qos             uint8
+	retain          bool
 	mid             uint16
 	pos             int
 	toprocess       int
@@ -71,6 +74,9 @@ type mqttPacket struct {
 func newMqttPacket() mqttPacket {
 	return mqttPacket{
 		command:        0,
+		dup:            false,
+		qos:            0,
+		retain:         false,
 		pos:            0,
 		length:         0,
 		remainingCount: 0,
@@ -78,7 +84,6 @@ func newMqttPacket() mqttPacket {
 		payload:        []uint8{},
 		buf:            []uint8{},
 	}
-
 }
 
 func (p *mqttPacket) PacketType() string {
@@ -86,6 +91,9 @@ func (p *mqttPacket) PacketType() string {
 }
 func (p *mqttPacket) Clear() {
 	p.command = 0
+	p.dup = false
+	p.qos = 0
+	p.retain = false
 	p.pos = 0
 	p.length = 0
 	p.toprocess = 0
@@ -94,6 +102,46 @@ func (p *mqttPacket) Clear() {
 	p.remainingMult = 1
 	p.payload = []uint8{}
 	p.buf = []uint8{}
+}
+
+func (p *mqttPacket) initializePacket() error {
+	var remainingBytes = [5]uint8{}
+
+	remainingLength := p.remainingLength
+	p.remainingCount = 0
+	for remainingLength > 0 && p.remainingCount < 5 {
+		b := remainingLength % 128
+		remainingLength = remainingLength / 128
+		if remainingLength > 0 {
+			b = b | 0x80
+		}
+		remainingBytes[p.remainingCount] = uint8(b)
+		p.remainingCount++
+	}
+	if p.remainingCount == 5 {
+		return errors.New("Invalid packet payload size")
+	}
+	p.length = p.remainingLength + 1 + p.remainingCount
+	p.payload = make([]uint8, p.length)
+
+	// assemble fixed header
+	p.payload[0] = p.command
+	if p.dup {
+		p.payload[0] |= 8
+	}
+	if p.qos > 0 {
+		p.payload[0] |= p.qos << 1
+	}
+	if p.retain {
+		p.payload[0] |= 1
+	}
+
+	// assemble variable header
+	for i := 0; i < p.remainingCount; i++ {
+		p.payload[i+1] = remainingBytes[i]
+	}
+	p.pos = 1 + p.remainingCount
+	return nil
 }
 
 // SerializeTo writes the serialized form of the packet into the serialize buffer

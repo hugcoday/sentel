@@ -165,20 +165,23 @@ func (s *mqttSession) launchPacketSendHandler() {
 					}
 				}
 			case msg := <-msgChannel:
-				s.msgs = append(s.msgs, msg)
+				s.processMessage(msg)
 			case <-time.After(1 * time.Second):
+				s.processTimeout()
 			}
-
-			s.processMessage()
-
 		}
 	}(s.sendStopChannel, s.sendPacketChannel, s.sendMsgChannel)
 }
 
 // processMessage proceess messages
-func (s *mqttSession) processMessage() error {
-	// for _, msg := range s.msgs {
-	// }
+func (s *mqttSession) processMessage(msg *mqttMessage) error {
+
+	return nil
+}
+
+// processTimeout proceess timeout
+func (s *mqttSession) processTimeout() error {
+
 	return nil
 }
 
@@ -761,39 +764,11 @@ func (s *mqttSession) sendConnAck(ack uint8, result uint8) error {
 		command:         CONNACK,
 		remainingLength: 2,
 	}
-	s.initializePacket(packet)
+	packet.initializePacket()
 	packet.payload[packet.pos+0] = ack
 	packet.payload[packet.pos+1] = result
 
 	return s.queuePacket(packet)
-}
-
-// initializePacket initialize packet according to preinitialized data
-func (s *mqttSession) initializePacket(p *mqttPacket) error {
-	var remainingBytes = [5]uint8{}
-
-	remainingLength := p.remainingLength
-	p.remainingCount = 0
-	for remainingLength > 0 && p.remainingCount < 5 {
-		b := remainingLength % 128
-		remainingLength = remainingLength / 128
-		if remainingLength > 0 {
-			b = b | 0x80
-		}
-		remainingBytes[p.remainingCount] = uint8(b)
-		p.remainingCount++
-	}
-	if p.remainingCount == 5 {
-		return fmt.Errorf("Invalid packet(%d) payload size", p.command)
-	}
-	p.length = p.remainingLength + 1 + p.remainingCount
-	p.payload = make([]uint8, p.length)
-	p.payload[0] = p.command
-	for i := 0; i < p.remainingCount; i++ {
-		p.payload[i+1] = remainingBytes[i]
-	}
-	p.pos = 1 + p.remainingCount
-	return nil
 }
 
 // sendSubAck send subscription acknowledge to client
@@ -804,7 +779,7 @@ func (s *mqttSession) sendSubAck(mid uint16, payload []uint8) error {
 		remainingLength: 2 + int(len(payload)),
 	}
 
-	s.initializePacket(packet)
+	packet.initializePacket()
 	packet.writeUint16(mid)
 	if len(payload) > 0 {
 		packet.writeBytes(payload)
@@ -821,7 +796,7 @@ func (s *mqttSession) sendCommandWithMid(command uint8, mid uint16, dup bool) er
 	if dup {
 		packet.command |= 8
 	}
-	s.initializePacket(packet)
+	packet.initializePacket()
 	packet.payload[packet.pos+0] = uint8((mid & 0xFF00) >> 8)
 	packet.payload[packet.pos+1] = uint8(mid & 0xff)
 	return s.queuePacket(packet)
@@ -860,6 +835,44 @@ func (s *mqttSession) updateOutMessage(mid uint16, state int) error {
 	return nil
 }
 
-func (s *mqttSession) generateMid() uint {
+func (s *mqttSession) generateMid() uint16 {
 	return 0
+}
+
+func (s *mqttSession) sendPublish(subQos uint8, srcQos uint8, topic string) error {
+	/* Check for ACL topic access. */
+	// TODO
+
+	var qos uint8
+	if option, err := s.config.Bool("mqtt", "upgrade_outgoing_qos"); err != nil && option {
+		qos = subQos
+	} else {
+		if srcQos > subQos {
+			qos = subQos
+		} else {
+			qos = srcQos
+		}
+	}
+
+	var mid uint16
+	if qos > 0 {
+		mid = s.generateMid()
+	} else {
+		mid = 0
+	}
+
+	packet := newMqttPacket()
+	packet.command = PUBLISH
+	packet.remainingLength = 2 + len(topic)
+	if qos > 0 {
+		packet.remainingLength += 2
+	}
+	packet.initializePacket()
+	packet.writeUint16(uint16(len(topic)))
+	packet.writeString(topic)
+	if qos > 0 {
+		packet.writeUint16(mid)
+	}
+
+	return s.queuePacket(&packet)
 }

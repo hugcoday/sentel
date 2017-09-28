@@ -49,7 +49,11 @@ type StorageDevice struct{}
 type StorageTopic struct {
 	Name string
 }
+
+// MessageState ...
 type MessageState int
+
+// StorageMessage ...
 type StorageMessage struct {
 	ID        uint
 	SourceID  string
@@ -61,6 +65,7 @@ type StorageMessage struct {
 	Payload   []uint8
 }
 
+// Storage ...
 type Storage interface {
 	Open() error
 	Close()
