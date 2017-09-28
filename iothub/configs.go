@@ -36,4 +36,7 @@ var allDefaultConfigs = map[string]map[string]string{
 	"mqttp:api": {
 		"listen": "localhost:55001",
 	},
+	"auth": {
+		"address": "dummy",
+	},
 }

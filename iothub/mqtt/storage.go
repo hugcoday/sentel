@@ -126,7 +126,7 @@ func registerStorage(name string, s storageFactory) {
 	_allStorage[name] = s
 }
 
-// New storage lookup registered storage list, create a new storage instance
+// NewStorage lookup registered storage list, create a new storage instance
 func NewStorage(name string, c libs.Config) (Storage, error) {
 	if _allStorage[name] == nil {
 		return nil, fmt.Errorf("Storage %s is not registered", name)
@@ -135,5 +135,5 @@ func NewStorage(name string, c libs.Config) (Storage, error) {
 }
 
 func init() {
-	//registerStorage("local", &localStorageFactory{})
+	registerStorage("local", &localStorageFactory{})
 }

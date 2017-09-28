@@ -32,6 +32,14 @@ const (
 	AclActionWrite = "w"
 )
 
+// IAuthAPI ...
+type IAuthAPI interface {
+	GetVersion(ctx context.Context) int
+	CheckAcl(ctx context.Context, clientid string, username string, topic string, access string) error
+	CheckUserNameAndPassword(ctx context.Context, username string, password string) error
+	GetPskKey(ctx context.Context, hint string, identity string) (string, error)
+}
+
 // AuthPlugin interface for security
 type AuthApi struct {
 	config libs.Config
@@ -84,18 +92,23 @@ func (auth *AuthApi) Close() {
 	auth.conn.Close()
 }
 
-func NewAuthApi(c libs.Config) (*AuthApi, error) {
+func NewAuthApi(c libs.Config) (IAuthAPI, error) {
 	address := ""
-	api := &AuthApi{config: c}
-
 	if address, err := c.String("auth", "address"); err != nil || address == "" {
 		return nil, fmt.Errorf("Invalid autlet address:'%s'", address)
 	}
+
+	if address == "dummy" {
+		return NewDummyAuthService(), nil
+	}
+
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
 		glog.Fatalf("Failed to connect with authagent:%s", err)
 		return nil, err
 	}
+
+	api := &AuthApi{config: c}
 	api.client = NewAuthServiceClient(conn)
 	api.conn = conn
 	return api, nil

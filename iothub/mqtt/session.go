@@ -56,7 +56,7 @@ type mqttSession struct {
 	mgr               *mqtt
 	config            libs.Config
 	storage           Storage
-	authapi           *auth.AuthApi
+	authapi           auth.IAuthAPI
 	conn              net.Conn
 	id                string
 	state             uint8

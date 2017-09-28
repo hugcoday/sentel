@@ -159,7 +159,7 @@ func (m *mqtt) GetServiceInfo() *base.ServiceInfo { return nil }
 
 // Start is mainloop for mqtt service
 func (m *mqtt) Start() error {
-	host, _ := m.config.String("mqtt", "host")
+	host, _ := m.config.String(m.protocol, "listen")
 
 	listen, err := net.Listen("tcp", host)
 	if err != nil {
