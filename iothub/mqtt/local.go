@@ -309,6 +309,11 @@ func (l *localStorageFactory) New(c libs.Config) (Storage, error) {
 	d := &localStorage{
 		config:   c,
 		sessions: make(map[string]*mqttSession),
+		root:     subNode {
+			level:    "root",
+			children: make(map[string]*subNode),
+			subs:     make(map[string]*subLeaf),
+		},
 	}
 	return d, nil
 }
