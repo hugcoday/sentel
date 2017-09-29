@@ -135,8 +135,6 @@ func (p *mqttPacket) initializePacket() error {
 	if p.retain {
 		p.payload[0] |= 1
 	}
-
-	// assemble variable header
 	for i := 0; i < p.remainingCount; i++ {
 		p.payload[i+1] = remainingBytes[i]
 	}
@@ -236,8 +234,9 @@ func (p *mqttPacket) readBytes(count int) ([]uint8, error) {
 	if p.pos+count > p.remainingLength {
 		return nil, mqttErrorInvalidProtocol
 	}
+	r := p.payload[p.pos : p.pos+count]
 	p.pos += count
-	return p.payload[p.pos : p.pos+count], nil
+	return r, nil
 }
 
 // WriteBytes write bytes into packet payload
@@ -245,8 +244,9 @@ func (p *mqttPacket) writeBytes(buf []uint8) error {
 	if p.pos+len(buf) > p.length {
 		return mqttErrorInvalidProtocol
 	}
+
 	for _, b := range buf {
-		p.payload = append(p.payload, b)
+		p.payload[p.pos] = b
 		p.pos++
 	}
 	return nil

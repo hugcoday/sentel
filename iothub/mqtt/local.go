@@ -256,7 +256,7 @@ func (l *localStorage) subProcess(clientid string, msg *StorageMessage, node *su
 		// 	continue
 		// }
 
-		s.sendPublish(v.qos, msg.Qos, msg.Topic)
+		s.sendPublish(v.qos, msg.Qos, msg.Topic, msg.Payload)
 	}
 	return nil
 }

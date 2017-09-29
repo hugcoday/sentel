@@ -152,10 +152,6 @@ func (s *mqttSession) launchPacketSendHandler() {
 				return
 			case p := <-packetChannel:
 				for p.toprocess > 0 {
-					glog.Infof("Handler: packet len is %d", p.length)
-					for i := 0; i < p.length; i++ {
-						glog.Infof("Handler: %d", p.payload[i])
-					}
 					len, err := s.conn.Write(p.payload[p.pos:p.toprocess])
 					if err != nil {
 						glog.Fatal("Failed to send packet to '%s:%s'", s.id, err)
@@ -637,10 +633,6 @@ func (s *mqttSession) handlePublish() error {
 	var err error
 	var payload []uint8
 
-	glog.Infof("packet len is %d", s.inpacket.length)
-	for i := 0; i < s.inpacket.length; i++ {
-		glog.Info(s.inpacket.payload[i])
-	}
 
 	dup := (s.inpacket.command & 0x08) >> 3
 	qos := (s.inpacket.command & 0x06) >> 1
@@ -851,7 +843,7 @@ func (s *mqttSession) generateMid() uint16 {
 	return 0
 }
 
-func (s *mqttSession) sendPublish(subQos uint8, srcQos uint8, topic string) error {
+func (s *mqttSession) sendPublish(subQos uint8, srcQos uint8, topic string, payload []uint8) error {
 	/* Check for ACL topic access. */
 	// TODO
 
@@ -875,16 +867,16 @@ func (s *mqttSession) sendPublish(subQos uint8, srcQos uint8, topic string) erro
 
 	packet := newMqttPacket()
 	packet.command = PUBLISH
-	packet.remainingLength = 2 + len(topic)
+	packet.remainingLength = 2 + len(topic) + len(payload)
 	if qos > 0 {
 		packet.remainingLength += 2
 	}
 	packet.initializePacket()
-	packet.writeUint16(uint16(len(topic)))
 	packet.writeString(topic)
 	if qos > 0 {
 		packet.writeUint16(mid)
 	}
+	packet.writeBytes(payload)
 
 	return s.queuePacket(&packet)
 }
