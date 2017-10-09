@@ -31,13 +31,23 @@ type response struct {
 	Result  interface{} `json:"result"`
 }
 
+// getCollection return db's collection with name specified
+func getCollection(ctx echo.Context, name string) (*mgo.Collection, error) {
+	config := ctx.(*apiContext).config
+	hosts := config.MustString("condutor", "mongo")
+	session, err := mgo.Dial(hosts)
+	if err != nil {
+		return nil, err
+	}
+	c := session.DB("iothub").C(name)
+	return c, nil
+}
+
 // getAllNodes return all nodes in clusters
 func getAllNodes(ctx echo.Context) error {
 	glog.Infof("calling getAllNodes from %s", ctx.Request().RemoteAddr)
 
-	config := ctx.(*apiContext).config
-	hosts := config.MustString("condutor", "mongo")
-	session, err := mgo.Dial(hosts)
+	c, err := getCollection(ctx, "nodes")
 	if err != nil {
 		glog.Errorf("getAllNodes:%v", err)
 		return ctx.JSON(http.StatusInternalServerError,
@@ -46,8 +56,7 @@ func getAllNodes(ctx echo.Context) error {
 				Message: err.Error(),
 			})
 	}
-	c := session.DB("iothub").C("nodes")
-	defer session.Close()
+	defer c.Database.Session.Close()
 
 	nodes := []collector.Node{}
 	iter := c.Find(nil).Limit(100).Iter()
@@ -72,9 +81,7 @@ func getAllNodes(ctx echo.Context) error {
 func getNodesUsersInfo(ctx echo.Context) error {
 	glog.Infof("calling getNodesUserInfo from %s", ctx.Request().RemoteAddr)
 
-	config := ctx.(*apiContext).config
-	hosts := config.MustString("condutor", "mongo")
-	session, err := mgo.Dial(hosts)
+	c, err := getCollection(ctx, "nodes")
 	if err != nil {
 		glog.Errorf("getAllNodes:%v", err)
 		return ctx.JSON(http.StatusInternalServerError,
@@ -83,8 +90,7 @@ func getNodesUsersInfo(ctx echo.Context) error {
 				Message: err.Error(),
 			})
 	}
-	c := session.DB("iothub").C("nodes")
-	defer session.Close()
+	defer c.Database.Session.Close()
 
 	nodes := []collector.Node{}
 	iter := c.Find(nil).Limit(100).Iter()
@@ -214,10 +220,11 @@ func getNodeClients(ctx echo.Context) error {
 			})
 	}
 
-	return ctx.JSON(http.StatusOK, &response{
-		Success: true,
-		Result:  reply.Clients,
-	})
+	return ctx.JSON(http.StatusOK,
+		&response{
+			Success: true,
+			Result:  reply.Clients,
+		})
 }
 
 // getNodeClientInfo return spcicified client infor on a node
