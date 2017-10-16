@@ -15,8 +15,8 @@ package v1
 import (
 	"github.com/cloustone/sentel/libs"
 
-	"github.com/cloustone/sentel/apimanager/base"
-	"github.com/cloustone/sentel/apimanager/middleware"
+	"github.com/cloustone/sentel/apiserver/base"
+	"github.com/cloustone/sentel/apiserver/middleware"
 )
 
 func NewApi(c libs.Config) *base.ApiManager {

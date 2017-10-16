@@ -18,7 +18,7 @@ import (
 
 	mgo "gopkg.in/mgo.v2"
 
-	"github.com/cloustone/sentel/conductor/base"
+	"github.com/cloustone/sentel/ceilometer/base"
 	"github.com/cloustone/sentel/libs"
 	"github.com/labstack/echo"
 )
@@ -50,7 +50,7 @@ const APIHEAD = "api/v1/"
 // New create apiService service factory
 func (m *ApiServiceFactory) New(protocol string, c libs.Config, ch chan base.ServiceCommand) (base.Service, error) {
 	// check mongo db configuration
-	hosts, err := c.String("conductor", "mongo")
+	hosts, err := c.String("ceilometer", "mongo")
 	if err != nil || hosts == "" {
 		return nil, errors.New("Invalid mongo configuration")
 	}
@@ -63,7 +63,7 @@ func (m *ApiServiceFactory) New(protocol string, c libs.Config, ch chan base.Ser
 	session.Close()
 
 	address := "localhost:8080"
-	if addr, err := c.String("conductor", "listen"); err == nil && address != "" {
+	if addr, err := c.String("ceilometer", "listen"); err == nil && address != "" {
 		address = addr
 	}
 	// Create echo instance and setup router

@@ -15,54 +15,49 @@ package main
 import (
 	"flag"
 
+	"github.com/cloustone/sentel/ceilometer/api"
+	"github.com/cloustone/sentel/ceilometer/base"
+	"github.com/cloustone/sentel/ceilometer/collector"
 	"github.com/cloustone/sentel/libs"
-
-	"github.com/cloustone/sentel/apimanager/v1"
-
-	"github.com/cloustone/sentel/apimanager/base"
-	"github.com/cloustone/sentel/apimanager/db"
 
 	"github.com/golang/glog"
 )
 
 var (
-	configFileFullPath = flag.String("c", "apimanager.conf", "config file")
+	configFileFullPath = flag.String("c", "../ceilometer/ceilometer.conf", "config file")
 )
 
 func main() {
+	var mgr *base.ServiceManager
 	var config libs.Config
 	var err error
 
 	flag.Parse()
-	glog.Info("Starting api server...")
+	glog.Info("Starting condutor server...")
 
+	// Check all registered service
+	if err := base.CheckAllRegisteredServices(); err != nil {
+		glog.Fatal(err)
+		return
+	}
 	// Get configuration
 	if config, err = libs.NewWithConfigFile(*configFileFullPath); err != nil {
 		glog.Fatal(err)
 		flag.PrintDefaults()
 		return
 	}
-
-	// Register Api Manager
-	base.RegisterApiManager(v1.NewApi(config))
-
-	// Initialize registry
-	if err := db.InitializeRegistry(config); err != nil {
-		glog.Error("Registry initialization failed:%v", err)
+	// Create service manager according to the configuration
+	if mgr, err = base.NewServiceManager("ceilometer", config); err != nil {
+		glog.Fatal("Failed to launch ServiceManager")
 		return
 	}
-
-	// Create api manager using configuration
-	apiManager, err := base.CreateApiManager(config)
-	if err != nil {
-		glog.Error("ApiManager creation failed:%v", err)
-		return
-	}
-	glog.Error(apiManager.Start())
+	glog.Error(mgr.Start())
 }
 
 func init() {
 	for group, values := range allDefaultConfigs {
 		libs.RegisterConfig(group, values)
 	}
+	base.RegisterService("api", api.Configs, &api.ApiServiceFactory{})
+	base.RegisterService("collector", collector.Configs, &collector.CollectorServiceFactory{})
 }

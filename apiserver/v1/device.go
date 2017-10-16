@@ -16,9 +16,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cloustone/sentel/apimanager/db"
+	"github.com/cloustone/sentel/apiserver/db"
 
-	"github.com/cloustone/sentel/apimanager/base"
+	"github.com/cloustone/sentel/apiserver/base"
 
 	"github.com/labstack/echo"
 	uuid "github.com/satori/go.uuid"

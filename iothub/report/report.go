@@ -15,7 +15,7 @@ package report
 import (
 	"time"
 
-	"github.com/cloustone/sentel/conductor/collector"
+	"github.com/cloustone/sentel/ceilometer/collector"
 	"github.com/cloustone/sentel/iothub/base"
 	"github.com/cloustone/sentel/libs"
 )

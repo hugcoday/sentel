@@ -13,7 +13,7 @@
 package middleware
 
 import (
-	"github.com/cloustone/sentel/apimanager/util"
+	"github.com/cloustone/sentel/apiserver/util"
 
 	"github.com/labstack/echo"
 )

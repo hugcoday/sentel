@@ -18,7 +18,7 @@ import (
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/cloustone/sentel/conductor/collector"
+	"github.com/cloustone/sentel/ceilometer/collector"
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
 )

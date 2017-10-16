@@ -18,14 +18,14 @@ import (
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/cloustone/sentel/conductor/collector"
+	"github.com/cloustone/sentel/ceilometer/collector"
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
 )
 
-// getNodeSubscriptions return a node's subscriptions
-func getNodeSubscriptions(ctx echo.Context) error {
-	glog.Infof("calling getNodeSubscriptions from %s", ctx.Request().RemoteAddr)
+// getNodeSessions return a node's session
+func getNodeSessions(ctx echo.Context) error {
+	glog.Infof("calling getNodeSessions from %s", ctx.Request().RemoteAddr)
 
 	nodeName := ctx.Param("nodeName")
 	if nodeName == "" {
@@ -40,19 +40,19 @@ func getNodeSubscriptions(ctx echo.Context) error {
 	hosts := config.MustString("condutor", "mongo")
 	session, err := mgo.Dial(hosts)
 	if err != nil {
-		glog.Errorf("getNodeSubscriptions:%v", err)
+		glog.Errorf("getNodeSessions:%v", err)
 		return ctx.JSON(http.StatusInternalServerError,
 			&response{
 				Success: false,
 				Message: err.Error(),
 			})
 	}
-	c := session.DB("iothub").C("subscriptions")
+	c := session.DB("iothub").C("sessions")
 	defer session.Close()
 
-	subs := []collector.Subscription{}
-	if err := c.Find(bson.M{"NodeName": nodeName}).Limit(100).Iter().All(&subs); err != nil {
-		glog.Errorf("getNodeSubscriptions:%v", err)
+	sessions := collector.Session{}
+	if err := c.Find(bson.M{"NodeName": nodeName}).Limit(100).Iter().All(&sessions); err != nil {
+		glog.Errorf("getNodeSessions:%v", err)
 		return ctx.JSON(http.StatusNotFound,
 			&response{
 				Success: false,
@@ -61,13 +61,13 @@ func getNodeSubscriptions(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, &response{
 		Success: true,
-		Result:  subs,
+		Result:  sessions,
 	})
 }
 
-// getNodeSubscriptionsClientInfo return client info in node's subscriptions
-func getNodeSubscriptionsClientInfo(ctx echo.Context) error {
-	glog.Infof("calling getNodeSubscriptionsClientInfo from %s", ctx.Request().RemoteAddr)
+// getNodeSessionsClient return client infor in a node's sessions
+func getNodeSessionsClientInfo(ctx echo.Context) error {
+	glog.Infof("calling getNodeSessionsClientInfo from %s", ctx.Request().RemoteAddr)
 
 	nodeName := ctx.Param("nodeName")
 	clientId := ctx.Param("clientId")
@@ -83,19 +83,19 @@ func getNodeSubscriptionsClientInfo(ctx echo.Context) error {
 	hosts := config.MustString("condutor", "mongo")
 	session, err := mgo.Dial(hosts)
 	if err != nil {
-		glog.Errorf("getNodeSubscriptionsClientInfo:%v", err)
+		glog.Errorf("getNodeSessionsClientInfo:%v", err)
 		return ctx.JSON(http.StatusInternalServerError,
 			&response{
 				Success: false,
 				Message: err.Error(),
 			})
 	}
-	c := session.DB("iothub").C("subscriptions")
+	c := session.DB("iothub").C("sessions")
 	defer session.Close()
 
-	subs := []collector.Subscription{}
-	if err := c.Find(bson.M{"NodeName": nodeName, "ClientId": clientId}).Limit(100).Iter().All(&subs); err != nil {
-		glog.Errorf("getNodeSubscriptionsclientInfo:%v", err)
+	sessions := collector.Session{}
+	if err := c.Find(bson.M{"NodeName": nodeName, "ClientId": clientId}).Limit(100).Iter().All(&sessions); err != nil {
+		glog.Errorf("getNodeSessionsClientInfo:%v", err)
 		return ctx.JSON(http.StatusNotFound,
 			&response{
 				Success: false,
@@ -104,13 +104,13 @@ func getNodeSubscriptionsClientInfo(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, &response{
 		Success: true,
-		Result:  subs,
+		Result:  sessions,
 	})
 }
 
-// getClusterSubscriptionsInfo return client info in cluster subscriptions
-func getClusterSubscriptionsInfo(ctx echo.Context) error {
-	glog.Infof("calling getClusterSubscriptionsInfo from %s", ctx.Request().RemoteAddr)
+// getClusterSessionInfor return client info in cluster session
+func getClusterSessionClientInfo(ctx echo.Context) error {
+	glog.Infof("calling getClusterSessionsClientInfo from %s", ctx.Request().RemoteAddr)
 
 	clientId := ctx.Param("clientId")
 	if clientId == "" {
@@ -125,19 +125,19 @@ func getClusterSubscriptionsInfo(ctx echo.Context) error {
 	hosts := config.MustString("condutor", "mongo")
 	session, err := mgo.Dial(hosts)
 	if err != nil {
-		glog.Errorf("getClusterSubscriptionsInfo:%v", err)
+		glog.Errorf("getClusterSessionsClientInfo:%v", err)
 		return ctx.JSON(http.StatusInternalServerError,
 			&response{
 				Success: false,
 				Message: err.Error(),
 			})
 	}
-	c := session.DB("iothub").C("subscriptions")
+	c := session.DB("iothub").C("sessions")
 	defer session.Close()
 
-	subs := []collector.Subscription{}
-	if err := c.Find(bson.M{"ClientId": clientId}).Limit(100).Iter().All(&subs); err != nil {
-		glog.Errorf("getClusterSubscriptionsInfo:%v", err)
+	sessions := collector.Session{}
+	if err := c.Find(bson.M{"ClientId": clientId}).Limit(100).Iter().All(&sessions); err != nil {
+		glog.Errorf("getClusterSessionsClientInfo:%v", err)
 		return ctx.JSON(http.StatusNotFound,
 			&response{
 				Success: false,
@@ -146,6 +146,6 @@ func getClusterSubscriptionsInfo(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, &response{
 		Success: true,
-		Result:  subs,
+		Result:  sessions,
 	})
 }

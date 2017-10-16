@@ -17,7 +17,7 @@ import (
 
 	"github.com/cloustone/sentel/libs"
 
-	"github.com/cloustone/sentel/apimanager/middleware"
+	"github.com/cloustone/sentel/apiserver/middleware"
 
 	echo "github.com/labstack/echo"
 )

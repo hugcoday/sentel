@@ -15,8 +15,8 @@ package v1
 import (
 	"net/http"
 
-	"github.com/cloustone/sentel/apimanager/base"
-	"github.com/cloustone/sentel/apimanager/db"
+	"github.com/cloustone/sentel/apiserver/base"
+	"github.com/cloustone/sentel/apiserver/db"
 
 	"github.com/labstack/echo"
 )

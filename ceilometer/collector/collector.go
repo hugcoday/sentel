@@ -20,7 +20,7 @@ import (
 	"sync"
 
 	"github.com/Shopify/sarama"
-	"github.com/cloustone/sentel/conductor/base"
+	"github.com/cloustone/sentel/ceilometer/base"
 	"github.com/cloustone/sentel/libs"
 	"github.com/golang/glog"
 	"gopkg.in/mgo.v2"
@@ -40,7 +40,7 @@ type CollectorServiceFactory struct{}
 // New create apiService service factory
 func (m *CollectorServiceFactory) New(name string, c libs.Config, ch chan base.ServiceCommand) (base.Service, error) {
 	// check mongo db configuration
-	hosts, err := c.String("conductor", "mongo")
+	hosts, err := c.String("ceilometer", "mongo")
 	if err != nil || hosts == "" {
 		return nil, errors.New("Invalid mongo configuration")
 	}
@@ -78,14 +78,14 @@ func (s *CollectorService) Name() string {
 
 // Start
 func (s *CollectorService) Start() error {
-	partitionList, err := s.consumer.Partitions("conductor")
+	partitionList, err := s.consumer.Partitions("ceilometer")
 	if err != nil {
 		return fmt.Errorf("Failed to get list of partions:%v", err)
 		return err
 	}
 
 	for partition := range partitionList {
-		pc, err := s.consumer.ConsumePartition("conductor", int32(partition), sarama.OffsetNewest)
+		pc, err := s.consumer.ConsumePartition("ceilometer", int32(partition), sarama.OffsetNewest)
 		if err != nil {
 			glog.Errorf("Failed  to start consumer for partion %d:%s", partition, err)
 			continue
