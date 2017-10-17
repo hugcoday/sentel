@@ -20,11 +20,18 @@ const (
 	RuleActionStop   = "stop"
 )
 
+const (
+	RuleStatusIdle    = "idle"
+	RuleStatusStarted = "started"
+	RuleStatusStoped  = "stoped"
+)
+
 type Rule struct {
 	RuleName  string `json:"ruleName"`
 	RuleId    string `json:"ruleId"`
 	ProductId string `json:"productId"`
 	Sal       string `json:"sql"`
 	Target    string `json:"target"`
+	Status    string `json:"status"`
 	Action    string
 }

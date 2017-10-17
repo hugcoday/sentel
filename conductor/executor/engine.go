@@ -182,15 +182,45 @@ func (p *ruleEngine) deleteRule(r *Rule) error {
 
 // updateRule update rule in engine
 func (p *ruleEngine) updateRule(r *Rule) error {
-	return nil
+	glog.Infof("Rule:%s is updated", r.RuleId)
+
+	obj, err := p.getRuleObject(r)
+	if err != nil {
+		return err
+	}
+
+	// Get rule detail
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	if _, ok := p.rules[r.RuleId]; ok {
+		p.rules[r.RuleId] = obj
+		return nil
+	}
+	return fmt.Errorf("rule:%s doesn't exist", r.RuleId)
 }
 
 // startRule start rule in engine
 func (p *ruleEngine) startRule(r *Rule) error {
-	return nil
+	glog.Infof("rule:%s is started", r.RuleId)
+
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	if _, ok := p.rules[r.RuleId]; ok {
+		p.rules[r.RuleId].Status = RuleStatusStarted
+		return nil
+	}
+	return fmt.Errorf("rule:%s doesn't exist", r.RuleId)
 }
 
 // stopRule stop rule in engine
 func (p *ruleEngine) stopRule(r *Rule) error {
-	return nil
+	glog.Infof("rule:%s is stoped", r.RuleId)
+
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	if _, ok := p.rules[r.RuleId]; ok {
+		p.rules[r.RuleId].Status = RuleStatusStoped
+		return nil
+	}
+	return fmt.Errorf("rule:%s doesn't exist", r.RuleId)
 }
