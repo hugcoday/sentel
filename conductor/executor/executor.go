@@ -28,6 +28,8 @@ type ExecutorService struct {
 	chn      chan sentel.ServiceCommand
 	wg       sync.WaitGroup
 	ruleChan chan *Rule
+	engines  map[string]*ruleEngine
+	mutex    sync.Mutex
 }
 
 type ExecutorServiceFactory struct{}
@@ -52,6 +54,8 @@ func (m *ExecutorServiceFactory) New(name string, c sentel.Config, ch chan sente
 		wg:       sync.WaitGroup{},
 		chn:      ch,
 		ruleChan: make(chan *Rule),
+		engines:  make(map[string]*ruleEngine),
+		mutex:    sync.Mutex{},
 	}
 	return executorService, nil
 }
@@ -87,8 +91,18 @@ func pushRule(r *Rule) {
 	executorService.ruleChan <- r
 }
 
-func (s *ExecutorService) handleRule(r *Rule) {
-
+func (s *ExecutorService) handleRule(r *Rule) error {
+	if _, ok := s.engines[r.ProductId]; !ok { // not found
+		engine, err := newRuleEngine(s.config, r.ProductId)
+		if err != nil {
+			glog.Errorf("Failed to create rule engint for product(%s)", r.ProductId)
+			return err
+		}
+		s.engines[r.ProductId] = engine
+	}
+	engine := s.engines[r.ProductId]
+	engine.addRule(r)
+	return nil
 }
 
 func HandleRuleNotification(cfg sentel.Config, r *Rule, action string) error {
