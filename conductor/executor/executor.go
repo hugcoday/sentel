@@ -20,7 +20,6 @@ import (
 	"github.com/cloustone/sentel/libs/sentel"
 	"github.com/golang/glog"
 	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 )
 
 type ExecutorService struct {
@@ -34,6 +33,7 @@ type ExecutorService struct {
 
 type ExecutorServiceFactory struct{}
 
+//  A global executor service instance is needed because indication will send rule to it
 var executorService *ExecutorService
 
 // New create executor service factory
@@ -77,21 +77,24 @@ func (s *ExecutorService) Start() error {
 			break
 		}
 	}(s)
-	s.wg.Wait()
 	return nil
 }
 
 // Stop
 func (s *ExecutorService) Stop() {
 	s.chn <- 1
-}
+	s.wg.Wait()
 
-// executeRule push a new rule to executor service
-func pushRule(r *Rule) {
-	executorService.ruleChan <- r
+	// stop all ruleEngine
+	for _, engine := range s.engines {
+		if engine != nil {
+			engine.stop()
+		}
+	}
 }
 
 func (s *ExecutorService) handleRule(r *Rule) error {
+	// Get engine instance according to product id
 	if _, ok := s.engines[r.ProductId]; !ok { // not found
 		engine, err := newRuleEngine(s.config, r.ProductId)
 		if err != nil {
@@ -101,40 +104,42 @@ func (s *ExecutorService) handleRule(r *Rule) error {
 		s.engines[r.ProductId] = engine
 	}
 	engine := s.engines[r.ProductId]
-	engine.addRule(r)
+
+	switch r.Action {
+	case RuleActionNew:
+		return engine.addRule(r)
+	case RuleActionDelete:
+		return engine.deleteRule(r)
+	case RuleActionUpdate:
+		return engine.updateRule(r)
+	case RuleActionStart:
+		return engine.startRule(r)
+	case RuleActionStop:
+		return engine.stopRule(r)
+	}
 	return nil
 }
 
-func HandleRuleNotification(cfg sentel.Config, r *Rule, action string) error {
-	glog.Infof("New rule notification: ruleId=%s, ruleName=%s, action=%s", r.RuleId, r.RuleName, action)
+// HandleRuleNotification handle rule notifications recevied from kafka,
+// it will check rule's validity,for example, wether rule exist in database.
+func HandleRuleNotification(r *Rule) error {
+	glog.Infof("New rule notification: ruleId=%s, ruleName=%s, action=%s", r.RuleId, r.RuleName, r.Action)
 
 	// Check action's validity
-	switch action {
+	switch r.Action {
 	case RuleActionNew:
 	case RuleActionDelete:
-	case RuleActionUpdated:
+	case RuleActionUpdate:
 	case RuleActionStart:
 	case RuleActionStop:
 	default:
-		return fmt.Errorf("Invalid rule action(%s) for product(%s)", action, r.ProductId)
+		return fmt.Errorf("Invalid rule action(%s) for product(%s)", r.Action, r.ProductId)
 	}
-	// Get rule detail
-	hosts, _ := cfg.String("conductor", "mongo")
-	session, err := mgo.Dial(hosts)
-	if err != nil {
-		glog.Errorf("%v", err)
-		return err
-	}
-	defer session.Close()
-	c := session.DB("registry").C("rules")
-	obj := Rule{}
-	if err := c.Find(bson.M{"RuleId": r.RuleId}).One(&obj); err != nil {
-		glog.Errorf("Invalid rule with id(%s)", r.RuleId)
-		return err
-	}
-	// Parse sql and target
 
+	if r.RuleId == "" || r.ProductId == "" {
+		return fmt.Errorf("Invalid argument")
+	}
 	// Now just simply send rule to executor
-	pushRule(&obj)
+	executorService.ruleChan <- r
 	return nil
 }

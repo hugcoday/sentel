@@ -19,34 +19,40 @@ import (
 	"strings"
 	"sync"
 
+	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
+
 	"github.com/Shopify/sarama"
 	"github.com/cloustone/sentel/libs/sentel"
 	"github.com/golang/glog"
 )
 
+// one product has one scpecific topic name
 const publishTopicUrl = "/cluster/publish/%s"
 
+// publishTopic is topic object received from kafka
 type publishTopic struct {
 	ClientId  string `json:"clientId"`
 	Topic     string `json:"topic"`
 	ProductId string `json:"product"`
-	Content   string `json:"context"`
+	Content   string `json:"content"`
 	encoded   []byte
 	err       error
 }
 
+// ruleEngine manage product's rules, add, start and stop rule
 type ruleEngine struct {
-	productId  string          // one product have one rule engine
-	rules      []*Rule         // all product's rule
-	consumer   sarama.Consumer // one product have one consumer
-	config     sentel.Config   // configuration
-	mutex      sync.Mutex      // mutex to protext rules list
-	ruleChan   chan *Rule      // rule receiver
-	notifyChan chan int        // stop channel
-	started    bool            // indicate wether engined is started
-	wg         sync.WaitGroup  // waitgroup for consumper partions
+	productId  string           // one product have one rule engine
+	rules      map[string]*Rule // all product's rule
+	consumer   sarama.Consumer  // one product have one consumer
+	config     sentel.Config    // configuration
+	mutex      sync.Mutex       // mutex to protext rules list
+	notifyChan chan int         // stop channel
+	started    bool             // indicate wether engined is started
+	wg         sync.WaitGroup   // waitgroup for consumper partions
 }
 
+// newRuleEngine create a engine according to product id and configuration
 func newRuleEngine(c sentel.Config, productId string) (*ruleEngine, error) {
 	khosts, err := c.String("conductor", "kafka")
 	if err != nil || khosts == "" {
@@ -61,83 +67,130 @@ func newRuleEngine(c sentel.Config, productId string) (*ruleEngine, error) {
 		productId:  productId,
 		config:     c,
 		consumer:   consumer,
-		rules:      []*Rule{},
+		rules:      make(map[string]*Rule),
 		mutex:      sync.Mutex{},
-		ruleChan:   make(chan *Rule),
 		notifyChan: make(chan int),
 		wg:         sync.WaitGroup{},
 		started:    false,
 	}, nil
 }
 
-func (r *ruleEngine) start() error {
-	if r.started {
-		return fmt.Errorf("rule engine(%s) is already started", r.productId)
+// start will start the rule engine, receiving topic and rule
+func (p *ruleEngine) start() error {
+	if p.started {
+		return fmt.Errorf("rule engine(%s) is already started", p.productId)
 	}
 
-	// start rule receiver
-	r.wg.Add(1)
-	go func(r *ruleEngine) {
-		for {
-			select {
-			case rule := <-r.ruleChan:
-				r.mutex.Lock()
-				r.rules = append(r.rules, rule)
-				r.mutex.Unlock()
-			case <-r.notifyChan:
-				break
-			}
-		}
-		r.wg.Done()
-	}(r)
-
 	// start connection with kafka
-	partitionList, err := r.consumer.Partitions("conductor")
+	partitionList, err := p.consumer.Partitions("conductor")
 	if err != nil {
 		return fmt.Errorf("Failed to get list of partions:%v", err)
 	}
 
-	topic := fmt.Sprintf(publishTopicUrl, r.productId)
+	topic := fmt.Sprintf(publishTopicUrl, p.productId)
 	for partition := range partitionList {
-		pc, err := r.consumer.ConsumePartition(topic, int32(partition), sarama.OffsetNewest)
+		pc, err := p.consumer.ConsumePartition(topic, int32(partition), sarama.OffsetNewest)
 		if err != nil {
 			glog.Errorf("Failed  to start consumer for partion %d:%s", partition, err)
 			continue
 		}
 		defer pc.AsyncClose()
-		r.wg.Add(1)
+		p.wg.Add(1)
 
 		go func(sarama.PartitionConsumer) {
-			defer r.wg.Done()
+			defer p.wg.Done()
 			for msg := range pc.Messages() {
-				r.handleTopic(string(msg.Topic), msg.Value)
+				t := publishTopic{}
+				if err := json.Unmarshal(msg.Value, &t); err != nil {
+					glog.Errorf("Failed to handle topic:%v", err)
+					continue
+				}
+				if err := p.execute(&t); err != nil {
+					glog.Errorf("Failed to handle topic:%v", err)
+					continue
+				}
 			}
 		}(pc)
 	}
-	r.started = true
+	p.started = true
 	return nil
 }
 
-func (r *ruleEngine) stop() {
-	if r.consumer != nil {
-		r.consumer.Close()
+// stop will stop the engine
+func (p *ruleEngine) stop() {
+	if p.consumer != nil {
+		p.consumer.Close()
 	}
-	r.notifyChan <- 0
-	r.wg.Wait()
+	p.notifyChan <- 0
+	p.wg.Wait()
 }
 
-func (r *ruleEngine) addRule(rule *Rule) {
-	r.ruleChan <- rule
+// execute rule to process published topic
+// Data recevied from iothub will be processed here and transformed into database
+func (p *ruleEngine) execute(t *publishTopic) error {
+	return nil
 }
 
-func (r *ruleEngine) handleTopic(topic string, value []byte) error {
-	t := publishTopic{}
-	if err := json.Unmarshal(value, &t); err != nil {
+// getRuleObject get all rule's information from backend database
+func (p *ruleEngine) getRuleObject(r *Rule) (*Rule, error) {
+	hosts, _ := p.config.String("conductor", "mongo")
+	session, err := mgo.Dial(hosts)
+	if err != nil {
+		glog.Errorf("%v", err)
+		return nil, err
+	}
+	defer session.Close()
+	c := session.DB("registry").C("rules")
+	obj := Rule{}
+	if err := c.Find(bson.M{"RuleId": r.RuleId}).One(&obj); err != nil {
+		glog.Errorf("Invalid rule with id(%s)", r.RuleId)
+		return nil, err
+	}
+	return &obj, nil
+}
+
+// addRule add a rule received from apiserver to this engine
+func (p *ruleEngine) addRule(r *Rule) error {
+	glog.Infof("ruld:%s is added", r.RuleId)
+
+	obj, err := p.getRuleObject(r)
+	if err != nil {
 		return err
 	}
-	return r.execute(&t)
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	if _, ok := p.rules[r.RuleId]; ok {
+		return fmt.Errorf("rule:%s already exist", r.RuleId)
+	}
+	p.rules[r.RuleId] = obj
+	return nil
 }
 
-func (r *ruleEngine) execute(t *publishTopic) error {
+// delteRule remove a rule from current rule engine
+func (p *ruleEngine) deleteRule(r *Rule) error {
+	glog.Infof("Rule:%s is deleted", r.RuleId)
+
+	// Get rule detail
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	if _, ok := p.rules[r.RuleId]; ok {
+		delete(p.rules, r.RuleId)
+		return nil
+	}
+	return fmt.Errorf("rule:%s doesn't exist", r.RuleId)
+}
+
+// updateRule update rule in engine
+func (p *ruleEngine) updateRule(r *Rule) error {
+	return nil
+}
+
+// startRule start rule in engine
+func (p *ruleEngine) startRule(r *Rule) error {
+	return nil
+}
+
+// stopRule stop rule in engine
+func (p *ruleEngine) stopRule(r *Rule) error {
 	return nil
 }

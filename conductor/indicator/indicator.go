@@ -126,6 +126,7 @@ func (s *IndicatorService) handleNotifications(topic string, value []byte) error
 		RuleName:  rule.RuleName,
 		RuleId:    rule.RuleId,
 		ProductId: rule.ProductId,
+		Action:    rule.Action,
 	}
-	return executor.HandleRuleNotification(s.config, r, rule.Action)
+	return executor.HandleRuleNotification(r)
 }

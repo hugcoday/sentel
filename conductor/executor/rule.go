@@ -13,11 +13,11 @@
 package executor
 
 const (
-	RuleActionNew     = "new"
-	RuleActionDelete  = "delete"
-	RuleActionUpdated = "updated"
-	RuleActionStart   = "start"
-	RuleActionStop    = "stop"
+	RuleActionNew    = "new"
+	RuleActionDelete = "delete"
+	RuleActionUpdate = "update"
+	RuleActionStart  = "start"
+	RuleActionStop   = "stop"
 )
 
 type Rule struct {
@@ -26,4 +26,5 @@ type Rule struct {
 	ProductId string `json:"productId"`
 	Sal       string `json:"sql"`
 	Target    string `json:"target"`
+	Action    string
 }
