@@ -47,7 +47,7 @@ conductor: .GOPATH/.ok
 .PHONY: sentelctl
 sentelctl: .GOPATH/.ok
 	@echo $@
-	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/sentelctl
+	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/tools/sentelctl
 
 
 .PHONY: tools
