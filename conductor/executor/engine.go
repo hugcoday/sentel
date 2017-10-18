@@ -125,12 +125,6 @@ func (p *ruleEngine) stop() {
 	p.wg.Wait()
 }
 
-// execute rule to process published topic
-// Data recevied from iothub will be processed here and transformed into database
-func (p *ruleEngine) execute(t *publishTopic) error {
-	return nil
-}
-
 // getRuleObject get all rule's information from backend database
 func (p *ruleEngine) getRuleObject(r *Rule) (*Rule, error) {
 	hosts, _ := p.config.String("conductor", "mongo")
@@ -203,6 +197,16 @@ func (p *ruleEngine) updateRule(r *Rule) error {
 func (p *ruleEngine) startRule(r *Rule) error {
 	glog.Infof("rule:%s is started", r.RuleId)
 
+	// Check wether the rule engine is started
+	if p.started == false {
+		if err := p.start(); err != nil {
+			glog.Errorf("%v", err)
+			return err
+		}
+		p.started = true
+	}
+
+	// Start the rule
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	if _, ok := p.rules[r.RuleId]; ok {
@@ -218,9 +222,23 @@ func (p *ruleEngine) stopRule(r *Rule) error {
 
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
-	if _, ok := p.rules[r.RuleId]; ok {
-		p.rules[r.RuleId].Status = RuleStatusStoped
-		return nil
+	if _, ok := p.rules[r.RuleId]; !ok { // not found
+		return fmt.Errorf("Invalid rule:%s", r.RuleId)
 	}
-	return fmt.Errorf("rule:%s doesn't exist", r.RuleId)
+	p.rules[r.RuleId].Status = RuleStatusStoped
+	// Stop current engine if all rules are stoped
+	for _, rule := range p.rules {
+		// If one of rule is not stoped, don't stop current engine
+		if rule.Status != RuleStatusStoped {
+			return nil
+		}
+	}
+	p.stop()
+	return nil
+}
+
+// execute rule to process published topic
+// Data recevied from iothub will be processed here and transformed into database
+func (p *ruleEngine) execute(t *publishTopic) error {
+	return nil
 }
