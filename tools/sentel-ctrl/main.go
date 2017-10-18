@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cloustone/sentel/tools/sentelctl/cmd"
+	"github.com/cloustone/sentel/tools/sentel-ctrl/cmd"
 )
 
 func main() {

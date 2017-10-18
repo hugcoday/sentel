@@ -12,7 +12,7 @@ IGNORED_PACKAGES := /vendor/
 all: build
 
 .PHONY: build
-build: .GOPATH/.ok apiserver ceilometer iothub conductor sentelctl tools
+build: .GOPATH/.ok apiserver ceilometer iothub conductor sentel-ctrl tools
 	@echo "building completed!" 
 
 ### Code not in the repository root? Another binary? Add to the path like this.
@@ -43,17 +43,22 @@ conductor: .GOPATH/.ok
 	@echo $@
 	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/conductor
 
-
-.PHONY: sentelctl
-sentelctl: .GOPATH/.ok
-	@echo $@
-	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/tools/sentelctl
-
-
 .PHONY: tools
 tools: .GOPATH/.ok
 	@echo $@
-	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/tools/mqtt
+	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/tools/mqtt-cli
+
+
+.PHONY: sentel-ctrl
+sentel-ctrl: .GOPATH/.ok
+	@echo $@
+	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/tools/sentel-ctrl
+
+.PHONY: sentel-cli
+sentel-cli: .GOPATH/.ok
+	@echo $@
+	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/tools/sentel-cli
+
 
 ##### ^^^^^^ EDIT ABOVE ^^^^^^ #####
 

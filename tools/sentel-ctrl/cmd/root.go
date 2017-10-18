@@ -15,16 +15,16 @@ package cmd
 import (
 	"errors"
 
-	"github.com/cloustone/sentel/tools/sentelctl/api"
+	"github.com/cloustone/sentel/tools/sentel-ctrl/api"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var RootCmd = &cobra.Command{
-	Use:   "sentelctl",
-	Short: "sentelctl is tool to dianose sentel server",
-	Long:  `sentelctl can diagnose sentel servier status`,
+	Use:   "sentel-ctl",
+	Short: "sentel-ctl is tool to dianose sentel server",
+	Long:  `sentel-ctl can diagnose sentel servier status`,
 	Run: func(cmd *cobra.Command, args []string) {
 	},
 }
