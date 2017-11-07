@@ -13,7 +13,7 @@
 package api
 
 import (
-	pb "github.com/cloustone/sentel/iothub/api"
+	pb "github.com/cloustone/sentel/broker/api"
 
 	"github.com/golang/glog"
 	context "golang.org/x/net/context"

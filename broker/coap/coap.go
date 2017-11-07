@@ -17,7 +17,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/cloustone/sentel/iothub/base"
+	"github.com/cloustone/sentel/broker/base"
 	"github.com/cloustone/sentel/libs/sentel"
 
 	uuid "src/github.com/satori/go.uuid"

@@ -20,7 +20,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/cloustone/sentel/iothub/base"
+	"github.com/cloustone/sentel/broker/base"
 	"github.com/cloustone/sentel/libs/sentel"
 	uuid "github.com/satori/go.uuid"
 
@@ -206,7 +206,7 @@ func (m *mqtt) Stop() {
 func (m *mqtt) launchMqttMonitor() error {
 	glog.Info("Luanching mqtt monitor...")
 	//sarama.Logger = glog
-	khosts, _ := m.config.String("iothub", "kafka-hosts")
+	khosts, _ := m.config.String("mqttbroker", "kafka-hosts")
 	consumer, err := sarama.NewConsumer(strings.Split(khosts, ","), nil)
 	if err != nil {
 		return fmt.Errorf("Connecting with kafka:%s failed", khosts)
@@ -219,7 +219,7 @@ func (m *mqtt) launchMqttMonitor() error {
 	}
 
 	for partition := range partitionList {
-		pc, err := consumer.ConsumePartition("iothub", int32(partition), sarama.OffsetNewest)
+		pc, err := consumer.ConsumePartition("mqttbroker", int32(partition), sarama.OffsetNewest)
 		if err != nil {
 			glog.Errorf("Failed  to start consumer for partion %d:%s", partition, err)
 			continue

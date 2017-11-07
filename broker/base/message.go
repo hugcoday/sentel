@@ -32,11 +32,11 @@ func SyncProduceMessage(c sentel.Config, topic string, value sarama.Encoder) err
 
 	msg := &sarama.ProducerMessage{
 		Topic: topic,
-		Key:   sarama.StringEncoder("iothub"), // Improved
+		Key:   sarama.StringEncoder("mqttbroker"), // Improved
 		Value: value,
 	}
 
-	server, _ := c.String("iothub", "kafka")
+	server, _ := c.String("mqttbroker", "kafka")
 	producer, err := sarama.NewSyncProducer(strings.Split(server, ","), config)
 	if err != nil {
 		glog.Errorf("Failed to produce message:%s", err)
@@ -61,11 +61,11 @@ func AsyncProduceMessage(c sentel.Config, topic string, value sarama.Encoder) er
 
 	msg := &sarama.ProducerMessage{
 		Topic: topic,
-		Key:   sarama.StringEncoder("iothub"), // Improved
+		Key:   sarama.StringEncoder("mqttbroker"), // Improved
 		Value: value,
 	}
 
-	server, _ := c.String("iothub", "kafka")
+	server, _ := c.String("mqttbroker", "kafka")
 
 	producer, err := sarama.NewAsyncProducer(strings.Split(server, ","), config)
 	if err != nil {

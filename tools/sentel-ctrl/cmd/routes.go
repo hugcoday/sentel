@@ -15,7 +15,7 @@ package cmd
 import (
 	"fmt"
 
-	pb "github.com/cloustone/sentel/iothub/api"
+	pb "github.com/cloustone/sentel/broker/api"
 
 	"github.com/spf13/cobra"
 )

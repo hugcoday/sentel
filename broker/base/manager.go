@@ -63,7 +63,7 @@ func NewServiceManager(c sentel.Config) (*ServiceManager, error) {
 		services: make(map[string]Service),
 	}
 	// Get supported configs
-	items := c.MustString("iothub", "services")
+	items := c.MustString("broker", "services")
 	services := strings.Split(items, ",")
 	// Create service for each protocol
 	for _, name := range services {

@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"net/http"
 
-	pb "github.com/cloustone/sentel/iothub/api"
+	pb "github.com/cloustone/sentel/broker/api"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 

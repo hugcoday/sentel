@@ -15,8 +15,8 @@ package report
 import (
 	"time"
 
+	"github.com/cloustone/sentel/broker/base"
 	"github.com/cloustone/sentel/ceilometer/collector"
-	"github.com/cloustone/sentel/iothub/base"
 	"github.com/cloustone/sentel/libs/sentel"
 )
 
@@ -51,7 +51,7 @@ func (s *ReportService) Info() *base.ServiceInfo {
 // Start
 func (s *ReportService) Start() error {
 	// Launch timer scheduler
-	duration, err := s.config.Int("iothub", "report_duration")
+	duration, err := s.config.Int("mqttbroker", "report_duration")
 	if err != nil {
 		duration = 2
 	}

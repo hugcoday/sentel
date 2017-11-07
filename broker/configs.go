@@ -13,7 +13,7 @@
 package main
 
 var allDefaultConfigs = map[string]map[string]string{
-	"iothub": {
+	"mqttbroker": {
 		"host":     "localhost:4145",
 		"loglevel": "debug",
 		"kafka":    "",

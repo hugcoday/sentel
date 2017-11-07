@@ -20,10 +20,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cloustone/sentel/iothub/base"
+	"github.com/cloustone/sentel/broker/base"
 	"github.com/cloustone/sentel/libs/sentel"
 
-	auth "github.com/cloustone/sentel/iothub/auth"
+	auth "github.com/cloustone/sentel/broker/auth"
 	uuid "github.com/satori/go.uuid"
 
 	"github.com/golang/glog"

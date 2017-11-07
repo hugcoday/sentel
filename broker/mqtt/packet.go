@@ -16,7 +16,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/cloustone/sentel/iothub/base"
+	"github.com/cloustone/sentel/broker/base"
 )
 
 const (
