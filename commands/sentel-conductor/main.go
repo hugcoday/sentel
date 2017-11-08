@@ -49,7 +49,7 @@ func main() {
 		glog.Fatal("Failed to launch conductor ServiceManager")
 		return
 	}
-	glog.Error(mgr.Start())
+	glog.Error(mgr.Run())
 }
 
 func init() {
