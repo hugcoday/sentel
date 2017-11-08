@@ -10,33 +10,19 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package broker
+package main
 
-var DefaultConfigs = map[string]map[string]string{
-	"mqttbroker": {
+var defaultConfigs = map[string]map[string]string{
+	"condutor": {
 		"host":     "localhost:4145",
 		"loglevel": "debug",
 		"kafka":    "",
-		"services": "mqtt:tcp,coap:udp, mqtt:ws, mqtt:ssl, api,dashboard",
+		"services": "api,kafka",
 	},
-	"storage": {
-		"repository": "local",
-		"loglevel":   "debug",
+	"api": {
+		"listen": "localhost:8080",
 	},
-	"security": {
-		"cafile":              "",
-		"capath":              "",
-		"certfile":            "",
-		"keyfile":             "",
-		"require_certificate": "false",
-	},
-	"mqttp:tcp": {
-		"listen": "localhost:1883",
-	},
-	"mqttp:api": {
-		"listen": "localhost:55001",
-	},
-	"auth": {
-		"address": "dummy",
+	"kafka": {
+		"listen": "localhost:",
 	},
 }

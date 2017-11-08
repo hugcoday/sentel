@@ -15,7 +15,6 @@ package main
 import (
 	"flag"
 
-	"github.com/cloustone/sentel/apiserver"
 	"github.com/cloustone/sentel/core"
 
 	"github.com/cloustone/sentel/apiserver/v1"
@@ -63,7 +62,7 @@ func main() {
 }
 
 func init() {
-	for group, values := range apiserver.DefaultConfigs {
+	for group, values := range defaultConfigs {
 		core.RegisterConfig(group, values)
 	}
 }

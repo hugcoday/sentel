@@ -10,19 +10,23 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package conductor
+package main
 
-var DefaultConfigs = map[string]map[string]string{
-	"condutor": {
+var defaultConfigs = map[string]map[string]string{
+	"apiserver": {
 		"host":     "localhost:4145",
 		"loglevel": "debug",
 		"kafka":    "",
-		"services": "api,kafka",
 	},
-	"api": {
-		"listen": "localhost:8080",
+	"storage": {
+		"repository": "local",
+		"loglevel":   "debug",
 	},
-	"kafka": {
-		"listen": "localhost:",
+	"security": {
+		"cafile":              "",
+		"capath":              "",
+		"certfile":            "",
+		"keyfile":             "",
+		"require_certificate": "false",
 	},
 }
