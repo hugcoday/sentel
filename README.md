@@ -22,7 +22,7 @@ Other service is not be designed till now. because the short time gola is device
 
 Features
 ==========================
-* Private IoT platform withultiple deployment mode (standalone, cluster, cloud)* Multiple tenant management* Multiple access protocols (MQTT with websocket/TLS/TCP)* Security/High Available/High Concurrent.* Shadow Devices* OTA* High Configurability.* High Diagnosable.
+* Private IoT platform witht multiple deployment mode (standalone, cluster, cloud)* Multiple tenant management* Multiple access protocols (MQTT with websocket/TLS/TCP)* Security/High Available/High Concurrent.* Shadow Devices* OTA* High Configurability.* High Diagnosable.
 
 Architecture
 ==========================
