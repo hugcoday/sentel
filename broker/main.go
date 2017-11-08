@@ -17,8 +17,8 @@ import (
 
 	"github.com/cloustone/sentel/broker/api"
 	"github.com/cloustone/sentel/broker/base"
+	"github.com/cloustone/sentel/broker/metric"
 	"github.com/cloustone/sentel/broker/mqtt"
-	"github.com/cloustone/sentel/broker/report"
 	"github.com/cloustone/sentel/libs/sentel"
 
 	"github.com/golang/glog"
@@ -63,5 +63,5 @@ func init() {
 	base.RegisterService("mqtt:ssl", mqtt.Configs, &mqtt.MqttFactory{})
 	base.RegisterService("mqtt:ws", mqtt.Configs, &mqtt.MqttFactory{})
 	base.RegisterService("api", api.Configs, &api.ApiServiceFactory{})
-	base.RegisterService("report", report.Configs, &report.ReportServiceFactory{})
+	base.RegisterService("metric", metric.Configs, &metric.MetricServiceFactory{})
 }

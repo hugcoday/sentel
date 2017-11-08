@@ -10,7 +10,7 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package report
+package metric
 
 import (
 	"time"
@@ -20,7 +20,7 @@ import (
 	"github.com/cloustone/sentel/libs/sentel"
 )
 
-type ReportService struct {
+type MetricService struct {
 	config    sentel.Config
 	chn       chan base.ServiceCommand
 	keepalive *time.Ticker
@@ -30,26 +30,26 @@ type ReportService struct {
 	ip        string
 }
 
-// ReportServiceFactory
-type ReportServiceFactory struct{}
+// MetricServiceFactory
+type MetricServiceFactory struct{}
 
 // New create apiService service factory
-func (m *ReportServiceFactory) New(protocol string, c sentel.Config, ch chan base.ServiceCommand) (base.Service, error) {
+func (m *MetricServiceFactory) New(protocol string, c sentel.Config, ch chan base.ServiceCommand) (base.Service, error) {
 	// Get node ip, name and created time
-	return &ReportService{
+	return &MetricService{
 		config: c,
 	}, nil
 }
 
 // Name
-func (s *ReportService) Info() *base.ServiceInfo {
+func (s *MetricService) Info() *base.ServiceInfo {
 	return &base.ServiceInfo{
 		ServiceName: "report-service",
 	}
 }
 
 // Start
-func (s *ReportService) Start() error {
+func (s *MetricService) Start() error {
 	// Launch timer scheduler
 	duration, err := s.config.Int("mqttbroker", "report_duration")
 	if err != nil {
@@ -57,7 +57,7 @@ func (s *ReportService) Start() error {
 	}
 	s.keepalive = time.NewTicker(1 * time.Second)
 	s.stat = time.NewTicker(time.Duration(duration) * time.Second)
-	go func(*ReportService) {
+	go func(*MetricService) {
 		for {
 			select {
 			case <-s.keepalive.C:
@@ -71,13 +71,13 @@ func (s *ReportService) Start() error {
 }
 
 // Stop
-func (s *ReportService) Stop() {
+func (s *MetricService) Stop() {
 	s.keepalive.Stop()
 	s.stat.Stop()
 }
 
 // reportHubStats report current iothub stats
-func (s *ReportService) reportHubStats() {
+func (s *MetricService) reportHubStats() {
 	mgr := base.GetServiceManager()
 	// Stats
 	stats := mgr.GetStats("mqtt")
@@ -99,7 +99,7 @@ func (s *ReportService) reportHubStats() {
 }
 
 // reportKeepalive report node information to cluster manager
-func (s *ReportService) reportKeepalive() {
+func (s *MetricService) reportKeepalive() {
 	mgr := base.GetServiceManager()
 	// Node
 	node := mgr.GetNodeInfo()

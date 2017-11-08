@@ -10,6 +10,6 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package report
+package metric
 
 var Configs = map[string]string{}
