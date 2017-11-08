@@ -1,4 +1,4 @@
-Sentel
+Overview
 =====================================================
 Sentel is iot cloud platform which can be deployed in private enterprise environment to provide the following functions.
 
@@ -20,8 +20,15 @@ Other service is not be designed till now. because the short time gola is device
 * Authenticated devices can connect with sentel and publish and subscribe topic
 * Device data can be stored in database
 
+Features
+==========================
+* Private IoT platform withultiple deployment mode (standalone, cluster, cloud)* Multiple tenant management* Multiple access protocols (MQTT with websocket/TLS/TCP)* Security/High Available/High Concurrent.* Shadow Devices* OTA* High Configurability.* High Diagnosable.
 
-Technology dependency
+Architecture
+==========================
+![](docs/sentel-arch.png)
+
+Technology items
 ==========================
 
 * Postgres is used to store user/product/device informations.
