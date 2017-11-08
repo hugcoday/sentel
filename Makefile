@@ -24,52 +24,52 @@ build: .GOPATH/.ok apiserver ceilometer broker iothub cluster-manager conductor 
 .PHONY: ceilometer 
 ceilometer: .GOPATH/.ok
 	@echo $@
-	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/ceilometer
+	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/commands/sentel-ceilometer
 
 
 .PHONY: apiserver
 apiserver: .GOPATH/.ok
 	@echo $@
-	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/apiserver
+	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/commands/sentel-apiserver
 
 
 .PHONY: broker 
 broker: .GOPATH/.ok
 	@echo $@
-	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/broker
+	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/commands/sentel-broker
 
 .PHONY: iothub 
 iothub: .GOPATH/.ok
 	@echo $@
-	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/iothub
+	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/commands/sentel-iothub
 
 .PHONY: cluster-manager 
 cluster-manager: .GOPATH/.ok
 	@echo $@
-	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/cluster-manager
+	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/commands/sentel-cluster-manager
 
 
 
 .PHONY: conductor 
 conductor: .GOPATH/.ok
 	@echo $@
-	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/conductor
+	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/commands/sentel-conductor
 
 .PHONY: tools
 tools: .GOPATH/.ok
 	@echo $@
-	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/tools/mqtt-cli
+	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/commands/mqtt-cli
 
 
 .PHONY: sentel-ctrl
 sentel-ctrl: .GOPATH/.ok
 	@echo $@
-	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/tools/sentel-ctrl
+	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/commands/sentel-ctrl
 
 .PHONY: sentel-cli
 sentel-cli: .GOPATH/.ok
 	@echo $@
-	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/tools/sentel-cli
+	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/commands/sentel-cli
 
 
 ##### ^^^^^^ EDIT ABOVE ^^^^^^ #####

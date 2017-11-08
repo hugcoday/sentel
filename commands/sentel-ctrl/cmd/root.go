@@ -15,7 +15,7 @@ package cmd
 import (
 	"errors"
 
-	"github.com/cloustone/sentel/tools/sentel-ctrl/api"
+	"github.com/cloustone/sentel/commands/sentel-ctrl/api"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

@@ -10,9 +10,9 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package main
+package apiserver
 
-var allDefaultConfigs = map[string]map[string]string{
+var DefaultConfigs = map[string]map[string]string{
 	"apiserver": {
 		"host":     "localhost:4145",
 		"loglevel": "debug",

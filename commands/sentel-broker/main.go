@@ -15,6 +15,7 @@ package main
 import (
 	"flag"
 
+	"github.com/cloustone/sentel/broker"
 	"github.com/cloustone/sentel/broker/api"
 	"github.com/cloustone/sentel/broker/base"
 	"github.com/cloustone/sentel/broker/metric"
@@ -25,7 +26,7 @@ import (
 )
 
 var (
-	configFileFullPath = flag.String("c", "mqttbroker.conf", "config file")
+	configFileFullPath = flag.String("c", "stentel-broker.conf", "config file")
 )
 
 func main() {
@@ -56,7 +57,7 @@ func main() {
 }
 
 func init() {
-	for group, values := range allDefaultConfigs {
+	for group, values := range broker.DefaultConfigs {
 		sentel.RegisterConfig(group, values)
 	}
 	base.RegisterService("mqtt:tcp", mqtt.Configs, &mqtt.MqttFactory{})

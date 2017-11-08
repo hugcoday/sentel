@@ -15,6 +15,7 @@ package main
 import (
 	"flag"
 
+	"github.com/cloustone/sentel/ceilometer"
 	"github.com/cloustone/sentel/ceilometer/api"
 	"github.com/cloustone/sentel/ceilometer/collector"
 	"github.com/cloustone/sentel/libs/sentel"
@@ -54,7 +55,7 @@ func main() {
 }
 
 func init() {
-	for group, values := range allDefaultConfigs {
+	for group, values := range ceilometer.DefaultConfigs {
 		sentel.RegisterConfig(group, values)
 	}
 	sentel.RegisterService("api", api.Configs, &api.ApiServiceFactory{})
