@@ -15,7 +15,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/cloustone/sentel/libs/sentel"
+	"github.com/cloustone/sentel/core"
 
 	"github.com/golang/glog"
 )
@@ -36,7 +36,7 @@ type Service interface {
 }
 
 type ServiceFactory interface {
-	New(name string, c sentel.Config, ch chan ServiceCommand) (Service, error)
+	New(name string, c core.Config, ch chan ServiceCommand) (Service, error)
 }
 
 var (
@@ -48,12 +48,12 @@ func RegisterService(name string, configs map[string]string, factory ServiceFact
 	if _, ok := _serviceFactories[name]; ok {
 		glog.Errorf("Service '%s' is not registered", name)
 	}
-	sentel.RegisterConfig(name, configs)
+	core.RegisterConfig(name, configs)
 	_serviceFactories[name] = factory
 }
 
 // CreateService create service instance according to service name
-func CreateService(name string, c sentel.Config, ch chan ServiceCommand) (Service, error) {
+func CreateService(name string, c core.Config, ch chan ServiceCommand) (Service, error) {
 	glog.Infof("Creating service '%s'...", name)
 
 	if factory, ok := _serviceFactories[name]; ok && factory != nil {

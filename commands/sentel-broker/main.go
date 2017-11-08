@@ -20,7 +20,7 @@ import (
 	"github.com/cloustone/sentel/broker/base"
 	"github.com/cloustone/sentel/broker/metric"
 	"github.com/cloustone/sentel/broker/mqtt"
-	"github.com/cloustone/sentel/libs/sentel"
+	"github.com/cloustone/sentel/core"
 
 	"github.com/golang/glog"
 )
@@ -31,7 +31,7 @@ var (
 
 func main() {
 	var mgr *base.ServiceManager
-	var config sentel.Config
+	var config core.Config
 	var err error
 
 	flag.Parse()
@@ -43,7 +43,7 @@ func main() {
 		return
 	}
 	// Get configuration
-	if config, err = sentel.NewWithConfigFile(*configFileFullPath); err != nil {
+	if config, err = core.NewWithConfigFile(*configFileFullPath); err != nil {
 		glog.Fatal(err)
 		flag.PrintDefaults()
 		return
@@ -58,7 +58,7 @@ func main() {
 
 func init() {
 	for group, values := range broker.DefaultConfigs {
-		sentel.RegisterConfig(group, values)
+		core.RegisterConfig(group, values)
 	}
 	base.RegisterService("mqtt:tcp", mqtt.Configs, &mqtt.MqttFactory{})
 	base.RegisterService("mqtt:ssl", mqtt.Configs, &mqtt.MqttFactory{})

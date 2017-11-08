@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/cloustone/sentel/broker/base"
-	"github.com/cloustone/sentel/libs/sentel"
+	"github.com/cloustone/sentel/core"
 
 	auth "github.com/cloustone/sentel/broker/auth"
 	uuid "github.com/satori/go.uuid"
@@ -53,7 +53,7 @@ const (
 
 type mqttSession struct {
 	mgr               *mqtt
-	config            sentel.Config
+	config            core.Config
 	storage           Storage
 	authapi           auth.IAuthAPI
 	conn              net.Conn

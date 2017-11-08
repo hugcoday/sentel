@@ -20,7 +20,7 @@ import (
 	"sync"
 
 	"github.com/cloustone/sentel/conductor/executor"
-	"github.com/cloustone/sentel/libs/sentel"
+	"github.com/cloustone/sentel/core"
 
 	"github.com/Shopify/sarama"
 	"github.com/golang/glog"
@@ -28,8 +28,8 @@ import (
 )
 
 type IndicatorService struct {
-	config     sentel.Config
-	chn        chan sentel.ServiceCommand
+	config     core.Config
+	chn        chan core.ServiceCommand
 	wg         sync.WaitGroup
 	consumer   sarama.Consumer
 	mongoHosts string // mongo hosts
@@ -39,7 +39,7 @@ type IndicatorService struct {
 type IndicatorServiceFactory struct{}
 
 // New create apiService service factory
-func (m *IndicatorServiceFactory) New(name string, c sentel.Config, ch chan sentel.ServiceCommand) (sentel.Service, error) {
+func (m *IndicatorServiceFactory) New(name string, c core.Config, ch chan core.ServiceCommand) (core.Service, error) {
 	// check mongo db configuration
 	hosts, err := c.String("conductor", "mongo")
 	if err != nil || hosts == "" {

@@ -17,14 +17,14 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/cloustone/sentel/libs/sentel"
+	"github.com/cloustone/sentel/core"
 	"github.com/golang/glog"
 	"gopkg.in/mgo.v2"
 )
 
 type ExecutorService struct {
-	config   sentel.Config
-	chn      chan sentel.ServiceCommand
+	config   core.Config
+	chn      chan core.ServiceCommand
 	wg       sync.WaitGroup
 	ruleChan chan *Rule
 	engines  map[string]*ruleEngine
@@ -37,7 +37,7 @@ type ExecutorServiceFactory struct{}
 var executorService *ExecutorService
 
 // New create executor service factory
-func (m *ExecutorServiceFactory) New(name string, c sentel.Config, ch chan sentel.ServiceCommand) (sentel.Service, error) {
+func (m *ExecutorServiceFactory) New(name string, c core.Config, ch chan core.ServiceCommand) (core.Service, error) {
 	// check mongo db configuration
 	hosts, err := c.String("conductor", "mongo")
 	if err != nil || hosts == "" {

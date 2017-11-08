@@ -17,12 +17,12 @@ import (
 	"github.com/cloustone/sentel/broker/base"
 	"github.com/cloustone/sentel/broker/metric"
 	"github.com/cloustone/sentel/broker/mqtt"
-	"github.com/cloustone/sentel/libs/sentel"
+	"github.com/cloustone/sentel/core"
 )
 
 func init() {
 	for group, values := range DefaultConfigs {
-		sentel.RegisterConfig(group, values)
+		core.RegisterConfig(group, values)
 	}
 	base.RegisterService("mqtt:tcp", mqtt.Configs, &mqtt.MqttFactory{})
 	base.RegisterService("mqtt:ssl", mqtt.Configs, &mqtt.MqttFactory{})

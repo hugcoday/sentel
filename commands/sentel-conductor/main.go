@@ -17,7 +17,7 @@ import (
 
 	"github.com/cloustone/sentel/conductor/executor"
 	"github.com/cloustone/sentel/conductor/indicator"
-	"github.com/cloustone/sentel/libs/sentel"
+	"github.com/cloustone/sentel/core"
 	"github.com/golang/glog"
 )
 
@@ -26,26 +26,26 @@ var (
 )
 
 func main() {
-	var mgr *sentel.ServiceManager
-	var config sentel.Config
+	var mgr *core.ServiceManager
+	var config core.Config
 	var err error
 
 	flag.Parse()
 	glog.Info("Starting condutor server...")
 
 	// Check all registered service
-	if err := sentel.CheckAllRegisteredServices(); err != nil {
+	if err := core.CheckAllRegisteredServices(); err != nil {
 		glog.Fatal(err)
 		return
 	}
 	// Get configuration
-	if config, err = sentel.NewWithConfigFile(*configFileFullPath); err != nil {
+	if config, err = core.NewWithConfigFile(*configFileFullPath); err != nil {
 		glog.Fatal(err)
 		flag.PrintDefaults()
 		return
 	}
 	// Create service manager according to the configuration
-	if mgr, err = sentel.NewServiceManager("conductor", config); err != nil {
+	if mgr, err = core.NewServiceManager("conductor", config); err != nil {
 		glog.Fatal("Failed to launch conductor ServiceManager")
 		return
 	}
@@ -53,6 +53,6 @@ func main() {
 }
 
 func init() {
-	sentel.RegisterService("indicator", indicator.Configs, &indicator.IndicatorServiceFactory{})
-	sentel.RegisterService("executor", executor.Configs, &executor.ExecutorServiceFactory{})
+	core.RegisterService("indicator", indicator.Configs, &indicator.IndicatorServiceFactory{})
+	core.RegisterService("executor", executor.Configs, &executor.ExecutorServiceFactory{})
 }

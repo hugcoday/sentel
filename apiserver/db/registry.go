@@ -18,7 +18,7 @@ import (
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/cloustone/sentel/libs/sentel"
+	"github.com/cloustone/sentel/core"
 	"github.com/golang/glog"
 )
 
@@ -29,12 +29,12 @@ const (
 )
 
 type Registry struct {
-	config  sentel.Config
+	config  core.Config
 	session *mgo.Session
 	db      *mgo.Database
 }
 
-func InitializeRegistry(c sentel.Config) error {
+func InitializeRegistry(c core.Config) error {
 	hosts := c.MustString("registry", "hosts")
 	session, err := mgo.Dial(hosts)
 	if err != nil {
@@ -45,7 +45,7 @@ func InitializeRegistry(c sentel.Config) error {
 	return nil
 }
 
-func NewRegistry(c sentel.Config) (*Registry, error) {
+func NewRegistry(c core.Config) (*Registry, error) {
 	hosts := c.MustString("registry", "hosts")
 	session, err := mgo.Dial(hosts)
 	if err != nil {

@@ -23,7 +23,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/Shopify/sarama"
-	"github.com/cloustone/sentel/libs/sentel"
+	"github.com/cloustone/sentel/core"
 	"github.com/golang/glog"
 )
 
@@ -45,7 +45,7 @@ type ruleEngine struct {
 	productId  string           // one product have one rule engine
 	rules      map[string]*Rule // all product's rule
 	consumer   sarama.Consumer  // one product have one consumer
-	config     sentel.Config    // configuration
+	config     core.Config      // configuration
 	mutex      sync.Mutex       // mutex to protext rules list
 	notifyChan chan int         // stop channel
 	started    bool             // indicate wether engined is started
@@ -53,7 +53,7 @@ type ruleEngine struct {
 }
 
 // newRuleEngine create a engine according to product id and configuration
-func newRuleEngine(c sentel.Config, productId string) (*ruleEngine, error) {
+func newRuleEngine(c core.Config, productId string) (*ruleEngine, error) {
 	khosts, err := c.String("conductor", "kafka")
 	if err != nil || khosts == "" {
 		return nil, errors.New("Invalid kafka configuration")

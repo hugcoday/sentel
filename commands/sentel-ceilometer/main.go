@@ -18,7 +18,7 @@ import (
 	"github.com/cloustone/sentel/ceilometer"
 	"github.com/cloustone/sentel/ceilometer/api"
 	"github.com/cloustone/sentel/ceilometer/collector"
-	"github.com/cloustone/sentel/libs/sentel"
+	"github.com/cloustone/sentel/core"
 
 	"github.com/golang/glog"
 )
@@ -28,26 +28,26 @@ var (
 )
 
 func main() {
-	var mgr *sentel.ServiceManager
-	var config sentel.Config
+	var mgr *core.ServiceManager
+	var config core.Config
 	var err error
 
 	flag.Parse()
 	glog.Info("Starting ceilometer server...")
 
 	// Check all registered service
-	if err := sentel.CheckAllRegisteredServices(); err != nil {
+	if err := core.CheckAllRegisteredServices(); err != nil {
 		glog.Fatal(err)
 		return
 	}
 	// Get configuration
-	if config, err = sentel.NewWithConfigFile(*configFileFullPath); err != nil {
+	if config, err = core.NewWithConfigFile(*configFileFullPath); err != nil {
 		glog.Fatal(err)
 		flag.PrintDefaults()
 		return
 	}
 	// Create service manager according to the configuration
-	if mgr, err = sentel.NewServiceManager("ceilometer", config); err != nil {
+	if mgr, err = core.NewServiceManager("ceilometer", config); err != nil {
 		glog.Fatal("Failed to launch ServiceManager")
 		return
 	}
@@ -56,8 +56,8 @@ func main() {
 
 func init() {
 	for group, values := range ceilometer.DefaultConfigs {
-		sentel.RegisterConfig(group, values)
+		core.RegisterConfig(group, values)
 	}
-	sentel.RegisterService("api", api.Configs, &api.ApiServiceFactory{})
-	sentel.RegisterService("collector", collector.Configs, &collector.CollectorServiceFactory{})
+	core.RegisterService("api", api.Configs, &api.ApiServiceFactory{})
+	core.RegisterService("collector", collector.Configs, &collector.CollectorServiceFactory{})
 }

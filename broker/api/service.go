@@ -18,7 +18,7 @@ import (
 	"sync"
 
 	"github.com/cloustone/sentel/broker/base"
-	"github.com/cloustone/sentel/libs/sentel"
+	"github.com/cloustone/sentel/core"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -27,7 +27,7 @@ import (
 )
 
 type ApiService struct {
-	config   sentel.Config
+	config   core.Config
 	chn      chan base.ServiceCommand
 	wg       sync.WaitGroup
 	listener net.Listener
@@ -38,7 +38,7 @@ type ApiService struct {
 type ApiServiceFactory struct{}
 
 // New create apiService service factory
-func (m *ApiServiceFactory) New(protocol string, c sentel.Config, ch chan base.ServiceCommand) (base.Service, error) {
+func (m *ApiServiceFactory) New(protocol string, c core.Config, ch chan base.ServiceCommand) (base.Service, error) {
 	address := ":50051"
 	server := &ApiService{config: c, wg: sync.WaitGroup{}}
 

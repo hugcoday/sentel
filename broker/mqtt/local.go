@@ -16,7 +16,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/cloustone/sentel/libs/sentel"
+	"github.com/cloustone/sentel/core"
 	"github.com/golang/glog"
 )
 
@@ -32,7 +32,7 @@ type subNode struct {
 }
 
 type localStorage struct {
-	config   sentel.Config
+	config   core.Config
 	sessions map[string]*mqttSession
 	root     subNode
 }
@@ -315,7 +315,7 @@ func (l *localStorage) UpdateMessage(clientid string, mid uint16, direction Mess
 // localStorageFactory
 type localStorageFactory struct{}
 
-func (l *localStorageFactory) New(c sentel.Config) (Storage, error) {
+func (l *localStorageFactory) New(c core.Config) (Storage, error) {
 	d := &localStorage{
 		config:   c,
 		sessions: make(map[string]*mqttSession),

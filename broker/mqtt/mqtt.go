@@ -21,7 +21,7 @@ import (
 	"sync"
 
 	"github.com/cloustone/sentel/broker/base"
-	"github.com/cloustone/sentel/libs/sentel"
+	"github.com/cloustone/sentel/core"
 	uuid "github.com/satori/go.uuid"
 
 	"github.com/Shopify/sarama"
@@ -35,7 +35,7 @@ const (
 
 // MQTT service declaration
 type mqtt struct {
-	config     sentel.Config
+	config     core.Config
 	chn        chan base.ServiceCommand
 	index      int64
 	sessions   map[string]base.Session
@@ -53,7 +53,7 @@ type mqtt struct {
 type MqttFactory struct{}
 
 // New create mqtt service factory
-func (m *MqttFactory) New(protocol string, c sentel.Config, ch chan base.ServiceCommand) (base.Service, error) {
+func (m *MqttFactory) New(protocol string, c core.Config, ch chan base.ServiceCommand) (base.Service, error) {
 	var localAddrs []string = []string{}
 	var s Storage
 

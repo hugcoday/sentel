@@ -16,13 +16,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloustone/sentel/libs/sentel"
+	"github.com/cloustone/sentel/core"
 
 	"github.com/Shopify/sarama"
 	"github.com/golang/glog"
 )
 
-func SyncProduceMessage(c sentel.Config, topic string, value sarama.Encoder) error {
+func SyncProduceMessage(c core.Config, topic string, value sarama.Encoder) error {
 	//	sarama.Logger = c.Logger()
 
 	config := sarama.NewConfig()
@@ -50,7 +50,7 @@ func SyncProduceMessage(c sentel.Config, topic string, value sarama.Encoder) err
 	return err
 }
 
-func AsyncProduceMessage(c sentel.Config, topic string, value sarama.Encoder) error {
+func AsyncProduceMessage(c core.Config, topic string, value sarama.Encoder) error {
 	//	sarama.Logger = c.Logger()
 
 	config := sarama.NewConfig()

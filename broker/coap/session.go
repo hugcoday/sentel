@@ -16,14 +16,14 @@ import (
 	"net"
 
 	"github.com/cloustone/sentel/broker/base"
-	"github.com/cloustone/sentel/libs/sentel"
+	"github.com/cloustone/sentel/core"
 
 	"github.com/golang/glog"
 )
 
 type coapSession struct {
 	mgr      *coap
-	config   sentel.Config
+	config   core.Config
 	conn     net.Conn
 	id       string
 	state    uint8

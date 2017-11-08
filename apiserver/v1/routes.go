@@ -15,10 +15,10 @@ package v1
 import (
 	"github.com/cloustone/sentel/apiserver/base"
 	"github.com/cloustone/sentel/apiserver/middleware"
-	"github.com/cloustone/sentel/libs/sentel"
+	"github.com/cloustone/sentel/core"
 )
 
-func NewApi(c sentel.Config) *base.ApiManager {
+func NewApi(c core.Config) *base.ApiManager {
 	m := base.NewApiManager("v1", c)
 
 	// Tenant Api

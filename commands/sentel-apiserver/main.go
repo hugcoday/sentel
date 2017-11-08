@@ -16,7 +16,7 @@ import (
 	"flag"
 
 	"github.com/cloustone/sentel/apiserver"
-	"github.com/cloustone/sentel/libs/sentel"
+	"github.com/cloustone/sentel/core"
 
 	"github.com/cloustone/sentel/apiserver/v1"
 
@@ -31,14 +31,14 @@ var (
 )
 
 func main() {
-	var config sentel.Config
+	var config core.Config
 	var err error
 
 	flag.Parse()
 	glog.Info("Starting api server...")
 
 	// Get configuration
-	if config, err = sentel.NewWithConfigFile(*configFileFullPath); err != nil {
+	if config, err = core.NewWithConfigFile(*configFileFullPath); err != nil {
 		glog.Fatal(err)
 		flag.PrintDefaults()
 		return
@@ -64,6 +64,6 @@ func main() {
 
 func init() {
 	for group, values := range apiserver.DefaultConfigs {
-		sentel.RegisterConfig(group, values)
+		core.RegisterConfig(group, values)
 	}
 }

@@ -17,11 +17,11 @@ import (
 
 	"github.com/cloustone/sentel/broker/base"
 	"github.com/cloustone/sentel/ceilometer/collector"
-	"github.com/cloustone/sentel/libs/sentel"
+	"github.com/cloustone/sentel/core"
 )
 
 type MetricService struct {
-	config    sentel.Config
+	config    core.Config
 	chn       chan base.ServiceCommand
 	keepalive *time.Ticker
 	stat      *time.Ticker
@@ -34,7 +34,7 @@ type MetricService struct {
 type MetricServiceFactory struct{}
 
 // New create apiService service factory
-func (m *MetricServiceFactory) New(protocol string, c sentel.Config, ch chan base.ServiceCommand) (base.Service, error) {
+func (m *MetricServiceFactory) New(protocol string, c core.Config, ch chan base.ServiceCommand) (base.Service, error) {
 	// Get node ip, name and created time
 	return &MetricService{
 		config: c,
