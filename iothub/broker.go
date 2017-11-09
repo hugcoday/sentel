@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	BrokerStatusIdle    = 0
+	BrokerStatusInvalid = 0
 	BrokerStatusStarted = 1
 	BrokerStatusStoped  = 2
 )
@@ -25,6 +25,8 @@ const (
 type BrokerStatus int
 
 type Broker struct {
+	bid         string
+	tid         string
 	ip          string
 	port        string
 	status      BrokerStatus

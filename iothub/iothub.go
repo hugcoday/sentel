@@ -28,19 +28,18 @@ import (
 
 type Iothub struct {
 	sync.Once
-	config       core.Config
-	tenantsMutex sync.Mutex
-	tenants      map[string]*Tenant
-	brokers      map[string]*Broker
-	brokersMutex sync.Mutex
-	clustermgr   *clusterManager
+	config     core.Config
+	mutex      sync.Mutex
+	tenants    map[string]*Tenant
+	brokers    map[string]*Broker
+	clustermgr *clusterManager
 }
 
 type Tenant struct {
 	id           string    `json:"tenantId"`
 	createdAt    time.Time `json:"createdAt"`
 	brokersCount int       `json:"brokersCount"`
-	brokers      []*Broker
+	brokers      map[string]*Broker
 }
 
 var (
@@ -66,12 +65,11 @@ func InitializeIothub(c core.Config) error {
 		return err
 	}
 	_iothub = &Iothub{
-		config:       c,
-		tenantsMutex: sync.Mutex{},
-		tenants:      make(map[string]*Tenant),
-		brokers:      make(map[string]*Broker),
-		brokersMutex: sync.Mutex{},
-		clustermgr:   clustermgr,
+		config:     c,
+		mutex:      sync.Mutex{},
+		tenants:    make(map[string]*Tenant),
+		brokers:    make(map[string]*Broker),
+		clustermgr: clustermgr,
 	}
 	return nil
 }
@@ -101,8 +99,8 @@ func (this *Iothub) getTenantFromDatabase(tid string) (*Tenant, error) {
 // addTenant add tenant to iothub
 func (this *Iothub) addTenant(tid string) error {
 	// check wether the tenant already exist
-	this.tenantsMutex.Lock()
-	defer this.tenantsMutex.Unlock()
+	this.mutex.Lock()
+	defer this.mutex.Unlock()
 
 	if _, ok := this.tenants[tid]; ok {
 		return fmt.Errorf("tenant(%s) already exist", tid)
@@ -119,15 +117,13 @@ func (this *Iothub) addTenant(tid string) error {
 	// create brokers accroding to tenant's request
 	for i := 0; i < tenant.brokersCount; i++ {
 		bid := uuid.NewV4().String()
-		broker, err := this.clustermgr.startBroker(bid)
+		broker, err := this.clustermgr.createBroker(bid)
 		if err != nil {
 			// TODO should we update database status
 			glog.Fatalf("Failed to created broker for tenant(%s)", tid)
 			continue
 		}
-		this.brokersMutex.Lock()
 		this.brokers[bid] = broker
-		this.brokersMutex.Unlock()
 	}
 
 	return nil
@@ -135,59 +131,215 @@ func (this *Iothub) addTenant(tid string) error {
 
 // deleteTenant delete tenant from iothub
 func (this *Iothub) deleteTenant(tid string) error {
+	// check wether the tenant already exist
+	this.mutex.Lock()
+	defer this.mutex.Unlock()
+	if _, ok := this.tenants[tid]; ok {
+		return fmt.Errorf("tenant(%s) already exist", tid)
+	}
+
+	tenant := this.tenants[tid]
+	for bid, _ := range tenant.brokers {
+		this.clustermgr.stopBroker(bid)
+		delete(this.brokers, bid)
+	}
+
+	// save new tenant into iothub
+	delete(this.tenants, tid)
+
+	// remove tenant from database
+	hosts, err := this.config.String("iothub", "mongo")
+	session, err := mgo.Dial(hosts)
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	c := session.DB("iothub").C("tenants")
+	if err := c.Remove(bson.M{"tenantId": tid}); err != nil {
+		return err
+	}
 	return nil
 }
 
-// updateTenant update a tenant infromation
+// updateTenant update a local tenant with database
 func (this *Iothub) updateTenant(tid string) error {
+	// check wether the tenant already exist
+	this.mutex.Lock()
+	defer this.mutex.Unlock()
+
+	if _, ok := this.tenants[tid]; ok {
+		return fmt.Errorf("tenant(%s) already exist", tid)
+	}
+
+	lt := this.tenants[tid]
+
+	// retrieve tenant from database
+	tenant, err := this.getTenantFromDatabase(tid)
+	if err != nil {
+		return err
+	}
+
+	// rollback brokers if local tenant and tenant in database is not same
+	if lt.brokersCount != tenant.brokersCount {
+		return this.clustermgr.rollbackTenantBrokers(lt, tenant)
+	}
+
 	return nil
 }
 
 // addBroker add broker to tenant
 func (this *Iothub) addBroker(tid string, b *Broker) error {
+	this.mutex.Lock()
+	defer this.mutex.Unlock()
+
+	if _, ok := this.tenants[tid]; !ok {
+		return fmt.Errorf("invalid tenant(%s)", tid)
+	}
+	tenant := this.tenants[tid]
+	tenant.brokers[b.bid] = b
+	this.brokers[b.bid] = b
+
 	return nil
 }
 
 // deleteBroker delete broker from iothub
 func (this *Iothub) deleteBroker(bid string) error {
+	this.mutex.Lock()
+	defer this.mutex.Unlock()
+
+	if _, ok := this.brokers[bid]; !ok {
+		return fmt.Errorf("invalid broker(%s)", bid)
+	}
+	broker := this.brokers[bid]
+	tenant := this.tenants[broker.tid]
+
+	// stop broker when deleted
+	if err := this.clustermgr.deleteBroker(bid); err != nil {
+		return err
+	}
+	delete(this.brokers, bid)
+	delete(tenant.brokers, bid)
+
 	return nil
 }
 
 // startBroker start a tenant's broker
 func (this *Iothub) startBroker(bid string) error {
-	return nil
-}
+	this.mutex.Lock()
+	defer this.mutex.Unlock()
 
-// startTenantBrokers start tenant's all broker
-func (this *Iothub) startTenantBrokers(tid string) error {
+	if _, ok := this.brokers[bid]; !ok {
+		return fmt.Errorf("invalid broker(%s)", bid)
+	}
+	if err := this.clustermgr.startBroker(bid); err != nil {
+		return err
+	}
+	broker := this.brokers[bid]
+	broker.status = BrokerStatusStarted
 	return nil
 }
 
 // stopBroker stop a broker
 func (this *Iothub) stopBroker(bid string) error {
+	this.mutex.Lock()
+	defer this.mutex.Unlock()
+
+	if _, ok := this.brokers[bid]; !ok {
+		return fmt.Errorf("invalid broker(%s)", bid)
+	}
+	if err := this.clustermgr.stopBroker(bid); err != nil {
+		return err
+	}
+	broker := this.brokers[bid]
+	broker.status = BrokerStatusStoped
+
+	return nil
+}
+
+// startTenantBrokers start tenant's all broker
+func (this *Iothub) startTenantBrokers(tid string) error {
+	this.mutex.Lock()
+	defer this.mutex.Unlock()
+
+	if _, ok := this.tenants[tid]; !ok {
+		return fmt.Errorf("invalid tenant(%s)", tid)
+	}
+
+	tenant := this.tenants[tid]
+	for bid, broker := range tenant.brokers {
+		if broker.status != BrokerStatusStarted {
+			if err := this.clustermgr.startBroker(bid); err != nil {
+				glog.Errorf("Failed to start broker(%s) for tenant(%s)", bid, tid)
+				continue
+			}
+		}
+	}
 	return nil
 }
 
 // stopTenantBrokers stop tenant's all brokers
 func (this *Iothub) stopTenantBrokers(tid string) error {
+	this.mutex.Lock()
+	defer this.mutex.Unlock()
+
+	if _, ok := this.tenants[tid]; !ok {
+		return fmt.Errorf("invalid tenant(%s)", tid)
+	}
+
+	tenant := this.tenants[tid]
+	for bid, broker := range tenant.brokers {
+		if broker.status != BrokerStatusStoped {
+			if err := this.clustermgr.stopBroker(bid); err != nil {
+				glog.Errorf("Failed to stop broker(%s) for tenant(%s)", bid, tid)
+				continue
+			}
+		}
+	}
 	return nil
 }
 
 // getTenant retrieve a tenant by id
 func (this *Iothub) getTenant(id string) *Tenant {
-	return nil
+	return this.tenants[id]
 }
 
 // getBroker retrieve a broker by id
 func (this *Iothub) getBroker(id string) *Broker {
-	return nil
+	return this.brokers[id]
 }
 
 // setBrokerStatus set broker's status
-func (this *Iothub) setBrokerStatus(id string, status BrokerStatus) {
+func (this *Iothub) setBrokerStatus(bid string, status BrokerStatus) error {
+	this.mutex.Lock()
+	defer this.mutex.Unlock()
+
+	if _, ok := this.brokers[bid]; !ok {
+		return fmt.Errorf("Invalid broker(%s)", bid)
+	}
+	broker := this.brokers[bid]
+	if broker.status != status {
+		var err error
+		switch status {
+		case BrokerStatusStarted:
+			err = this.clustermgr.startBroker(bid)
+		case BrokerStatusStoped:
+			err = this.clustermgr.stopBroker(bid)
+		default:
+			err = fmt.Errorf("Invalid broker status to set for broker(%s)", bid)
+		}
+		if err != nil {
+			return err
+		}
+	}
+	broker.status = status
+	return nil
 }
 
 // getBrokerStatus retrieve broker's status
-func (this *Iothub) getBrokerStatus(id string) BrokerStatus {
-	return BrokerStatusStoped
+func (this *Iothub) getBrokerStatus(bid string) BrokerStatus {
+	if _, ok := this.brokers[bid]; !ok {
+		return BrokerStatusInvalid
+	}
+	return this.brokers[bid].status
 }

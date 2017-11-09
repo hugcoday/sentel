@@ -19,17 +19,32 @@ type clusterManager struct {
 	port string
 }
 
-// NewClusterManager retrieve clustermanager instance connected with clustermgr
+// newClusterManager retrieve clustermanager instance connected with clustermgr
 func newClusterManager(c core.Config) (*clusterManager, error) {
 	return nil, nil
 }
 
-// startNode start specified node
-func (this *clusterManager) startBroker(id string) (*Broker, error) {
+// createBroker start specified node
+func (this *clusterManager) createBroker(id string) (*Broker, error) {
 	return nil, nil
 }
 
-// stopNode stop specified node
+// startBroker start specified node
+func (this *clusterManager) startBroker(id string) error {
+	return nil
+}
+
+// stopBroker stop specified node
 func (this *clusterManager) stopBroker(id string) error {
+	return nil
+}
+
+// deleteBroker stop and delete specified node
+func (this *clusterManager) deleteBroker(id string) error {
+	return nil
+}
+
+// rollbackBrokers rollback tenant's brokers
+func (this *clusterManager) rollbackTenantBrokers(oldTenant *Tenant, newTenant *Tenant) error {
 	return nil
 }
