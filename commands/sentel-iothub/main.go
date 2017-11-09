@@ -23,6 +23,13 @@ func main() {
 		flag.PrintDefaults()
 		return
 	}
+
+	// Initialize iothub at startup
+	if err := iothub.InitializeIothub(config); err != nil {
+		glog.Fatal(err)
+		return
+	}
+
 	// Create service manager according to the configuration
 	mgr, err := core.NewServiceManager("iothub", config)
 	if err != nil {
