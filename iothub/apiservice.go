@@ -10,7 +10,7 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package api
+package iothub
 
 import (
 	"errors"
@@ -44,7 +44,7 @@ type response struct {
 // ApiServiceFactory
 type ApiServiceFactory struct{}
 
-const APIHEAD = "api/v1/"
+const APIHEAD = "iothub/api/v1/"
 
 // New create apiService service factory
 func (m *ApiServiceFactory) New(protocol string, c core.Config, ch chan core.ServiceCommand) (core.Service, error) {
@@ -62,7 +62,7 @@ func (m *ApiServiceFactory) New(protocol string, c core.Config, ch chan core.Ser
 	session.Close()
 
 	address := "localhost:8080"
-	if addr, err := c.String("iothub", "listen"); err == nil && address != "" {
+	if addr, err := c.String("api", "listen"); err == nil && address != "" {
 		address = addr
 	}
 	// Create echo instance and setup router
@@ -74,7 +74,16 @@ func (m *ApiServiceFactory) New(protocol string, c core.Config, ch chan core.Ser
 		}
 	})
 
-	// e.GET(APIHEAD+"nodes", getAllNodes)
+	// Tenant
+	e.POST(APIHEAD+"tenant/:id", addTenant)
+	e.DELETE(APIHEAD+"tenant/:id", deleteTenant)
+	e.GET(APIHEAD+"tenant/:id", getTenantInfo)
+
+	// Broker
+	e.GET(APIHEAD+"brokers", getAllBrokerStatus)
+	e.GET(APIHEAD+"broker/:id", getBrokerStatus)
+	e.PUT(APIHEAD+"broker/:id", updateBrokerStatus)
+
 	return &ApiService{
 		config:  c,
 		wg:      sync.WaitGroup{},
@@ -102,4 +111,40 @@ func (s *ApiService) Start() error {
 // Stop
 func (s *ApiService) Stop() {
 	s.wg.Wait()
+}
+
+// Tenant
+
+// addTenant add a tenant to iothub
+func addTenant(ctx echo.Context) error {
+	//config := ctx.(*apiContext).Config
+	//id := ctx.Param("id")
+	return nil
+}
+
+// deleteTenant delete a tenant from iothub
+func deleteTenant(ctx echo.Context) error {
+	return nil
+}
+
+// getTenantInfo retrieve a tenant information from iothub
+func getTenantInfo(ctx echo.Context) error {
+	return nil
+}
+
+// Broker
+
+// getBrokerStatus retrieve a broker status
+func getBrokerStatus(ctx echo.Context) error {
+	return nil
+}
+
+// updateBrokerStatus update a broker status
+func updateBrokerStatus(ctx echo.Context) error {
+	return nil
+}
+
+// getAllBrokerStatus retrieve all broker status
+func getAllBrokerStatus(ctx echo.Context) error {
+	return nil
 }

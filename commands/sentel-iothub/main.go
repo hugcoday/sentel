@@ -4,9 +4,7 @@ import (
 	"flag"
 
 	"github.com/cloustone/sentel/core"
-	"github.com/cloustone/sentel/iothub/api"
-	"github.com/cloustone/sentel/iothub/monitor"
-	"github.com/cloustone/sentel/iothub/notify"
+	"github.com/cloustone/sentel/iothub"
 	"github.com/golang/glog"
 )
 
@@ -35,7 +33,10 @@ func main() {
 }
 
 func init() {
-	core.RegisterService("api", api.Configs, &api.ApiServiceFactory{})
-	core.RegisterService("notify", notify.Configs, &notify.NotifyServiceFactory{})
-	core.RegisterService("monitor", monitor.Configs, &monitor.MonitorServiceFactory{})
+	for group, values := range iothub.Configs {
+		core.RegisterConfig(group, values)
+	}
+	core.RegisterService("api", nil, &iothub.ApiServiceFactory{})
+	core.RegisterService("notify", nil, &iothub.NotifyServiceFactory{})
+	core.RegisterService("monitor", nil, &iothub.MonitorServiceFactory{})
 }

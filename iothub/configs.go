@@ -10,6 +10,11 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package monitor
+package iothub
 
-var Configs = map[string]string{}
+var Configs = map[string]map[string]string{
+	"api": {
+		"listen":   "localhost:50052",
+		"loglevel": "debug",
+	},
+}

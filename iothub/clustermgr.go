@@ -10,6 +10,26 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package notify
+package iothub
 
-var Configs = map[string]string{}
+import "github.com/cloustone/sentel/core"
+
+type clusterManager struct {
+	ip   string
+	port string
+}
+
+// NewClusterManager retrieve clustermanager instance connected with clustermgr
+func newClusterManager(c core.Config) (*clusterManager, error) {
+	return nil, nil
+}
+
+// startNode start specified node
+func (this *clusterManager) startNode(id string) error {
+	return nil
+}
+
+// stopNode stop specified node
+func (this *clusterManager) stopNode(id string) error {
+	return nil
+}

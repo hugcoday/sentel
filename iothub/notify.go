@@ -10,7 +10,7 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package monitor
+package iothub
 
 import (
 	"errors"
@@ -21,17 +21,17 @@ import (
 	"github.com/cloustone/sentel/core"
 )
 
-type MonitorService struct {
+type NotifyService struct {
 	config core.Config
 	chn    chan core.ServiceCommand
 	wg     sync.WaitGroup
 }
 
-// MonitorServiceFactory
-type MonitorServiceFactory struct{}
+// NotifyServiceFactory
+type NotifyServiceFactory struct{}
 
 // New create apiService service factory
-func (m *MonitorServiceFactory) New(protocol string, c core.Config, ch chan core.ServiceCommand) (core.Service, error) {
+func (m *NotifyServiceFactory) New(protocol string, c core.Config, ch chan core.ServiceCommand) (core.Service, error) {
 	// check mongo db configuration
 	hosts, err := c.String("iothub", "mongo")
 	if err != nil || hosts == "" {
@@ -45,7 +45,7 @@ func (m *MonitorServiceFactory) New(protocol string, c core.Config, ch chan core
 	}
 	session.Close()
 
-	return &MonitorService{
+	return &NotifyService{
 		config: c,
 		wg:     sync.WaitGroup{},
 		chn:    ch,
@@ -53,19 +53,19 @@ func (m *MonitorServiceFactory) New(protocol string, c core.Config, ch chan core
 }
 
 // Name
-func (s *MonitorService) Name() string {
+func (s *NotifyService) Name() string {
 	return "notify-service"
 }
 
 // Start
-func (s *MonitorService) Start() error {
-	go func(s *MonitorService) {
+func (s *NotifyService) Start() error {
+	go func(s *NotifyService) {
 		s.wg.Add(1)
 	}(s)
 	return nil
 }
 
 // Stop
-func (s *MonitorService) Stop() {
+func (s *NotifyService) Stop() {
 	s.wg.Wait()
 }
