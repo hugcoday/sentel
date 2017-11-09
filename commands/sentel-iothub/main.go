@@ -38,5 +38,4 @@ func init() {
 	}
 	core.RegisterService("api", nil, &iothub.ApiServiceFactory{})
 	core.RegisterService("notify", nil, &iothub.NotifyServiceFactory{})
-	core.RegisterService("monitor", nil, &iothub.MonitorServiceFactory{})
 }
