@@ -25,11 +25,11 @@ func newClusterManager(c core.Config) (*clusterManager, error) {
 }
 
 // startNode start specified node
-func (this *clusterManager) startNode(id string) error {
+func (this *clusterManager) startBroker(id string) error {
 	return nil
 }
 
 // stopNode stop specified node
-func (this *clusterManager) stopNode(id string) error {
+func (this *clusterManager) stopBroker(id string) error {
 	return nil
 }

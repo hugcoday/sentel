@@ -13,18 +13,22 @@
 package iothub
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
 	"sync"
 
-	mgo "gopkg.in/mgo.v2"
-
+	"github.com/Shopify/sarama"
 	"github.com/cloustone/sentel/core"
+	"github.com/golang/glog"
 )
 
 type NotifyService struct {
-	config core.Config
-	chn    chan core.ServiceCommand
-	wg     sync.WaitGroup
+	config   core.Config
+	chn      chan core.ServiceCommand
+	wg       sync.WaitGroup
+	consumer sarama.Consumer
 }
 
 // NotifyServiceFactory
@@ -32,40 +36,90 @@ type NotifyServiceFactory struct{}
 
 // New create apiService service factory
 func (m *NotifyServiceFactory) New(protocol string, c core.Config, ch chan core.ServiceCommand) (core.Service, error) {
-	// check mongo db configuration
-	hosts, err := c.String("iothub", "mongo")
-	if err != nil || hosts == "" {
-		return nil, errors.New("Invalid mongo configuration")
+	// kafka
+	khosts, err := c.String("iothub", "hosts")
+	if err != nil || khosts == "" {
+		return nil, errors.New("Invalid kafka configuration")
 	}
-
-	// try connect with mongo db
-	session, err := mgo.Dial(hosts)
+	consumer, err := sarama.NewConsumer(strings.Split(khosts, ","), nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Connecting with kafka:%s failed", khosts)
 	}
-	session.Close()
 
 	return &NotifyService{
-		config: c,
-		wg:     sync.WaitGroup{},
-		chn:    ch,
+		config:   c,
+		wg:       sync.WaitGroup{},
+		chn:      ch,
+		consumer: consumer,
 	}, nil
 }
 
 // Name
-func (s *NotifyService) Name() string {
+func (this *NotifyService) Name() string {
 	return "notify-service"
 }
 
 // Start
-func (s *NotifyService) Start() error {
-	go func(s *NotifyService) {
-		s.wg.Add(1)
-	}(s)
+func (this *NotifyService) Start() error {
+	partitionList, err := this.consumer.Partitions("apiserver")
+	if err != nil {
+		return fmt.Errorf("Failed to get list of partions:%v", err)
+		return err
+	}
+
+	for partition := range partitionList {
+		pc, err := this.consumer.ConsumePartition("apiserver", int32(partition), sarama.OffsetNewest)
+		if err != nil {
+			glog.Errorf("Failed  to start consumer for partion %d:%s", partition, err)
+			continue
+		}
+		defer pc.AsyncClose()
+		this.wg.Add(1)
+
+		go func(sarama.PartitionConsumer) {
+			defer this.wg.Done()
+			for msg := range pc.Messages() {
+				this.handleNotifications(string(msg.Topic), msg.Value)
+			}
+		}(pc)
+	}
+	this.wg.Wait()
 	return nil
 }
 
 // Stop
-func (s *NotifyService) Stop() {
-	s.wg.Wait()
+func (this *NotifyService) Stop() {
+	this.consumer.Close()
+	this.wg.Wait()
+}
+
+// handleNotifications handle notification from kafka
+func (this *NotifyService) handleNotifications(topic string, value []byte) error {
+	switch topic {
+	case "tenant":
+		obj := &tenantNotify{}
+		if err := json.Unmarshal(value, obj); err != nil {
+			return err
+		}
+		return this.handleTenantNotify(obj)
+	}
+
+	return nil
+}
+
+// handleTenantNotify handle notification about tenant from api server
+func (this *NotifyService) handleTenantNotify(tf *tenantNotify) error {
+	glog.Infof("iothub-notifyservice: tenant(%s) notification received", tf.id)
+
+	hub := getIothub()
+
+	switch tf.action {
+	case notifyActionCreate:
+		return hub.addTenant(tf.id)
+	case notifyActionDelete:
+		return hub.deleteTenant(tf.id)
+	case notifyActionUpdate:
+		return hub.updateTenant(tf.id)
+	}
+	return nil
 }

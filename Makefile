@@ -12,7 +12,7 @@ IGNORED_PACKAGES := /vendor/
 all: build
 
 .PHONY: build
-build: .GOPATH/.ok apiserver ceilometer broker iothub cluster-manager conductor sentel-ctrl mqtt-cli 
+build: .GOPATH/.ok apiserver ceilometer broker iothub conductor sentel-ctrl mqtt-cli 
 	@echo "building completed!" 
 
 ### Code not in the repository root? Another binary? Add to the path like this.
@@ -42,12 +42,6 @@ broker: .GOPATH/.ok
 iothub: .GOPATH/.ok
 	@echo $@
 	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/commands/sentel-iothub
-
-.PHONY: cluster-manager 
-cluster-manager: .GOPATH/.ok
-	@echo $@
-	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/commands/sentel-cluster-manager
-
 
 
 .PHONY: conductor 

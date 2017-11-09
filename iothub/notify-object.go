@@ -12,10 +12,15 @@
 
 package iothub
 
-import "time"
+const (
+	notifyActionCreate = "create"
+	notifyActionDelete = "delete"
+	notifyActionUpdate = "update"
+)
 
-type Tenant struct {
-	id        string
-	createdAt time.Time
-	brokers   []*Broker
+// TenantNofiy is notification object from api server by kafka
+type tenantNotify struct {
+	action      string `json:"action"`
+	id          string `json:"tenantid"`
+	brokerCount string `json:"brokerCount"`
 }

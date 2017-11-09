@@ -14,6 +14,7 @@ package iothub
 
 import (
 	"sync"
+	"time"
 
 	"github.com/cloustone/sentel/core"
 )
@@ -22,10 +23,15 @@ type Iothub struct {
 	sync.Once
 	tenantsMutex sync.Mutex
 	tenants      map[string]*Tenant
-	haproxy      *Haproxy
 	brokers      map[string]*Broker
 	brokersMutex sync.Mutex
 	clustermgr   *clusterManager
+}
+
+type Tenant struct {
+	id        string
+	createdAt time.Time
+	brokers   []*Broker
 }
 
 var (
@@ -34,10 +40,6 @@ var (
 
 // InitializeIothub create iothub global instance at startup time
 func InitializeIothub(c core.Config) error {
-	haproxy, err := NewHaproxy(c)
-	if err != nil {
-		return err
-	}
 	clustermgr, err := newClusterManager(c)
 	if err != nil {
 		return err
@@ -45,7 +47,6 @@ func InitializeIothub(c core.Config) error {
 	_iothub = &Iothub{
 		tenantsMutex: sync.Mutex{},
 		tenants:      make(map[string]*Tenant),
-		haproxy:      haproxy,
 		brokers:      make(map[string]*Broker),
 		brokersMutex: sync.Mutex{},
 		clustermgr:   clustermgr,
@@ -59,12 +60,17 @@ func getIothub() *Iothub {
 }
 
 // addTenant add tenant to iothub
-func (this *Iothub) addTenant(t *Tenant) error {
+func (this *Iothub) addTenant(id string) error {
 	return nil
 }
 
 // deleteTenant delete tenant from iothub
 func (this *Iothub) deleteTenant(id string) error {
+	return nil
+}
+
+// updateTenant update a tenant infromation
+func (this *Iothub) updateTenant(id string) error {
 	return nil
 }
 
