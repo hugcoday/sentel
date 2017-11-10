@@ -20,7 +20,6 @@ build: .GOPATH/.ok apiserver ceilometer broker iothub conductor sentel-ctrl mqtt
 # otherbin: .GOPATH/.ok
 # 	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/cmd/otherbin
 
-
 .PHONY: ceilometer 
 ceilometer: .GOPATH/.ok
 	@echo $@
