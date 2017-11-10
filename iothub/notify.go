@@ -24,6 +24,19 @@ import (
 	"github.com/golang/glog"
 )
 
+const (
+	notifyActionCreate = "create"
+	notifyActionDelete = "delete"
+	notifyActionUpdate = "update"
+)
+
+// TenantNofiy is notification object from api server by kafka
+type tenantNotify struct {
+	action      string `json:"action"`
+	id          string `json:"tenantid"`
+	brokerCount string `json:"brokerCount"`
+}
+
 type NotifyService struct {
 	config   core.Config
 	chn      chan core.ServiceCommand

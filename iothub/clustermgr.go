@@ -143,17 +143,28 @@ func (this *clusterManager) createBrokers(tid string, count int32) ([]*Broker, e
 }
 
 // startBroker start specified node
-func (this *clusterManager) startBroker(id string) error {
+func (this *clusterManager) startBroker(b *Broker) error {
 	return nil
 }
 
 // stopBroker stop specified node
-func (this *clusterManager) stopBroker(id string) error {
+func (this *clusterManager) stopBroker(b *Broker) error {
 	return nil
 }
 
-// deleteBroker stop and delete specified node
-func (this *clusterManager) deleteBroker(id string) error {
+// deleteBrokers stop and delete brokers for tenant
+func (this *clusterManager) deleteBrokers(tid string) error {
+	podname := "broker-" + tid
+	deletePolicy := metav1.DeletePropagationForeground
+	deploymentsClient := this.clientset.AppsV1beta1().Deployments(apiv1.NamespaceDefault)
+
+	return deploymentsClient.Delete(podname, &metav1.DeleteOptions{
+		PropagationPolicy: &deletePolicy,
+	})
+}
+
+// deleteBroker stop and delete specified broker
+func (this *clusterManager) deleteBroker(b *Broker) error {
 	return nil
 }
 

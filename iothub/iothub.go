@@ -135,13 +135,15 @@ func (this *Iothub) deleteTenant(tid string) error {
 		return fmt.Errorf("tenant(%s) already exist", tid)
 	}
 
-	tenant := this.tenants[tid]
-	for bid, _ := range tenant.brokers {
-		this.clustermgr.stopBroker(bid)
-		delete(this.brokers, bid)
+	if err := this.clustermgr.deleteBrokers(tid); err != nil {
+		return err
 	}
 
-	// save new tenant into iothub
+	// delete tenant from iothub
+	tenant := this.tenants[tid]
+	for bid, _ := range tenant.brokers {
+		delete(this.brokers, bid)
+	}
 	delete(this.tenants, tid)
 
 	// remove tenant from database
@@ -212,7 +214,7 @@ func (this *Iothub) deleteBroker(bid string) error {
 	tenant := this.tenants[broker.tid]
 
 	// stop broker when deleted
-	if err := this.clustermgr.deleteBroker(bid); err != nil {
+	if err := this.clustermgr.deleteBroker(broker); err != nil {
 		return err
 	}
 	delete(this.brokers, bid)
@@ -229,10 +231,11 @@ func (this *Iothub) startBroker(bid string) error {
 	if _, ok := this.brokers[bid]; !ok {
 		return fmt.Errorf("invalid broker(%s)", bid)
 	}
-	if err := this.clustermgr.startBroker(bid); err != nil {
+
+	broker := this.brokers[bid]
+	if err := this.clustermgr.startBroker(broker); err != nil {
 		return err
 	}
-	broker := this.brokers[bid]
 	broker.status = BrokerStatusStarted
 	return nil
 }
@@ -245,10 +248,11 @@ func (this *Iothub) stopBroker(bid string) error {
 	if _, ok := this.brokers[bid]; !ok {
 		return fmt.Errorf("invalid broker(%s)", bid)
 	}
-	if err := this.clustermgr.stopBroker(bid); err != nil {
+
+	broker := this.brokers[bid]
+	if err := this.clustermgr.stopBroker(broker); err != nil {
 		return err
 	}
-	broker := this.brokers[bid]
 	broker.status = BrokerStatusStoped
 
 	return nil
@@ -266,7 +270,7 @@ func (this *Iothub) startTenantBrokers(tid string) error {
 	tenant := this.tenants[tid]
 	for bid, broker := range tenant.brokers {
 		if broker.status != BrokerStatusStarted {
-			if err := this.clustermgr.startBroker(bid); err != nil {
+			if err := this.clustermgr.startBroker(broker); err != nil {
 				glog.Errorf("Failed to start broker(%s) for tenant(%s)", bid, tid)
 				continue
 			}
@@ -287,7 +291,7 @@ func (this *Iothub) stopTenantBrokers(tid string) error {
 	tenant := this.tenants[tid]
 	for bid, broker := range tenant.brokers {
 		if broker.status != BrokerStatusStoped {
-			if err := this.clustermgr.stopBroker(bid); err != nil {
+			if err := this.clustermgr.stopBroker(broker); err != nil {
 				glog.Errorf("Failed to stop broker(%s) for tenant(%s)", bid, tid)
 				continue
 			}
@@ -319,9 +323,9 @@ func (this *Iothub) setBrokerStatus(bid string, status BrokerStatus) error {
 		var err error
 		switch status {
 		case BrokerStatusStarted:
-			err = this.clustermgr.startBroker(bid)
+			err = this.clustermgr.startBroker(broker)
 		case BrokerStatusStoped:
-			err = this.clustermgr.stopBroker(bid)
+			err = this.clustermgr.stopBroker(broker)
 		default:
 			err = fmt.Errorf("Invalid broker status to set for broker(%s)", bid)
 		}
