@@ -181,7 +181,7 @@ func (this *Iothub) updateTenant(tid string) error {
 
 	// rollback brokers if local tenant and tenant in database is not same
 	if lt.brokersCount != tenant.brokersCount {
-		return this.clustermgr.rollbackTenantBrokers(lt, tenant)
+		return this.clustermgr.rollbackTenantBrokers(tenant)
 	}
 
 	return nil

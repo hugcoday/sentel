@@ -22,13 +22,12 @@ import (
 	uuid "github.com/satori/go.uuid"
 
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
-
 	apiv1 "k8s.io/api/core/v1"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
+	"k8s.io/client-go/util/retry"
 )
 
 const (
@@ -169,8 +168,20 @@ func (this *clusterManager) deleteBroker(b *Broker) error {
 }
 
 // rollbackBrokers rollback tenant's brokers
-func (this *clusterManager) rollbackTenantBrokers(oldTenant *Tenant, newTenant *Tenant) error {
-	return nil
+func (this *clusterManager) rollbackTenantBrokers(t *Tenant) error {
+	podname := "broker-" + t.id
+	deploymentsClient := this.clientset.AppsV1beta1().Deployments(apiv1.NamespaceDefault)
+	retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		result, getErr := deploymentsClient.Get(podname, metav1.GetOptions{})
+		if getErr != nil {
+			return getErr
+		}
+
+		result.Spec.Replicas = int32ptr(t.brokersCount)
+		_, updateErr := deploymentsClient.Update(result)
+		return updateErr
+	})
+	return retryErr
 }
 
 func int32ptr(i int32) *int32 { return &i }
