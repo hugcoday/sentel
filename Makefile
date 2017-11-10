@@ -12,13 +12,19 @@ IGNORED_PACKAGES := /vendor/
 all: build
 
 .PHONY: build
-build: .GOPATH/.ok apiserver ceilometer broker iothub conductor sentel-ctrl mqtt-cli 
+build: .GOPATH/.ok apiserver ceilometer broker iothub conductor sentel-ctrl mqtt-cli k8s-test
 	@echo "building completed!" 
 
 ### Code not in the repository root? Another binary? Add to the path like this.
 # .PHONY: otherbin
 # otherbin: .GOPATH/.ok
 # 	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/cmd/otherbin
+
+.PHONY: k8s-test
+k8s-test: .GOPATH/.ok
+	@echo $@
+	$Q go install $(if $V,-v) $(VERSION_FLAGS) $(IMPORT_PATH)/commands/k8s-test
+
 
 .PHONY: ceilometer 
 ceilometer: .GOPATH/.ok
