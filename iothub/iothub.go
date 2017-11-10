@@ -23,7 +23,6 @@ import (
 
 	"github.com/cloustone/sentel/core"
 	"github.com/golang/glog"
-	uuid "github.com/satori/go.uuid"
 )
 
 type Iothub struct {
@@ -38,7 +37,7 @@ type Iothub struct {
 type Tenant struct {
 	id           string    `json:"tenantId"`
 	createdAt    time.Time `json:"createdAt"`
-	brokersCount int       `json:"brokersCount"`
+	brokersCount int32     `json:"brokersCount"`
 	brokers      map[string]*Broker
 }
 
@@ -115,15 +114,13 @@ func (this *Iothub) addTenant(tid string) error {
 	this.tenants[tid] = tenant
 
 	// create brokers accroding to tenant's request
-	for i := 0; i < tenant.brokersCount; i++ {
-		bid := uuid.NewV4().String()
-		broker, err := this.clustermgr.createBroker(bid)
-		if err != nil {
-			// TODO should we update database status
-			glog.Fatalf("Failed to created broker for tenant(%s)", tid)
-			continue
-		}
-		this.brokers[bid] = broker
+	brokers, err := this.clustermgr.createBrokers(tid, tenant.brokersCount)
+	if err != nil {
+		// TODO should we update database status
+		glog.Fatalf("Failed to created brokers for tenant(%s)", tid)
+	}
+	for _, broker := range brokers {
+		this.brokers[broker.bid] = broker
 	}
 
 	return nil

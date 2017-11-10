@@ -147,7 +147,7 @@ func deleteTenant(ctx echo.Context) error {
 type tenantResponse struct {
 	id           string            `json:"tenantId"`
 	createdAt    time.Time         `json:"createdAt"`
-	brokersCount int               `json:"brokersCount"`
+	brokersCount int32             `json:"brokersCount"`
 	brokers      map[string]string `json:"brokers"`
 }
 
