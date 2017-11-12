@@ -26,7 +26,7 @@ import (
 )
 
 var (
-	configFileFullPath = flag.String("c", "apiserver.conf", "config file")
+	configFileFullPath = flag.String("c", "../etc/sentel/apiserver.conf", "config file")
 )
 
 func main() {
