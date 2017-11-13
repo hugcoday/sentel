@@ -10,7 +10,7 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package base
+package v1
 
 import (
 	"errors"
@@ -22,7 +22,7 @@ import (
 )
 
 func SyncProduceMessage(c echo.Context, topic string, value sarama.Encoder) error {
-	ctx := *c.(*ApiContext)
+	ctx := *c.(*apiContext)
 
 	// Get kafka server
 	kafka, err := ctx.Config.String("kafka", "hosts")
@@ -57,7 +57,7 @@ func SyncProduceMessage(c echo.Context, topic string, value sarama.Encoder) erro
 }
 
 func AsyncProduceMessage(c echo.Context, topic string, value sarama.Encoder) error {
-	ctx := *c.(*ApiContext)
+	ctx := *c.(*apiContext)
 	// Get kafka server
 	kafka, err := ctx.Config.String("kafka", "hosts")
 	if err != nil || kafka == "" {

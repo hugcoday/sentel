@@ -18,8 +18,6 @@ import (
 
 	"github.com/cloustone/sentel/apiserver/db"
 
-	"github.com/cloustone/sentel/apiserver/base"
-
 	"github.com/labstack/echo"
 	uuid "github.com/satori/go.uuid"
 )
@@ -48,7 +46,7 @@ func registerDevice(ctx echo.Context) error {
 	if err := ctx.Bind(req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, &response{Success: false, Message: err.Error()})
 	}
-	config := ctx.(*base.ApiContext).Config
+	config := ctx.(*apiContext).Config
 	// Connect with registry
 	r, err := db.NewRegistry(config)
 	if err != nil {
@@ -89,7 +87,7 @@ func getDevice(ctx echo.Context) error {
 
 	}
 	// Connect with registry
-	config := ctx.(*base.ApiContext).Config
+	config := ctx.(*apiContext).Config
 	registry, err := db.NewRegistry(config)
 	if err != nil {
 		logFatal(ctx, "Registry connection failed")
@@ -126,7 +124,7 @@ func deleteDevice(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, &response{Success: false, Message: err.Error()})
 	}
 	// Connect with registry
-	config := ctx.(*base.ApiContext).Config
+	config := ctx.(*apiContext).Config
 	registry, err := db.NewRegistry(config)
 	if err != nil {
 		logFatal(ctx, "Registry connection failed")
@@ -173,7 +171,7 @@ func updateDevice(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, &response{Message: err.Error()})
 	}
 	// Connect with registry
-	r, err := db.NewRegistry(ctx.(*base.ApiContext).Config)
+	r, err := db.NewRegistry(ctx.(*apiContext).Config)
 	if err != nil {
 		logFatal(ctx, "Registry connection failed")
 		return ctx.JSON(http.StatusInternalServerError, &response{Message: err.Error()})

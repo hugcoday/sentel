@@ -95,7 +95,7 @@ func (c *globalConfig) MustBool(section string, key string) bool {
 	return false
 }
 func (c *globalConfig) MustInt(section string, key string) int {
-	if _allConfigSections[section] == nil {
+	if _, ok := _allConfigSections[section]; !ok {
 		glog.Fatal("Invalid configuration item:%s:%s", section, key)
 		os.Exit(0)
 	}
@@ -109,8 +109,8 @@ func (c *globalConfig) MustInt(section string, key string) int {
 }
 
 func (c *globalConfig) MustString(section string, key string) string {
-	if _allConfigSections[section] == nil {
-		glog.Fatalf("Invalid configuration item:%s:%s", section, key)
+	if _, ok := _allConfigSections[section]; !ok {
+		glog.Fatalf("Invalid configuration: %s not found", section)
 		os.Exit(0)
 	}
 	return _allConfigSections[section].items[key]
@@ -121,15 +121,20 @@ func (c *globalConfig) SetValue(section string, key string, valu string) {
 
 // NewWithConfigFile load configurations from files
 func NewWithConfigFile(fileName string, moreFiles ...string) (Config, error) {
+	// load all config sections in _allConfigSections, get section and item to overide
 	cfg, err := goconfig.LoadConfigFile(fileName, moreFiles...)
-	if err != nil {
-		glog.Warningf("Configuration loading failed:%s", err)
-	}
-	// For all config section in _allConfigSections, get section and item to overide
-	for name, section := range _allConfigSections {
-		if items, err := cfg.GetSection(name); err == nil {
-			for key, val := range items {
-				section.items[key] = val
+	if err == nil {
+		sections := cfg.GetSectionList()
+		for _, name := range sections {
+			// create section if it doesn't exist
+			if _, ok := _allConfigSections[name]; !ok {
+				_allConfigSections[name] = &configSection{items: make(map[string]string)}
+			}
+			items, err := cfg.GetSection(name)
+			if err == nil {
+				for key, val := range items {
+					_allConfigSections[name].items[key] = val
+				}
 			}
 		}
 	}

@@ -28,23 +28,29 @@ const (
 	dbNameTenants  = "tenants"
 )
 
+// Registry is wraper of mongo database about for iot object
 type Registry struct {
 	config  core.Config
 	session *mgo.Session
 	db      *mgo.Database
 }
 
+// InitializeRegistry try to connect with background database
+// to confirm wether it is normal
 func InitializeRegistry(c core.Config) error {
 	hosts := c.MustString("registry", "hosts")
+	glog.Infof("Initializing registry:%s...", hosts)
 	session, err := mgo.Dial(hosts)
 	if err != nil {
 		glog.Errorf("Failed to initialize registry:%v", err)
 		return err
 	}
 	session.Close()
+	glog.Infof("Registry is initialize successfuly")
 	return nil
 }
 
+// NewRegistry create registry instance
 func NewRegistry(c core.Config) (*Registry, error) {
 	hosts := c.MustString("registry", "hosts")
 	session, err := mgo.Dial(hosts)
@@ -55,6 +61,7 @@ func NewRegistry(c core.Config) (*Registry, error) {
 	return &Registry{session: session, db: session.DB("registry"), config: c}, nil
 }
 
+// Release release registry rources and disconnect with background database
 func (r *Registry) Release() {
 	r.session.Close()
 }

@@ -15,7 +15,6 @@ package v1
 import (
 	"net/http"
 
-	"github.com/cloustone/sentel/apiserver/base"
 	"github.com/cloustone/sentel/apiserver/db"
 
 	"github.com/labstack/echo"
@@ -26,7 +25,7 @@ func addTenant(ctx echo.Context) error {
 	// Make security check, for add content, no security policy
 
 	// Get registry store instance by context
-	config := ctx.(*base.ApiContext).Config
+	config := ctx.(*apiContext).Config
 	r, _ := db.NewRegistry(config)
 	defer r.Release()
 

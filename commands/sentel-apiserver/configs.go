@@ -14,9 +14,10 @@ package main
 
 var defaultConfigs = map[string]map[string]string{
 	"apiserver": {
-		"host":     "localhost:4145",
+		"listen":   "localhost:4145",
 		"loglevel": "debug",
 		"kafka":    "",
+		"version":  "v1",
 	},
 	"storage": {
 		"repository": "local",
@@ -28,5 +29,8 @@ var defaultConfigs = map[string]map[string]string{
 		"certfile":            "",
 		"keyfile":             "",
 		"require_certificate": "false",
+	},
+	"registry": {
+		"hosts": "localhost:27017",
 	},
 }

@@ -15,12 +15,11 @@ package main
 import (
 	"flag"
 
+	"github.com/cloustone/sentel/apiserver"
 	"github.com/cloustone/sentel/core"
 
-	"github.com/cloustone/sentel/apiserver/v1"
-
-	"github.com/cloustone/sentel/apiserver/base"
 	"github.com/cloustone/sentel/apiserver/db"
+	v1api "github.com/cloustone/sentel/apiserver/v1"
 
 	"github.com/golang/glog"
 )
@@ -30,21 +29,16 @@ var (
 )
 
 func main() {
-	var config core.Config
-	var err error
-
 	flag.Parse()
 	glog.Info("Starting api server...")
 
 	// Get configuration
-	if config, err = core.NewWithConfigFile(*configFileFullPath); err != nil {
+	config, err := core.NewWithConfigFile(*configFileFullPath)
+	if err != nil {
 		glog.Fatal(err)
 		flag.PrintDefaults()
 		return
 	}
-
-	// Register Api Manager
-	base.RegisterApiManager(v1.NewApi(config))
 
 	// Initialize registry
 	if err := db.InitializeRegistry(config); err != nil {
@@ -53,16 +47,17 @@ func main() {
 	}
 
 	// Create api manager using configuration
-	apiManager, err := base.CreateApiManager(config)
+	apiManager, err := apiserver.GetApiManager(config)
 	if err != nil {
-		glog.Error("ApiManager creation failed:%v", err)
+		glog.Error("%v", err)
 		return
 	}
-	glog.Error(apiManager.Start())
+	glog.Error(apiManager.Run())
 }
 
 func init() {
 	for group, values := range defaultConfigs {
 		core.RegisterConfig(group, values)
 	}
+	apiserver.RegisterApiManager(v1api.NewApiManager())
 }

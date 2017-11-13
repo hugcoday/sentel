@@ -16,7 +16,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cloustone/sentel/apiserver/base"
 	"github.com/cloustone/sentel/apiserver/db"
 	"github.com/cloustone/sentel/apiserver/util"
 	uuid "github.com/satori/go.uuid"
@@ -48,7 +47,7 @@ func registerProduct(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, &response{Success: false, Message: err.Error()})
 	}
 	// Connect with registry
-	r, err := db.NewRegistry(ctx.(*base.ApiContext).Config)
+	r, err := db.NewRegistry(ctx.(*apiContext).Config)
 	if err != nil {
 		logError(ctx, "Registry connection failed")
 		return ctx.JSON(http.StatusBadRequest, &response{Success: false, Message: err.Error()})
@@ -68,7 +67,7 @@ func registerProduct(ctx echo.Context) error {
 	}
 
 	// Notify kafka
-	base.AsyncProduceMessage(ctx, util.TopicNameProduct,
+	AsyncProduceMessage(ctx, util.TopicNameProduct,
 		&util.ProductTopic{
 			ProductId:   dp.Id,
 			ProductName: dp.Name,
@@ -101,7 +100,7 @@ func updateProduct(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, &response{Success: false, Message: err.Error()})
 	}
 	// Connect with registry
-	r, err := db.NewRegistry(ctx.(*base.ApiContext).Config)
+	r, err := db.NewRegistry(ctx.(*apiContext).Config)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
@@ -120,7 +119,7 @@ func updateProduct(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
 	// Notify kafka
-	base.AsyncProduceMessage(ctx, util.TopicNameProduct,
+	AsyncProduceMessage(ctx, util.TopicNameProduct,
 		&util.ProductTopic{
 			ProductId:   req.Id,
 			ProductName: req.Name,
@@ -139,7 +138,7 @@ func deleteProduct(ctx echo.Context) error {
 	}
 
 	// Connect with registry
-	r, err := db.NewRegistry(ctx.(*base.ApiContext).Config)
+	r, err := db.NewRegistry(ctx.(*apiContext).Config)
 	if err != nil {
 		logFatal(ctx, "Registry connection failed")
 		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
@@ -150,7 +149,7 @@ func deleteProduct(ctx echo.Context) error {
 		return ctx.JSON(http.StatusOK, &response{Success: false, Message: err.Error()})
 	}
 	// Notify kafka
-	base.AsyncProduceMessage(ctx, util.TopicNameProduct,
+	AsyncProduceMessage(ctx, util.TopicNameProduct,
 		&util.ProductTopic{
 			ProductId: ctx.Param("id"),
 			Action:    util.ObjectActionDelete,
@@ -172,7 +171,7 @@ func getProduct(ctx echo.Context) error {
 	}
 
 	// Connect with registry
-	r, err := db.NewRegistry(ctx.(*base.ApiContext).Config)
+	r, err := db.NewRegistry(ctx.(*apiContext).Config)
 	if err != nil {
 		logFatal(ctx, "Registry connection failed")
 		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
@@ -206,7 +205,7 @@ func getProductDevices(ctx echo.Context) error {
 	logInfo(ctx, "getProductDevices:%s", ctx.Param("id"))
 
 	// Connect with registry
-	r, err := db.NewRegistry(ctx.(*base.ApiContext).Config)
+	r, err := db.NewRegistry(ctx.(*apiContext).Config)
 	if err != nil {
 		logFatal(ctx, "Registry connection failed")
 		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
