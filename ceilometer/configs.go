@@ -10,11 +10,10 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package main
+package ceilometer
 
 var defaultConfigs = map[string]map[string]string{
-	"condutor": {
-		"host":     "localhost:4145",
+	"ceilometer": {
 		"loglevel": "debug",
 		"kafka":    "",
 		"services": "api,kafka",

@@ -15,48 +15,16 @@ package main
 import (
 	"flag"
 
-	"github.com/cloustone/sentel/ceilometer/api"
-	"github.com/cloustone/sentel/ceilometer/collector"
-	"github.com/cloustone/sentel/core"
+	"github.com/cloustone/sentel/ceilometer"
 
 	"github.com/golang/glog"
 )
 
 var (
-	configFileFullPath = flag.String("c", "../ceilometer/ceilometer.conf", "config file")
+	configFileFullPath = flag.String("c", "/etc/sentel/ceilometer.conf", "config file")
 )
 
 func main() {
-	var mgr *core.ServiceManager
-	var config core.Config
-	var err error
-
 	flag.Parse()
-	glog.Info("Starting ceilometer server...")
-
-	// Check all registered service
-	if err := core.CheckAllRegisteredServices(); err != nil {
-		glog.Fatal(err)
-		return
-	}
-	// Get configuration
-	if config, err = core.NewWithConfigFile(*configFileFullPath); err != nil {
-		glog.Fatal(err)
-		flag.PrintDefaults()
-		return
-	}
-	// Create service manager according to the configuration
-	if mgr, err = core.NewServiceManager("ceilometer", config); err != nil {
-		glog.Fatal("Failed to launch ServiceManager")
-		return
-	}
-	glog.Error(mgr.Run())
-}
-
-func init() {
-	for group, values := range defaultConfigs {
-		core.RegisterConfig(group, values)
-	}
-	core.RegisterService("api", api.Configs, &api.ApiServiceFactory{})
-	core.RegisterService("collector", collector.Configs, &collector.CollectorServiceFactory{})
+	glog.Error(ceilometer.RunWithConfigFile(*configFileFullPath))
 }

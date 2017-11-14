@@ -15,44 +15,15 @@ package main
 import (
 	"flag"
 
-	"github.com/cloustone/sentel/conductor/executor"
-	"github.com/cloustone/sentel/conductor/indicator"
-	"github.com/cloustone/sentel/core"
+	"github.com/cloustone/sentel/conductor"
 	"github.com/golang/glog"
 )
 
 var (
-	configFileFullPath = flag.String("c", "../conductor/conductor.conf", "config file")
+	configFileFullPath = flag.String("c", "/etc/sentel/conductor.conf", "config file")
 )
 
 func main() {
-	var mgr *core.ServiceManager
-	var config core.Config
-	var err error
-
 	flag.Parse()
-	glog.Info("Starting condutor server...")
-
-	// Check all registered service
-	if err := core.CheckAllRegisteredServices(); err != nil {
-		glog.Fatal(err)
-		return
-	}
-	// Get configuration
-	if config, err = core.NewWithConfigFile(*configFileFullPath); err != nil {
-		glog.Fatal(err)
-		flag.PrintDefaults()
-		return
-	}
-	// Create service manager according to the configuration
-	if mgr, err = core.NewServiceManager("conductor", config); err != nil {
-		glog.Fatal("Failed to launch conductor ServiceManager")
-		return
-	}
-	glog.Error(mgr.Run())
-}
-
-func init() {
-	core.RegisterService("indicator", indicator.Configs, &indicator.IndicatorServiceFactory{})
-	core.RegisterService("executor", executor.Configs, &executor.ExecutorServiceFactory{})
+	glog.Error(conductor.RunWithConfigFile(*configFileFullPath))
 }
