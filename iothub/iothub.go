@@ -53,7 +53,7 @@ func InitializeIothub(c core.Config) error {
 		return errors.New("Invalid mongo configuration")
 	}
 	// try connect with mongo db
-	session, err := mgo.Dial(hosts)
+	session, err := mgo.DialWithTimeout(hosts, 5*time.Second)
 	if err != nil {
 		return err
 	}

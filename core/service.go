@@ -28,6 +28,7 @@ const (
 )
 
 type Service interface {
+	Name() string
 	Start() error
 	Stop()
 }
@@ -125,7 +126,9 @@ func (s *ServiceManager) Run() error {
 		return err
 	}
 	// Run all service
+	glog.Infof("There are %d service in iothub", len(s.services))
 	for _, service := range s.services {
+		glog.Infof("Starting service:'%s'...", service.Name())
 		go service.Start()
 	}
 	// Wait all service to terminate in main context

@@ -14,7 +14,6 @@ package iothub
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -50,9 +49,9 @@ type NotifyServiceFactory struct{}
 // New create apiService service factory
 func (m *NotifyServiceFactory) New(protocol string, c core.Config, ch chan core.ServiceCommand) (core.Service, error) {
 	// kafka
-	khosts, err := c.String("iothub", "hosts")
-	if err != nil || khosts == "" {
-		return nil, errors.New("Invalid kafka configuration")
+	khosts, err := c.String("iothub", "kafka")
+	if err != nil {
+		return nil, err
 	}
 	consumer, err := sarama.NewConsumer(strings.Split(khosts, ","), nil)
 	if err != nil {
@@ -69,7 +68,7 @@ func (m *NotifyServiceFactory) New(protocol string, c core.Config, ch chan core.
 
 // Name
 func (this *NotifyService) Name() string {
-	return "notify-service"
+	return "notify"
 }
 
 // Start
