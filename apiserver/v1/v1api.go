@@ -66,13 +66,13 @@ func (this *v1apiManager) Initialize(c core.Config) error {
 	// this.ech.Use(middleware.Recover())
 
 	// Initialize api routes
-	this.echo.POST("api/v1/tenants/:id", addTenant, middleware.DefaultKeyAuth)
-	this.echo.DELETE("api/v1/tenants/:id", deleteTenant, middleware.DefaultKeyAuth)
-	this.echo.GET("api/v1/tenants/:id", getTenant, middleware.DefaultKeyAuth)
+	this.echo.POST("/api/v1/tenants/:id", addTenant, middleware.DefaultKeyAuth)
+	this.echo.DELETE("/api/v1/tenants/:id", deleteTenant, middleware.DefaultKeyAuth)
+	this.echo.GET("/api/v1/tenants/:id", getTenant, middleware.DefaultKeyAuth)
 
 	// Product Api
 	this.echo.POST("api/v1/products/:id", registerProduct, middleware.DefaultKeyAuth)
-	this.echo.DELETE("api/v1/products/:id", deleteProduct, middleware.DefaultKeyAuth)
+	this.echo.DELETE("/api/v1/products/:id", deleteProduct, middleware.DefaultKeyAuth)
 	this.echo.GET("/api/v1/products/:id", getProduct, middleware.DefaultKeyAuth)
 	this.echo.GET("/api/v1/products/:id/devices", getProductDevices, middleware.DefaultKeyAuth)
 

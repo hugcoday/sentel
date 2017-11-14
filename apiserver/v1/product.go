@@ -63,7 +63,8 @@ func registerProduct(ctx echo.Context) error {
 		TimeCreated: time.Now().String(),
 	}
 	if err = r.RegisterProduct(&dp); err != nil {
-		return ctx.JSON(http.StatusOK, &response{RequestId: uuid.NewV4().String(), Success: false})
+		return ctx.JSON(http.StatusOK,
+			&response{RequestId: uuid.NewV4().String(), Success: false, Message: err.Error()})
 	}
 
 	// Notify kafka

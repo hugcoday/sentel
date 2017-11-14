@@ -16,7 +16,7 @@ var defaultConfigs = map[string]map[string]string{
 	"apiserver": {
 		"listen":   "localhost:4145",
 		"loglevel": "debug",
-		"kafka":    "",
+		"kafka":    "localhost:9092",
 		"version":  "v1",
 	},
 	"storage": {
