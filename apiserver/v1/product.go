@@ -18,6 +18,7 @@ import (
 
 	"github.com/cloustone/sentel/apiserver/db"
 	"github.com/cloustone/sentel/apiserver/util"
+	"github.com/golang/glog"
 	uuid "github.com/satori/go.uuid"
 
 	"github.com/labstack/echo"
@@ -39,17 +40,17 @@ type productAddRequest struct {
 }
 
 func registerProduct(ctx echo.Context) error {
-	logInfo(ctx, "addProduct called")
+	glog.Infof("addProduct called from %s", ctx.Request().RemoteAddr)
 	// Get product
 	req := new(productAddRequest)
 	if err := ctx.Bind(req); err != nil {
-		logError(ctx, "addProduct:%v", err)
+		glog.Error("addProduct:%v", err)
 		return ctx.JSON(http.StatusBadRequest, &response{Success: false, Message: err.Error()})
 	}
 	// Connect with registry
 	r, err := db.NewRegistry(ctx.(*apiContext).Config)
 	if err != nil {
-		logError(ctx, "Registry connection failed")
+		glog.Error("Registry connection failed")
 		return ctx.JSON(http.StatusBadRequest, &response{Success: false, Message: err.Error()})
 	}
 	defer r.Release()
