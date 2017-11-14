@@ -50,7 +50,7 @@ type ApiServiceFactory struct{}
 const APIHEAD = "iothub/api/v1/"
 
 // New create apiService service factory
-func (m *ApiServiceFactory) New(protocol string, c core.Config, ch chan core.ServiceCommand) (core.Service, error) {
+func (this *ApiServiceFactory) New(protocol string, c core.Config, ch chan core.ServiceCommand) (core.Service, error) {
 	// check mongo db configuration
 	hosts, err := c.String("iothub", "mongo")
 	if err != nil || hosts == "" {
@@ -98,22 +98,22 @@ func (m *ApiServiceFactory) New(protocol string, c core.Config, ch chan core.Ser
 }
 
 // Name
-func (s *ApiService) Name() string {
-	return "iothub-service"
+func (this *ApiService) Name() string {
+	return "api"
 }
 
 // Start
-func (s *ApiService) Start() error {
+func (this *ApiService) Start() error {
 	go func(s *ApiService) {
-		s.echo.Start(s.address)
-		s.wg.Add(1)
-	}(s)
+		this.echo.Start(this.address)
+		this.wg.Add(1)
+	}(this)
 	return nil
 }
 
 // Stop
-func (s *ApiService) Stop() {
-	s.wg.Wait()
+func (this *ApiService) Stop() {
+	this.wg.Wait()
 }
 
 // Tenant

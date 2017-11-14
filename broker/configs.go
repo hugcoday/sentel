@@ -10,21 +10,32 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package main
+package broker
 
-import (
-	"flag"
-
-	"github.com/cloustone/sentel/broker"
-
-	"github.com/golang/glog"
-)
-
-var (
-	configFileFullPath = flag.String("c", "stentel-broker.conf", "config file")
-)
-
-func main() {
-	flag.Parse()
-	glog.Error(broker.RunWithConfigFile(*configFileFullPath))
+var defaultConfigs = map[string]map[string]string{
+	"broker": {
+		"loglevel": "debug",
+		"kafka":    "localhost:9092",
+		"services": "mqtt:tcp,mqtt:ws, mqtt:ssl, api",
+	},
+	"storage": {
+		"repository": "local",
+		"loglevel":   "debug",
+	},
+	"security": {
+		"cafile":              "",
+		"capath":              "",
+		"certfile":            "",
+		"keyfile":             "",
+		"require_certificate": "false",
+	},
+	"mqttp:tcp": {
+		"listen": "localhost:1883",
+	},
+	"mqttp:api": {
+		"listen": "localhost:55001",
+	},
+	"auth": {
+		"address": "dummy",
+	},
 }

@@ -25,7 +25,5 @@ var (
 
 func main() {
 	flag.Parse()
-	glog.Info("Starting iothub ...")
-
 	glog.Error(iothub.RunWithConfigFile(*configFileFullPath))
 }
