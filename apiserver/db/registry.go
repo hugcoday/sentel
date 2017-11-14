@@ -14,6 +14,7 @@ package db
 
 import (
 	"fmt"
+	"time"
 
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -42,20 +43,18 @@ func InitializeRegistry(c core.Config) error {
 	glog.Infof("Initializing registry:%s...", hosts)
 	session, err := mgo.Dial(hosts)
 	if err != nil {
-		glog.Errorf("Failed to initialize registry:%v", err)
 		return err
 	}
 	session.Close()
-	glog.Infof("Registry is initialize successfuly")
 	return nil
 }
 
 // NewRegistry create registry instance
 func NewRegistry(c core.Config) (*Registry, error) {
 	hosts := c.MustString("registry", "hosts")
-	session, err := mgo.Dial(hosts)
+	session, err := mgo.DialWithTimeout(hosts, 5*time.Second)
 	if err != nil {
-		glog.Errorf("Failed to initialize registry:%v", err)
+		glog.Infof("Failed to initialize registry:%s", err.Error())
 		return nil, err
 	}
 	return &Registry{session: session, db: session.DB("registry"), config: c}, nil

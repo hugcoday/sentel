@@ -42,9 +42,10 @@ func main() {
 
 	// Initialize registry
 	if err := db.InitializeRegistry(config); err != nil {
-		glog.Error("Registry initialization failed:%v", err)
+		glog.Errorf("Failed to initialize registry:%v", err)
 		return
 	}
+	glog.Infof("Registry is initialized successfuly")
 
 	// Create api manager using configuration
 	apiManager, err := apiserver.GetApiManager(config)
