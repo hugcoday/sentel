@@ -17,6 +17,7 @@ import (
 	"github.com/cloustone/sentel/core"
 
 	echo "github.com/labstack/echo"
+	mw "github.com/labstack/echo/middleware"
 )
 
 const APIHEAD = "api/v1/"
@@ -30,7 +31,7 @@ type v1apiManager struct {
 
 type apiContext struct {
 	echo.Context
-	Config core.Config
+	config core.Config
 }
 
 // NewApiManager create api manager instance
@@ -55,64 +56,64 @@ func (this *v1apiManager) Initialize(c core.Config) error {
 	this.config = c
 	this.echo.Use(func(h echo.HandlerFunc) echo.HandlerFunc {
 		return func(e echo.Context) error {
-			cc := &apiContext{Context: e, Config: c}
+			cc := &apiContext{Context: e, config: c}
 			return h(cc)
 		}
 	})
 	// Initialize middleware
 	this.echo.Use(middleware.ApiVersion(this.version))
-	// this.ech.Use(middleware.KeyAuthWithConfig(middleware.DefaultKeyAuthConfig))
-	// this.ech.Use(middleware.Logger())
-	// this.ech.Use(middleware.Recover())
+	this.echo.Use(mw.KeyAuthWithConfig(middleware.DefaultKeyAuthConfig))
+	this.echo.Use(mw.Logger())
 
 	// Initialize api routes
-	this.echo.POST("/api/v1/tenants/:id", addTenant, middleware.DefaultKeyAuth)
-	this.echo.DELETE("/api/v1/tenants/:id", deleteTenant, middleware.DefaultKeyAuth)
-	this.echo.GET("/api/v1/tenants/:id", getTenant, middleware.DefaultKeyAuth)
+	this.echo.POST("/api/v1/tenants/:id", addTenant)
+	this.echo.DELETE("/api/v1/tenants/:id", deleteTenant)
+	this.echo.GET("/api/v1/tenants/:id", getTenant)
 
 	// Product Api
-	this.echo.POST("api/v1/products/:id", registerProduct, middleware.DefaultKeyAuth)
-	this.echo.DELETE("/api/v1/products/:id", deleteProduct, middleware.DefaultKeyAuth)
-	this.echo.GET("/api/v1/products/:id", getProduct, middleware.DefaultKeyAuth)
-	this.echo.GET("/api/v1/products/:id/devices", getProductDevices, middleware.DefaultKeyAuth)
+	this.echo.POST("api/v1/products/:id", registerProduct)
+	this.echo.DELETE("/api/v1/products/:id", deleteProduct)
+	this.echo.GET("/api/v1/products/:id", getProduct)
+	this.echo.GET("/api/v1/products/:id/devices", getProductDevices)
+
+	// Rule
+	this.echo.POST("api/v1/rules/", addRule)
+	this.echo.DELETE("/api/v1/rules/:id", deleteRule)
+	this.echo.GET("/api/v1/rules/:id", getRule)
+	this.echo.PATCH("/api/v1/rules/:id", updateRule)
 
 	// Device Api
-	this.echo.POST("api/v1/devices/:id", registerDevice, middleware.DefaultKeyAuth)
-	this.echo.GET("/devices/:id", getDevice, middleware.DefaultKeyAuth)
-	this.echo.DELETE("api/v1/devices/:id", deleteDevice, middleware.DefaultKeyAuth)
-	this.echo.PUT("api/v1/devices/:id", updateDevice, middleware.DefaultKeyAuth)
-	this.echo.DELETE("api/v1/devices/:id/commands", purgeCommandQueue, middleware.DefaultKeyAuth)
-	this.echo.GET("api/v1/devices/", getMultipleDevices, middleware.DefaultKeyAuth)
-	this.echo.POST("api/v1/devices/query", queryDevices, middleware.DefaultKeyAuth)
+	this.echo.POST("api/v1/devices/:id", registerDevice)
+	this.echo.GET("/devices/:id", getDevice)
+	this.echo.DELETE("api/v1/devices/:id", deleteDevice)
+	this.echo.PUT("api/v1/devices/:id", updateDevice)
+	this.echo.DELETE("api/v1/devices/:id/commands", purgeCommandQueue)
+	this.echo.GET("api/v1/devices/", getMultipleDevices)
+	this.echo.POST("api/v1/devices/query", queryDevices)
 
 	// Statics Api
-	this.echo.GET("api/v1/statistics/devices", getRegistryStatistics, middleware.DefaultKeyAuth)
-	this.echo.GET("api/v1/statistics/service", getServiceStatistics, middleware.DefaultKeyAuth)
+	this.echo.GET("api/v1/statistics/devices", getRegistryStatistics)
+	this.echo.GET("api/v1/statistics/service", getServiceStatistics)
 
 	// Device Twin Api
-	this.echo.GET("api/v1/twins/:id", getDeviceTwin, middleware.DefaultKeyAuth)
-	this.echo.POST("api/v1/twins/:id/methods", invokeDeviceMethod, middleware.DefaultKeyAuth)
-	this.echo.PATCH("api/v1/twins/:id", updateDeviceTwin, middleware.DefaultKeyAuth)
+	this.echo.GET("api/v1/twins/:id", getDeviceTwin)
+	this.echo.POST("api/v1/twins/:id/methods", invokeDeviceMethod)
+	this.echo.PATCH("api/v1/twins/:id", updateDeviceTwin)
 
 	// Http Runtithis. Api
-	this.echo.POST("api/v1/devices/:id/messages/deviceBound/:etag/abandon",
-		abandonDeviceBoundNotification, middleware.DefaultKeyAuth)
-	this.echo.DELETE("api/v1/devices/:id/messages/devicesBound/:etag",
-		completeDeviceBoundNotification, middleware.DefaultKeyAuth)
+	this.echo.POST("api/v1/devices/:id/messages/deviceBound/:etag/abandon", abandonDeviceBoundNotification)
+	this.echo.DELETE("api/v1/devices/:id/messages/devicesBound/:etag", completeDeviceBoundNotification)
 
-	this.echo.POST("api/v1/devices/:ideviceId/files",
-		createFileUploadSasUri, middleware.DefaultKeyAuth)
-	this.echo.GET("api/v1/devices/:id/message/deviceBound",
-		receiveDeviceBoundNotification, middleware.DefaultKeyAuth)
-	this.echo.POST("api/v1/devices/:deviceId/files/notifications",
-		updateFileUploadStatus, middleware.DefaultKeyAuth)
-	this.echo.POST("api/v1/devices/:id/messages/event", sendDeviceEvent, middleware.DefaultKeyAuth)
+	this.echo.POST("api/v1/devices/:ideviceId/files", createFileUploadSasUri)
+	this.echo.GET("api/v1/devices/:id/message/deviceBound", receiveDeviceBoundNotification)
+	this.echo.POST("api/v1/devices/:deviceId/files/notifications", updateFileUploadStatus)
+	this.echo.POST("api/v1/devices/:id/messages/event", sendDeviceEvent)
 
 	// Job Api
-	this.echo.POST("api/v1/jobs/:jobid/cancel", cancelJob, middleware.DefaultKeyAuth)
-	this.echo.PUT("api/v1/jobs/:jobid", createJob, middleware.DefaultKeyAuth)
-	this.echo.GET("api/v1/jobs/:jobid", getJob, middleware.DefaultKeyAuth)
-	this.echo.GET("api/v1/jobs/query", queryJobs, middleware.DefaultKeyAuth)
+	this.echo.POST("api/v1/jobs/:jobid/cancel", cancelJob)
+	this.echo.PUT("api/v1/jobs/:jobid", createJob)
+	this.echo.GET("api/v1/jobs/:jobid", getJob)
+	this.echo.GET("api/v1/jobs/query", queryJobs)
 
 	return nil
 }

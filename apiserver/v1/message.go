@@ -21,11 +21,11 @@ import (
 	"github.com/labstack/echo"
 )
 
-func SyncProduceMessage(c echo.Context, topic string, value sarama.Encoder) error {
+func syncProduceMessage(c echo.Context, topic string, value sarama.Encoder) error {
 	ctx := *c.(*apiContext)
 
 	// Get kafka server
-	kafka, err := ctx.Config.String("kafka", "hosts")
+	kafka, err := ctx.config.String("kafka", "hosts")
 	if err != nil || kafka == "" {
 		return errors.New("Invalid kafka configuration")
 	}
@@ -56,10 +56,10 @@ func SyncProduceMessage(c echo.Context, topic string, value sarama.Encoder) erro
 	return err
 }
 
-func AsyncProduceMessage(c echo.Context, topic string, value sarama.Encoder) error {
+func asyncProduceMessage(c echo.Context, topic string, value sarama.Encoder) error {
 	ctx := *c.(*apiContext)
 	// Get kafka server
-	kafka, err := ctx.Config.String("kafka", "hosts")
+	kafka, err := ctx.config.String("kafka", "hosts")
 	if err != nil || kafka == "" {
 		return errors.New("Invalid kafka configuration")
 	}

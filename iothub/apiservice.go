@@ -170,14 +170,7 @@ func getTenantInfo(ctx echo.Context) error {
 		brokers:      make(map[string]string),
 	}
 	for bid, broker := range tenant.brokers {
-		switch broker.status {
-		case BrokerStatusInvalid:
-			rsp.brokers[bid] = "invalid"
-		case BrokerStatusStarted:
-			rsp.brokers[bid] = "started"
-		case BrokerStatusStoped:
-			rsp.brokers[bid] = "stoped"
-		}
+		rsp.brokers[bid] = string(broker.status)
 	}
 	return ctx.JSON(http.StatusOK, &response{Success: true, Result: rsp})
 }

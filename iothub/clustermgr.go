@@ -31,12 +31,12 @@ import (
 )
 
 const (
-	BrokerStatusInvalid = 0
-	BrokerStatusStarted = 1
-	BrokerStatusStoped  = 2
+	BrokerStatusInvalid = "invalid"
+	BrokerStatusStarted = "started"
+	BrokerStatusStoped  = "stoped"
 )
 
-type BrokerStatus int
+type BrokerStatus string
 
 type Broker struct {
 	bid         string       // broker identifier

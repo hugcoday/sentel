@@ -12,32 +12,26 @@
 
 package v1
 
-import (
-	"net/http"
+import "github.com/labstack/echo"
 
-	"github.com/cloustone/sentel/apiserver/db"
+// Rule Api
 
-	"github.com/labstack/echo"
-)
-
-// addTenant add a new tenant
-func addTenant(ctx echo.Context) error {
-	// Make security check, for add content, no security policy
-
-	// Get registry store instance by context
-	config := ctx.(*apiContext).config
-	r, _ := db.NewRegistry(config)
-	defer r.Release()
-
-	//id := c.Param("id")
-	//	r.DeleteDevice(id)
-	return ctx.NoContent(http.StatusNoContent)
-}
-
-func deleteTenant(ctx echo.Context) error {
+// addRule add new rule for product
+func addRule(ctx echo.Context) error {
 	return nil
 }
 
-func getTenant(ctx echo.Context) error {
+// deleteRule delete existed rule
+func deleteRule(ctx echo.Context) error {
+	return nil
+}
+
+// UpdateRule update existed rule
+func updateRule(ctx echo.Context) error {
+	return nil
+}
+
+// getRule retrieve a rule
+func getRule(ctx echo.Context) error {
 	return nil
 }
