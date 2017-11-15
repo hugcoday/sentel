@@ -30,12 +30,12 @@ type registerDeviceRequest struct {
 }
 
 type registerDeviceResponse struct {
-	DeviceId     string `json:"deviceId"`
-	DeviceName   string `json:"deviceName"`
-	DeviceSecret string `json:deviceSecret"`
-	DeviceStatus string `json:deviceStatus"`
-	ProductKey   string `json:"productKey"`
-	TimeCreated  string `json:"timeCreated"`
+	DeviceId     string    `json:"deviceId"`
+	DeviceName   string    `json:"deviceName"`
+	DeviceSecret string    `json:deviceSecret"`
+	DeviceStatus string    `json:deviceStatus"`
+	ProductKey   string    `json:"productKey"`
+	TimeCreated  time.Time `json:"timeCreated"`
 }
 
 // RegisterDevice register a new device in IoT hub
@@ -61,7 +61,7 @@ func registerDevice(ctx echo.Context) error {
 	dp := db.Device{
 		Name:        req.DeviceName,
 		ProductKey:  req.ProductKey,
-		TimeCreated: time.Now().String(),
+		TimeCreated: time.Now(),
 	}
 	err = r.RegisterDevice(&dp)
 	if err != nil {
@@ -153,13 +153,13 @@ type updateDeviceRequest struct {
 	DeviceStatus string `json:"deviceStatus"`
 }
 type updateDeviceResponse struct {
-	DeviceId     string `json:"deviceId"`
-	DeviceName   string `json:"deviceName"`
-	DeviceSecret string `json:deviceSecret"`
-	DeviceStatus string `json:deviceStatus"`
-	ProductKey   string `json:"productKey"`
-	TimeCreated  string `json:"timeCreated"`
-	TimeModified string `json:"timeModified"`
+	DeviceId     string    `json:"deviceId"`
+	DeviceName   string    `json:"deviceName"`
+	DeviceSecret string    `json:deviceSecret"`
+	DeviceStatus string    `json:deviceStatus"`
+	ProductKey   string    `json:"productKey"`
+	TimeCreated  time.Time `json:"timeCreated"`
+	TimeModified time.Time `json:"timeModified"`
 }
 
 // updateDevice update the identity of a device in the identity registry of an IoT Hub
@@ -187,7 +187,7 @@ func updateDevice(ctx echo.Context) error {
 		ProductKey:   req.ProductKey,
 		DeviceStatus: req.DeviceStatus,
 		DeviceSecret: req.DeviceSecret,
-		TimeModified: time.Now().String(),
+		TimeModified: time.Now(),
 	}
 	if err = r.UpdateDevice(&dp); err != nil {
 		return ctx.JSON(http.StatusOK,

@@ -9,8 +9,7 @@
 //  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 //  License for the specific language governing permissions and limitations
 //  under the License.
-
-package v1
+package util
 
 import (
 	"errors"
@@ -18,14 +17,13 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
-	"github.com/labstack/echo"
+	"github.com/cloustone/sentel/core"
+	"github.com/golang/glog"
 )
 
-func syncProduceMessage(c echo.Context, topic string, value sarama.Encoder) error {
-	ctx := *c.(*apiContext)
-
+func SyncProduceMessage(cfg core.Config, topic string, key string, value sarama.Encoder) error {
 	// Get kafka server
-	kafka, err := ctx.config.String("kafka", "hosts")
+	kafka, err := cfg.String("kafka", "hosts")
 	if err != nil || kafka == "" {
 		return errors.New("Invalid kafka configuration")
 	}
@@ -39,27 +37,26 @@ func syncProduceMessage(c echo.Context, topic string, value sarama.Encoder) erro
 
 	msg := &sarama.ProducerMessage{
 		Topic: topic,
-		Key:   sarama.StringEncoder(c.Request().RemoteAddr),
+		Key:   sarama.StringEncoder(key),
 		Value: value,
 	}
 
 	producer, err := sarama.NewSyncProducer(strings.Split(kafka, ","), config)
 	if err != nil {
-		c.Logger().Error("Failed to produce message:%s", err)
+		glog.Errorf("Failed to produce message:%s", err.Error())
 		return err
 	}
 	defer producer.Close()
 
 	if _, _, err := producer.SendMessage(msg); err != nil {
-		c.Logger().Error("Failed to send producer message:%s", err)
+		glog.Errorf("Failed to send producer message:%s", err.Error())
 	}
 	return err
 }
 
-func asyncProduceMessage(c echo.Context, topic string, value sarama.Encoder) error {
-	ctx := *c.(*apiContext)
+func AsyncProduceMessage(cfg core.Config, key string, topic string, value sarama.Encoder) error {
 	// Get kafka server
-	kafka, err := ctx.config.String("kafka", "hosts")
+	kafka, err := cfg.String("kafka", "hosts")
 	if err != nil || kafka == "" {
 		return errors.New("Invalid kafka configuration")
 	}
@@ -74,13 +71,13 @@ func asyncProduceMessage(c echo.Context, topic string, value sarama.Encoder) err
 
 	msg := &sarama.ProducerMessage{
 		Topic: topic,
-		Key:   sarama.StringEncoder(c.Request().RemoteAddr),
+		Key:   sarama.StringEncoder(key),
 		Value: value,
 	}
 
 	producer, err := sarama.NewAsyncProducer(strings.Split(kafka, ","), config)
 	if err != nil {
-		c.Logger().Error("Failed to produce message:%s", err)
+		glog.Errorf("Failed to produce message:%s", err.Error())
 		return err
 	}
 	defer producer.Close()
@@ -92,7 +89,7 @@ func asyncProduceMessage(c echo.Context, topic string, value sarama.Encoder) err
 			select {
 			case err := <-errors:
 				if err != nil {
-					c.Logger().Error(err)
+					glog.Error(err)
 				}
 			case <-success:
 			}

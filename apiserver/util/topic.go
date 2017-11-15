@@ -20,6 +20,7 @@ const (
 	TopicNameTenant  = "tenant"
 	TopicNameProduct = "product"
 	TopicNameDevice  = "device"
+	TopicNameRule    = "rule"
 )
 
 const (
@@ -61,8 +62,8 @@ func (p *ProductTopic) Encode() ([]byte, error) {
 
 // DeviceTopic
 type DeviceTopic struct {
-	DeviceId     string `json:productId"`
-	DeviceSecret string `json:productKey"`
+	DeviceId     string `json:deviceId"`
+	DeviceSecret string `json:deviceKey"`
 	Action       string `json:"action"`
 	ProductId    string `json:"productId"`
 
@@ -82,6 +83,31 @@ func (p *DeviceTopic) Length() int {
 }
 
 func (p *DeviceTopic) Encode() ([]byte, error) {
+	p.ensureEncoded()
+	return p.encoded, p.err
+}
+
+// RuleTopic
+type RuleTopic struct {
+	ProductId string `json:"productId"`
+	RuleId    string `json:"ruleId"`
+	Action    string `json:"action"`
+	encoded   []byte
+	err       error
+}
+
+func (p *RuleTopic) ensureEncoded() {
+	if p.encoded == nil && p.err == nil {
+		p.encoded, p.err = json.Marshal(p)
+	}
+}
+
+func (p *RuleTopic) Length() int {
+	p.ensureEncoded()
+	return len(p.encoded)
+}
+
+func (p *RuleTopic) Encode() ([]byte, error) {
 	p.ensureEncoded()
 	return p.encoded, p.err
 }

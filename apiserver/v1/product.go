@@ -26,12 +26,12 @@ import (
 
 // Product internal definition
 type product struct {
-	Id           string `json:"id"`
-	Name         string `json:"name"`
-	Description  string `json:"description"`
-	TimeCreated  string `json:"timeCreated"`
-	TimeModified string `json:"timeModified"`
-	CategoryId   string `json:"categoryId"`
+	Id           string    `json:"id"`
+	Name         string    `json:"name"`
+	Description  string    `json:"description"`
+	TimeCreated  time.Time `json:"timeCreated"`
+	TimeModified time.Time `json:"timeModified"`
+	CategoryId   string    `json:"categoryId"`
 }
 type productAddRequest struct {
 	requestBase
@@ -51,7 +51,7 @@ func registerProduct(ctx echo.Context) error {
 	r, err := db.NewRegistry(ctx.(*apiContext).config)
 	if err != nil {
 		glog.Error("Registry connection failed")
-		return ctx.JSON(http.StatusBadRequest, &response{Success: false, Message: err.Error()})
+		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
 	defer r.Release()
 
@@ -61,7 +61,7 @@ func registerProduct(ctx echo.Context) error {
 	dp := db.Product{
 		Name:        req.Name,
 		Description: req.Description,
-		TimeCreated: time.Now().String(),
+		TimeCreated: time.Now(),
 	}
 	if err = r.RegisterProduct(&dp); err != nil {
 		return ctx.JSON(http.StatusOK,
@@ -69,7 +69,9 @@ func registerProduct(ctx echo.Context) error {
 	}
 
 	// Notify kafka
-	asyncProduceMessage(ctx, util.TopicNameProduct,
+	util.AsyncProduceMessage(ctx.(*apiContext).config,
+		"todo",
+		util.TopicNameProduct,
 		&util.ProductTopic{
 			ProductId:   dp.Id,
 			ProductName: dp.Name,
@@ -114,14 +116,16 @@ func updateProduct(ctx echo.Context) error {
 		Name:         req.Name,
 		Description:  req.Description,
 		CategoryId:   req.CategoryId,
-		TimeModified: time.Now().String(),
+		TimeModified: time.Now(),
 	}
 	if err = r.UpdateProduct(&dp); err != nil {
 		logError(ctx, "Registry.UpdateProduct(%s) failed", req.Id)
 		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
 	// Notify kafka
-	asyncProduceMessage(ctx, util.TopicNameProduct,
+	util.AsyncProduceMessage(ctx.(*apiContext).config,
+		"todo",
+		util.TopicNameProduct,
 		&util.ProductTopic{
 			ProductId:   req.Id,
 			ProductName: req.Name,
@@ -151,7 +155,9 @@ func deleteProduct(ctx echo.Context) error {
 		return ctx.JSON(http.StatusOK, &response{Success: false, Message: err.Error()})
 	}
 	// Notify kafka
-	asyncProduceMessage(ctx, util.TopicNameProduct,
+	util.SyncProduceMessage(ctx.(*apiContext).config,
+		"todo",
+		util.TopicNameProduct,
 		&util.ProductTopic{
 			ProductId: ctx.Param("id"),
 			Action:    util.ObjectActionDelete,

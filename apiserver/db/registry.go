@@ -27,6 +27,7 @@ const (
 	dbNameDevices  = "devices"
 	dbNameProducts = "products"
 	dbNameTenants  = "tenants"
+	dbNameRules    = "rules"
 )
 
 // Registry is wraper of mongo database about for iot object
@@ -146,7 +147,7 @@ func (r *Registry) UpdateProduct(p *Product) error {
 
 // Device
 
-// Registerevice add a new device into registry
+// RegisterDevice add a new device into registry
 func (r *Registry) RegisterDevice(dev *Device) error {
 	c := r.db.C(dbNameDevices)
 	if err := c.Find(bson.M{"Id": dev.Id}); err == nil { // found existed device
@@ -203,4 +204,35 @@ func (r *Registry) BulkUpdateDevice(devices []Device) error {
 		}
 	}
 	return nil
+}
+
+// Rule
+
+// RegisterRule add a new rule into registry
+func (r *Registry) RegisterRule(rule *Rule) error {
+	c := r.db.C(dbNameRules)
+	if err := c.Find(bson.M{"Id": rule.Id}); err == nil { // found existed device
+		return fmt.Errorf("rule %s already exist", rule.Id)
+	}
+	return c.Insert(rule)
+}
+
+// GetRule retrieve a rule information from registry/
+func (r *Registry) GetRule(id string) (*Rule, error) {
+	c := r.db.C(dbNameRules)
+	rule := &Rule{}
+	err := c.Find(bson.M{"Id": id}).One(rule)
+	return rule, err
+}
+
+// DeleteRule delete a rule from registry
+func (r *Registry) DeleteRule(id string) error {
+	c := r.db.C(dbNameRules)
+	return c.Remove(bson.M{"Id": id})
+}
+
+// UpdateRule update rule information in registry
+func (r *Registry) UpdateRule(rule *Rule) error {
+	c := r.db.C(dbNameRules)
+	return c.Update(bson.M{"Id": rule.Id}, rule)
 }

@@ -12,6 +12,8 @@
 
 package db
 
+import "time"
+
 // Tenant
 type Tenant struct {
 	Id   string
@@ -23,11 +25,12 @@ type Product struct {
 	Id           string
 	Name         string
 	Description  string
-	TimeCreated  string
-	TimeModified string
+	TimeCreated  time.Time
+	TimeModified time.Time
 	CategoryId   string
 }
 
+// Device
 type Device struct {
 	Id           string
 	Name         string
@@ -35,6 +38,18 @@ type Device struct {
 	ProductKey   string
 	DeviceStatus string
 	DeviceSecret string
-	TimeCreated  string
-	TimeModified string
+	TimeCreated  time.Time
+	TimeModified time.Time
+}
+
+// Rule
+type Rule struct {
+	Id           string
+	Name         string
+	ProductId    string
+	TimeCreated  time.Time
+	TimeModified time.Time
+	Status       string
+	Method       string
+	Target       string
 }
