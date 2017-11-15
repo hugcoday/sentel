@@ -40,7 +40,6 @@ type registerDeviceResponse struct {
 
 // RegisterDevice register a new device in IoT hub
 func registerDevice(ctx echo.Context) error {
-	logInfo(ctx, "registerDevice(%s) called", ctx.Param("id"))
 	// Get product
 	req := new(registerDeviceRequest)
 	if err := ctx.Bind(req); err != nil {
@@ -50,7 +49,6 @@ func registerDevice(ctx echo.Context) error {
 	// Connect with registry
 	r, err := db.NewRegistry(config)
 	if err != nil {
-		logFatal(ctx, "Registry connection failed")
 		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
 	defer r.Release()
@@ -79,7 +77,6 @@ func registerDevice(ctx echo.Context) error {
 
 // Retrieve a device from the identify registry of an IoT hub
 func getDevice(ctx echo.Context) error {
-	logInfo(ctx, "getDevice(%s) called", ctx.Param("id"))
 	// Get product
 	req := new(registerDeviceRequest)
 	if err := ctx.Bind(req); err != nil {
@@ -90,7 +87,6 @@ func getDevice(ctx echo.Context) error {
 	config := ctx.(*apiContext).config
 	registry, err := db.NewRegistry(config)
 	if err != nil {
-		logFatal(ctx, "Registry connection failed")
 		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
 	defer registry.Release()
@@ -98,7 +94,6 @@ func getDevice(ctx echo.Context) error {
 	// Get device into registry, the created product
 	dev, err := registry.GetDevice(ctx.Param("id"))
 	if err != nil {
-		logError(ctx, "Registry.GetDevice(%s) failed:%v", ctx.Param("id"), err)
 		return ctx.JSON(http.StatusOK,
 			&response{RequestId: uuid.NewV4().String(), Success: false, Message: err.Error()})
 	}
@@ -117,7 +112,6 @@ func getDevice(ctx echo.Context) error {
 
 // Delete the identify of a device from the identity registry of an IoT Hub
 func deleteDevice(ctx echo.Context) error {
-	logInfo(ctx, "deleteDevice(%s) called", ctx.Param("id"))
 	// Get product
 	req := new(registerDeviceRequest)
 	if err := ctx.Bind(req); err != nil {
@@ -127,7 +121,6 @@ func deleteDevice(ctx echo.Context) error {
 	config := ctx.(*apiContext).config
 	registry, err := db.NewRegistry(config)
 	if err != nil {
-		logFatal(ctx, "Registry connection failed")
 		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
 	defer registry.Release()
@@ -138,7 +131,6 @@ func deleteDevice(ctx echo.Context) error {
 	}
 	// Get device into registry, the created product
 	if err := registry.DeleteDevice(ctx.Param("id")); err != nil {
-		logError(ctx, "Registry.DeleteDevice(%s) failed:%v", ctx.Param("id"), err)
 		return ctx.JSON(http.StatusOK, &response{Success: false, Message: err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, rcp)
@@ -164,7 +156,6 @@ type updateDeviceResponse struct {
 
 // updateDevice update the identity of a device in the identity registry of an IoT Hub
 func updateDevice(ctx echo.Context) error {
-	logInfo(ctx, "updateDevice(%s) called", ctx.Param("id"))
 	// Get product
 	req := new(updateDeviceRequest)
 	if err := ctx.Bind(req); err != nil {
@@ -173,7 +164,6 @@ func updateDevice(ctx echo.Context) error {
 	// Connect with registry
 	r, err := db.NewRegistry(ctx.(*apiContext).config)
 	if err != nil {
-		logFatal(ctx, "Registry connection failed")
 		return ctx.JSON(http.StatusInternalServerError, &response{Message: err.Error()})
 	}
 	defer r.Release()

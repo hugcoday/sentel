@@ -96,8 +96,6 @@ type productUpdateRequest struct {
 
 // updateProduct update product information in registry
 func updateProduct(ctx echo.Context) error {
-	logInfo(ctx, "updateProduct called")
-
 	// Get product
 	req := new(productUpdateRequest)
 	if err := ctx.Bind(req); err != nil {
@@ -119,7 +117,6 @@ func updateProduct(ctx echo.Context) error {
 		TimeModified: time.Now(),
 	}
 	if err = r.UpdateProduct(&dp); err != nil {
-		logError(ctx, "Registry.UpdateProduct(%s) failed", req.Id)
 		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
 	// Notify kafka
@@ -137,8 +134,6 @@ func updateProduct(ctx echo.Context) error {
 
 // deleteProduct delete product from registry store
 func deleteProduct(ctx echo.Context) error {
-	logInfo(ctx, "deleteProduct:%s", ctx.Param("id"))
-
 	if ctx.Param("id") == "" {
 		return ctx.JSON(http.StatusBadRequest, &response{Success: false, Message: "Invalid parameter"})
 	}
@@ -146,7 +141,6 @@ func deleteProduct(ctx echo.Context) error {
 	// Connect with registry
 	r, err := db.NewRegistry(ctx.(*apiContext).config)
 	if err != nil {
-		logFatal(ctx, "Registry connection failed")
 		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
 	defer r.Release()
@@ -172,8 +166,6 @@ func deleteProduct(ctx echo.Context) error {
 
 // getProduct retrieve production information from registry store
 func getProduct(ctx echo.Context) error {
-	logInfo(ctx, "getProduct:%s", ctx.Param("id"))
-
 	if ctx.Param("id") == "" {
 		return ctx.JSON(http.StatusBadRequest, &response{Success: false, Message: "Invalid parameter"})
 	}
@@ -181,7 +173,6 @@ func getProduct(ctx echo.Context) error {
 	// Connect with registry
 	r, err := db.NewRegistry(ctx.(*apiContext).config)
 	if err != nil {
-		logFatal(ctx, "Registry connection failed")
 		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
 	defer r.Release()
@@ -210,19 +201,15 @@ type device struct {
 
 // getProductDevices retrieve product devices list from registry store
 func getProductDevices(ctx echo.Context) error {
-	logInfo(ctx, "getProductDevices:%s", ctx.Param("id"))
-
 	// Connect with registry
 	r, err := db.NewRegistry(ctx.(*apiContext).config)
 	if err != nil {
-		logFatal(ctx, "Registry connection failed")
 		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
 	defer r.Release()
 
 	pdevices, err := r.GetProductDevices(ctx.Param("id"))
 	if err != nil {
-		logDebug(ctx, "Registry.getProductDevices(%s) failed:%v", ctx.Param("id"), err)
 		return ctx.JSON(http.StatusOK, &response{Success: false, Message: err.Error()})
 	}
 	rdevices := []device{}

@@ -34,6 +34,23 @@ type apiContext struct {
 	config core.Config
 }
 
+type requestBase struct {
+	Format           string `json:"format"`
+	AccessKeyId      string `json:"accessKeyID"`
+	Signature        string `json:"signature"`
+	Timestamp        string `json:"timestamp"`
+	SignatureVersion string `json:"signatureVersion"`
+	SignatueNonce    string `json:"signatureNonce"`
+	RegionId         string `json:"regiionID"`
+}
+
+type response struct {
+	RequestId string      `json:"requestID"`
+	Success   bool        `json:"success"`
+	Message   string      `json:"message"`
+	Result    interface{} `json:"result"`
+}
+
 // NewApiManager create api manager instance
 func NewApiManager() apiserver.ApiManager {
 	return &v1apiManager{
