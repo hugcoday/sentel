@@ -36,6 +36,12 @@ type apiContext struct {
 	config libs.Config
 }
 
+type response struct {
+	Success bool        `json:"success"`
+	Message string      `json:"message"`
+	Result  interface{} `json:"result"`
+}
+
 // ApiServiceFactory
 type ApiServiceFactory struct{}
 
@@ -69,14 +75,15 @@ func (m *ApiServiceFactory) New(protocol string, c libs.Config, ch chan base.Ser
 		}
 	})
 
-	// Clusters
+	// Clusters & Node
 	e.GET(APIHEAD+"nodes", getAllNodes)
 	e.GET(APIHEAD+"nodes/:nodeName", getNodeInfo)
-
-	// Clients
+	e.GET(APIHEAD+"nodes/clients", getNodesClientInfo)
 	e.GET(APIHEAD+"nodes/:nodeName/clients", getNodeClients)
 	e.GET(APIHEAD+"nodes/:nodeName/clients/:clientId", getNodeClientInfo)
-	e.GET(APIHEAD+"clients/:clientId", getClusterClientInfo)
+
+	// Client
+	e.GET(APIHEAD+"clients/:clientId", getClientInfo)
 
 	// Session
 	e.GET(APIHEAD+"nodes/:nodeName/sessions", getNodeSessions)
