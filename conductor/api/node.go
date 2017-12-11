@@ -147,7 +147,7 @@ func getNodesClientInfoWithinTimeScope(ctx echo.Context) error {
 			})
 	}
 	// For each node, query clients collection to get client's count
-	c = session.DB("iothub").C("clients_history")
+	c = session.DB("iothub").C("clients")
 	results := map[string][]int{}
 	for _, node := range nodes {
 		f := from
@@ -229,10 +229,69 @@ func getNodesClientInfo(ctx echo.Context) error {
 	})
 }
 
+// getNodeClientsWithinTimeScope return a node's clients statics within
+// timescope
+func getNodeClientsWithinTimeScope(ctx echo.Context) error {
+	// Check parameter's validity
+	from, err1 := time.Parse("yyyy-mm-dd hh:mm:ss", ctx.Param("from"))
+	to, err2 := time.Parse("yyyy-mm-dd hh:mm:ss", ctx.Param("to"))
+	duration, err3 := time.ParseDuration(ctx.Param("unit"))
+	nodeName := ctx.Param("nodeName")
+
+	glog.Infof("getNodeClientsWithinTimeScope(node:%s, from=%v, to=%v, unit=%v", nodeName, from, to, duration)
+
+	if err1 != nil || err2 != nil || err3 != nil || nodeName == "" {
+		return ctx.JSON(http.StatusBadRequest,
+			&response{Success: false, Message: "time format is wrong"})
+	}
+
+	if to.Sub(from) < duration {
+		return ctx.JSON(http.StatusBadRequest,
+			&response{Success: false, Message: "time format is wrong"})
+	}
+
+	config := ctx.(*apiContext).config
+	hosts := config.MustString("condutor", "mongo")
+	session, err := mgo.Dial(hosts)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError,
+			&response{Success: false, Message: err.Error()})
+	}
+
+	defer session.Close()
+
+	c := session.DB("iothub").C("clients")
+	result := []int{}
+	for {
+		t := from.Add(duration)
+		if to.Sub(t) <= duration {
+			break
+		}
+		query := bson.M{"nodeName": nodeName, "updateTime": bson.M{"$gte": from, "$lt": t}}
+		count, err := c.Find(query).Count()
+		if err != nil {
+			result = append(result, count)
+		} else {
+			result = append(result, 0)
+		}
+	}
+	return ctx.JSON(http.StatusOK, &response{
+		Success: true,
+		Result:  result,
+	})
+}
+
 // getNodeClients return a node's all clients
 func getNodeClients(ctx echo.Context) error {
 	glog.Infof("calling getNodeClients from %s", ctx.Request().RemoteAddr)
 
+	// Deal specifully if timescope is specified
+	from := ctx.Param("from")
+	if from != "" {
+		return getNodeClientsWithinTimeScope(ctx)
+	}
+
+	// Retrun last statics for this node
 	nodeName := ctx.Param("nodeName")
 	if nodeName == "" {
 		return ctx.JSON(http.StatusBadRequest,
