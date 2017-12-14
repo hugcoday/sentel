@@ -13,57 +13,40 @@
 package db
 
 import (
-	"errors"
-	"fmt"
+	mgo "gopkg.in/mgo.v2"
 
 	"github.com/cloustone/sentel/libs"
-
-	"github.com/go-xorm/xorm"
 	"github.com/golang/glog"
 )
 
 type Registry struct {
-	orm    *xorm.Engine
-	config libs.Config
+	config  libs.Config
+	session *mgo.Session
 }
 
 func InitializeRegistry(c libs.Config) error {
-	user := c.MustString("registry", "user")
-	pwd := c.MustString("registry", "password")
-	server := c.MustString("registry", "server")
-	port := c.MustString("registry", "port")
-
-	info := fmt.Sprintf("%s:%s@tcp(%s:%s)/registry", user, pwd, server, port)
-	orm, err := xorm.NewEngine("postgres", info)
+	hosts := c.MustString("registry", "hosts")
+	session, err := mgo.Dial(hosts)
 	if err != nil {
-		glog.Error("Create xorm engine failed:%s", err)
+		glog.Errorf("Failed to initialize registry:%v", err)
 		return err
 	}
-	orm.ShowSQL(true)
-	err = orm.CreateTables(&Tenant{}, &Product{}, &Device{})
-	if err != nil {
-		glog.Error("Created Registry tables failed:%s", err)
-		return err
-	}
+	session.Close()
 	return nil
 }
 
 func NewRegistry(c libs.Config) (*Registry, error) {
-	user := c.MustString("registry", "user")
-	pwd := c.MustString("registry", "password")
-	server := c.MustString("registry", "server")
-	port := c.MustString("registry", "port")
-
-	info := fmt.Sprintf("%s:%s@tcp(%s:%s)/registry", user, pwd, server, port)
-	orm, err := xorm.NewEngine("postgres", info)
+	hosts := c.MustString("registry", "hosts")
+	session, err := mgo.Dial(hosts)
 	if err != nil {
-		glog.Error("Create xorm engine failed:%s", err)
+		glog.Errorf("Failed to initialize registry:%v", err)
 		return nil, err
 	}
-	return &Registry{orm: orm, config: c}, nil
+	return &Registry{session: session, config: c}, nil
 }
 
 func (r *Registry) Release() {
+	r.session.Close()
 }
 
 // Tenant
@@ -86,42 +69,27 @@ func (r *Registry) GetTenant(t *Tenant) error {
 // Product
 // CheckProductNameAvailable check wethere product name is available
 func (r *Registry) CheckProductNameAvailable(p *Product) bool {
-	has, _ := r.orm.Exist(p)
-	return has
+	return false
 }
 
 // RegisterProduct register a product into registry
 func (r *Registry) RegisterProduct(p *Product) error {
-	if has, err := r.orm.Exist(p); err == nil && has == true {
-		return errors.New("product already exist")
-	}
-	_, err := r.orm.Insert(p)
-	return err
+	return nil
 }
 
 // DeleteProduct delete a product from registry
 func (r *Registry) DeleteProduct(id string) error {
-	_, err := r.orm.Delete(&Product{Id: id})
-	return err
+	return nil
 }
 
 // GetProduct retrieve product detail information from registry
 func (r *Registry) GetProduct(id string) (*Product, error) {
-	p := new(Product)
-	p.Id = id
-	_, err := r.orm.Get(p)
-	return p, err
+	return nil, nil
 }
 
 // GetProductDevices get product's device list
 func (r *Registry) GetProductDevices(id string) ([]Device, error) {
-	devices := []Device{}
-	err := r.orm.Iterate(&Device{Id: id}, func(idx int, bean interface{}) error {
-		dev := bean.(*Device)
-		devices = append(devices, *dev)
-		return nil
-	})
-	return devices, err
+	return nil, nil
 }
 
 // UpdateProduct update product detail information in registry

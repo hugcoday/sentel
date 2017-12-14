@@ -1,6 +1,6 @@
 /.GOPATH
 /bin
 .DS_Store
-.swp
+*.swp
 !.gitignore
 *~

@@ -81,12 +81,6 @@
 			"revisionTime": "2017-09-09T08:56:53Z"
 		},
 		{
-			"checksumSHA1": "SoZDnkd5NdwE0g4MY1nTAl8ZtPo=",
-			"path": "github.com/go-xorm/xorm",
-			"revision": "c29485f954ed6495861c0098f9a1642a467299c8",
-			"revisionTime": "2017-09-10T12:58:18Z"
-		},
-		{
 			"checksumSHA1": "HmbftipkadrLlCfzzVQ+iFHbl6g=",
 			"path": "github.com/golang/glog",
 			"revision": "23def4e6c14b4da8ac2ed8007337bc5eb5007998",
