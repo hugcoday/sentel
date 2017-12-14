@@ -11,7 +11,10 @@
 //  under the License.
 package v1
 
-import "github.com/labstack/echo"
+import (
+	"github.com/golang/glog"
+	"github.com/labstack/echo"
+)
 
 type requestBase struct {
 	Format           string `json:"format"`
@@ -31,13 +34,17 @@ type response struct {
 }
 
 func logInfo(ctx echo.Context, fmt string, args ...interface{}) {
+	glog.Infof(fmt, args)
 }
 
 func logDebug(ctx echo.Context, fmt string, args ...interface{}) {
+	glog.Infof(fmt, args)
 }
 
 func logFatal(ctx echo.Context, fmt string, args ...interface{}) {
+	glog.Fatalf(fmt, args)
 }
 
 func logError(ctx echo.Context, fmt string, args ...interface{}) {
+	glog.Error(fmt, args)
 }
