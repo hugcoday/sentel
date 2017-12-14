@@ -15,22 +15,22 @@ package v1
 import "github.com/labstack/echo"
 
 // Cancel an existing job on an IoT hub
-func cancelJob(c echo.Context) error {
+func cancelJob(ctx echo.Context) error {
 	return nil
 }
 
 // Create a new job on an IoT hub
-func createJob(c echo.Context) error {
+func createJob(ctx echo.Context) error {
 	return nil
 }
 
 // Retrieve details of an existing job from an IoT hub
-func getJob(c echo.Context) error {
+func getJob(ctx echo.Context) error {
 	return nil
 }
 
 // Query an IoT hub to retrieve information regarding jobs using
 // the IoT Hub query language
-func queryJobs(c echo.Context) error {
+func queryJobs(ctx echo.Context) error {
 	return nil
 }

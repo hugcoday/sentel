@@ -16,11 +16,11 @@ import "github.com/labstack/echo"
 
 // Retrieves statistics about devices identities in the IoT hub's
 // identify registry
-func getRegistryStatistics(c echo.Context) error {
+func getRegistryStatistics(ctx echo.Context) error {
 	return nil
 }
 
 // Retrieves services statisticsfor this IoT hubs's identity registry
-func getServiceStatistics(c echo.Context) error {
+func getServiceStatistics(ctx echo.Context) error {
 	return nil
 }

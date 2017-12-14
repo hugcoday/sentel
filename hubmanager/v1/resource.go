@@ -15,100 +15,100 @@ package v1
 import "github.com/labstack/echo"
 
 // Check if an IoT hub name is available
-func checkNameAvailability(c echo.Context) error {
+func checkNameAvailability(ctx echo.Context) error {
 	return nil
 }
 
 // Add a consumer group to an envent hub-compatible endpoint in an iot hub
-func createEventHubConsumerGroup(c echo.Context) error {
+func createEventHubConsumerGroup(ctx echo.Context) error {
 	return nil
 }
 
 // Create or update the metadata of an IoT hub
-func createOrUpdateMetadata(c echo.Context) error {
+func createOrUpdateMetadata(ctx echo.Context) error {
 	return nil
 }
 
 // Delete IoT hub
-func deleteIoTHub(c echo.Context) error {
+func deleteIoTHub(ctx echo.Context) error {
 	return nil
 }
 
 // Delete a consumer group from an event hub-compatible endpoint in an iot hub
-func deleteEventHubConsumerGroup(c echo.Context) error {
+func deleteEventHubConsumerGroup(ctx echo.Context) error {
 	return nil
 }
 
 // Export all the device identities in the IoT hub identity registry
 // to an azure storage blob container
-func exportDevices(c echo.Context) error {
+func exportDevices(ctx echo.Context) error {
 	return nil
 }
 
 // Get the non-security related metadata of an IoT hub
-func getNonsecurityMetadata(c echo.Context) error {
+func getNonsecurityMetadata(ctx echo.Context) error {
 	return nil
 }
 
 // Get a consumer group from the event hub-compatible device-to-cloud endpoint
 // for an IoT hub
-func getEventHubConsumerGroup(c echo.Context) error {
+func getEventHubConsumerGroup(ctx echo.Context) error {
 	return nil
 
 }
 
 // Get the details of a job from an IoT hub
-func getJobDetail(c echo.Context) error {
+func getJobDetail(ctx echo.Context) error {
 	return nil
 }
 
 // Get a shared access policy by name from an IoT hub
-func getKeyForKeyName(c echo.Context) error {
+func getKeyForKeyName(ctx echo.Context) error {
 	return nil
 }
 
 // Get the quota metrics for an IoT hub
-func getQuotaMetrics(c echo.Context) error {
+func getQuotaMetrics(ctx echo.Context) error {
 	return nil
 }
 
 // Get the statistics from an IoT hub
-func getStatics(c echo.Context) error {
+func getStatics(ctx echo.Context) error {
 	return nil
 }
 
 // Get the list of valid SKUs for an IoT hub
-func getValidSkus(c echo.Context) error {
+func getValidSkus(ctx echo.Context) error {
 	return nil
 }
 
 // Get all IoT hubs in a resource group
-func getAllHubsInGroup(c echo.Context) error {
+func getAllHubsInGroup(ctx echo.Context) error {
 	return nil
 }
 
 // Get all the IoT hubs in a subscription
-func getAllHubs(c echo.Context) error {
+func getAllHubs(ctx echo.Context) error {
 	return nil
 }
 
 // Get a list of all the jobs in an IoT hub
-func getAllJobsInIotHub(c echo.Context) error {
+func getAllJobsInIotHub(ctx echo.Context) error {
 	return nil
 }
 
 // Get a list of the consumer groups in the event hub-compatible
 // device-to-cloud endpoint in an IoT hub
-func getListEventHubConsumerGroups(c echo.Context) error {
+func getListEventHubConsumerGroups(ctx echo.Context) error {
 	return nil
 }
 
 // Get a list of all the jobs in an IoT hub
-func getJobListFromHub(c echo.Context) error {
+func getJobListFromHub(ctx echo.Context) error {
 	return nil
 }
 
 // Get the security metadata for an IoT hub
-func getSecurityMetadataFromHub(c echo.Context) error {
+func getSecurityMetadataFromHub(ctx echo.Context) error {
 	return nil
 }

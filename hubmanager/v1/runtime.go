@@ -17,31 +17,31 @@ import "github.com/labstack/echo"
 // Http Runtime Api
 
 // Abandon a cloud-to-device message
-func abandonDeviceBoundNotification(c echo.Context) error {
+func abandonDeviceBoundNotification(ctx echo.Context) error {
 	return nil
 }
 
 // Complete or rejects a cloud-to-device message
-func completeDeviceBoundNotification(c echo.Context) error {
+func completeDeviceBoundNotification(ctx echo.Context) error {
 	return nil
 }
 
 // Retrive a storage SAS URI to upload a file
-func createFileUploadSasUri(c echo.Context) error {
+func createFileUploadSasUri(ctx echo.Context) error {
 	return nil
 }
 
 // Retrive a cloud-to-device message
-func receiveDeviceBoundNotification(c echo.Context) error {
+func receiveDeviceBoundNotification(ctx echo.Context) error {
 	return nil
 }
 
 // Send a device-to-cloud message
-func sendDeviceEvent(c echo.Context) error {
+func sendDeviceEvent(ctx echo.Context) error {
 	return nil
 }
 
 // Notify an IoT hub of a complete file upload
-func updateFileUploadStatus(c echo.Context) error {
+func updateFileUploadStatus(ctx echo.Context) error {
 	return nil
 }

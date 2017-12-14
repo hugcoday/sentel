@@ -26,13 +26,12 @@ import (
 
 // Device internal definition
 type registerDeviceRequest struct {
-	RequestCommonParameter
+	requestBase
 	ProductKey string `json:"productKey"`
 	DeviceName string `json:"productName"`
 }
 
 type registerDeviceResponse struct {
-	ResponseCommonParameter
 	DeviceId     string `json:"deviceId"`
 	DeviceName   string `json:"deviceName"`
 	DeviceSecret string `json:deviceSecret"`
@@ -42,19 +41,19 @@ type registerDeviceResponse struct {
 }
 
 // RegisterDevice register a new device in IoT hub
-func registerDevice(c echo.Context) error {
-	logInfo(c, "registerDevice(%s) called", c.Param("id"))
+func registerDevice(ctx echo.Context) error {
+	logInfo(ctx, "registerDevice(%s) called", ctx.Param("id"))
 	// Get product
 	req := new(registerDeviceRequest)
-	if err := c.Bind(req); err != nil {
-		return err
+	if err := ctx.Bind(req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, &response{Success: false, Message: err.Error()})
 	}
-	config := c.(*base.ApiContext).Config
+	config := ctx.(*base.ApiContext).Config
 	// Connect with registry
 	r, err := db.NewRegistry(config)
 	if err != nil {
-		logFatal(c, "Registry connection failed")
-		return err
+		logFatal(ctx, "Registry connection failed")
+		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
 	defer r.Release()
 
@@ -66,105 +65,89 @@ func registerDevice(c echo.Context) error {
 		ProductKey:  req.ProductKey,
 		TimeCreated: time.Now().String(),
 	}
-	rcp := ResponseCommonParameter{
-		RequestId:    uuid.NewV4().String(),
-		Success:      true,
-		ErrorMessage: "",
-	}
 	err = r.RegisterDevice(&dp)
 	if err != nil {
-		rcp.Success = false
-		rcp.ErrorMessage = err.Error()
-		return c.JSON(http.StatusOK, rcp)
+		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
-	rsp := &registerDeviceResponse{
-		ResponseCommonParameter: rcp,
-		DeviceId:                dp.Id,
-		DeviceName:              dp.Name,
-		ProductKey:              dp.ProductKey,
-		DeviceSecret:            dp.DeviceSecret,
-		TimeCreated:             dp.TimeCreated,
-	}
-	return c.JSON(http.StatusOK, rsp)
-
+	return ctx.JSON(http.StatusOK, &response{Success: true,
+		Result: &registerDeviceResponse{
+			DeviceId:     dp.Id,
+			DeviceName:   dp.Name,
+			ProductKey:   dp.ProductKey,
+			DeviceSecret: dp.DeviceSecret,
+			TimeCreated:  dp.TimeCreated,
+		}})
 }
 
 // Retrieve a device from the identify registry of an IoT hub
-func getDevice(c echo.Context) error {
-	logInfo(c, "getDevice(%s) called", c.Param("id"))
+func getDevice(ctx echo.Context) error {
+	logInfo(ctx, "getDevice(%s) called", ctx.Param("id"))
 	// Get product
 	req := new(registerDeviceRequest)
-	if err := c.Bind(req); err != nil {
-		return err
+	if err := ctx.Bind(req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, &response{Success: false, Message: err.Error()})
+
 	}
 	// Connect with registry
-	config := c.(*base.ApiContext).Config
+	config := ctx.(*base.ApiContext).Config
 	registry, err := db.NewRegistry(config)
 	if err != nil {
-		logFatal(c, "Registry connection failed")
-		return err
+		logFatal(ctx, "Registry connection failed")
+		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
 	defer registry.Release()
 
-	rcp := ResponseCommonParameter{
-		RequestId:    uuid.NewV4().String(),
-		Success:      true,
-		ErrorMessage: "",
-	}
 	// Get device into registry, the created product
-	dev, err := registry.GetDevice(c.Param("id"))
+	dev, err := registry.GetDevice(ctx.Param("id"))
 	if err != nil {
-		logError(c, "Registry.GetDevice(%s) failed:%v", c.Param("id"), err)
-		rcp.Success = false
-		rcp.ErrorMessage = err.Error()
-		return c.JSON(http.StatusOK, rcp)
+		logError(ctx, "Registry.GetDevice(%s) failed:%v", ctx.Param("id"), err)
+		return ctx.JSON(http.StatusOK,
+			&response{RequestId: uuid.NewV4().String(), Success: false, Message: err.Error()})
 	}
-	rsp := &registerDeviceResponse{
-		ResponseCommonParameter: rcp,
-		DeviceId:                dev.Id,
-		DeviceName:              dev.Name,
-		ProductKey:              dev.ProductKey,
-		DeviceSecret:            dev.DeviceSecret,
-		TimeCreated:             dev.TimeCreated,
-		DeviceStatus:            dev.DeviceStatus,
-	}
-	return c.JSON(http.StatusOK, rsp)
+	return ctx.JSON(http.StatusOK,
+		&response{
+			Success: true,
+			Result: &registerDeviceResponse{
+				DeviceId:     dev.Id,
+				DeviceName:   dev.Name,
+				ProductKey:   dev.ProductKey,
+				DeviceSecret: dev.DeviceSecret,
+				TimeCreated:  dev.TimeCreated,
+				DeviceStatus: dev.DeviceStatus,
+			}})
 }
 
-// Delete the identify of a device from the identity registry
-// of an IoT Hub
-func deleteDevice(c echo.Context) error {
-	logInfo(c, "deleteDevice(%s) called", c.Param("id"))
+// Delete the identify of a device from the identity registry of an IoT Hub
+func deleteDevice(ctx echo.Context) error {
+	logInfo(ctx, "deleteDevice(%s) called", ctx.Param("id"))
 	// Get product
 	req := new(registerDeviceRequest)
-	if err := c.Bind(req); err != nil {
-		return err
+	if err := ctx.Bind(req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, &response{Success: false, Message: err.Error()})
 	}
 	// Connect with registry
-	config := c.(*base.ApiContext).Config
+	config := ctx.(*base.ApiContext).Config
 	registry, err := db.NewRegistry(config)
 	if err != nil {
-		logFatal(c, "Registry connection failed")
-		return err
+		logFatal(ctx, "Registry connection failed")
+		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
 	defer registry.Release()
 
-	rcp := ResponseCommonParameter{
-		RequestId:    uuid.NewV4().String(),
-		Success:      true,
-		ErrorMessage: "",
+	rcp := &response{
+		RequestId: uuid.NewV4().String(),
+		Success:   true,
 	}
 	// Get device into registry, the created product
-	if err := registry.DeleteDevice(c.Param("id")); err != nil {
-		logError(c, "Registry.DeleteDevice(%s) failed:%v", c.Param("id"), err)
-		rcp.Success = false
-		rcp.ErrorMessage = err.Error()
+	if err := registry.DeleteDevice(ctx.Param("id")); err != nil {
+		logError(ctx, "Registry.DeleteDevice(%s) failed:%v", ctx.Param("id"), err)
+		return ctx.JSON(http.StatusOK, &response{Success: false, Message: err.Error()})
 	}
-	return c.JSON(http.StatusOK, rcp)
+	return ctx.JSON(http.StatusOK, rcp)
 }
 
 type updateDeviceRequest struct {
-	RequestCommonParameter
+	requestBase
 	DeviceId     string `json:"deviceId"`
 	DeviceName   string `json:"productName"`
 	ProductKey   string `json:"productKey"`
@@ -172,7 +155,6 @@ type updateDeviceRequest struct {
 	DeviceStatus string `json:"deviceStatus"`
 }
 type updateDeviceResponse struct {
-	ResponseCommonParameter
 	DeviceId     string `json:"deviceId"`
 	DeviceName   string `json:"deviceName"`
 	DeviceSecret string `json:deviceSecret"`
@@ -182,21 +164,19 @@ type updateDeviceResponse struct {
 	TimeModified string `json:"timeModified"`
 }
 
-// updateDevice update the identity of a device in the identity registry of
-// an IoT Hub
-func updateDevice(c echo.Context) error {
-	logInfo(c, "updateDevice(%s) called", c.Param("id"))
+// updateDevice update the identity of a device in the identity registry of an IoT Hub
+func updateDevice(ctx echo.Context) error {
+	logInfo(ctx, "updateDevice(%s) called", ctx.Param("id"))
 	// Get product
 	req := new(updateDeviceRequest)
-	if err := c.Bind(req); err != nil {
-		return err
+	if err := ctx.Bind(req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, &response{Message: err.Error()})
 	}
 	// Connect with registry
-	config := c.(*base.ApiContext).Config
-	r, err := db.NewRegistry(config)
+	r, err := db.NewRegistry(ctx.(*base.ApiContext).Config)
 	if err != nil {
-		logFatal(c, "Registry connection failed")
-		return err
+		logFatal(ctx, "Registry connection failed")
+		return ctx.JSON(http.StatusInternalServerError, &response{Message: err.Error()})
 	}
 	defer r.Release()
 
@@ -204,48 +184,40 @@ func updateDevice(c echo.Context) error {
 	// will be modified to retrieve specific information sucha as
 	// product.id and creation time
 	dp := db.Device{
-		Id:           c.Param("id"),
+		Id:           ctx.Param("id"),
 		Name:         req.DeviceName,
 		ProductKey:   req.ProductKey,
 		DeviceStatus: req.DeviceStatus,
 		DeviceSecret: req.DeviceSecret,
 		TimeModified: time.Now().String(),
 	}
-	rcp := ResponseCommonParameter{
-		RequestId:    uuid.NewV4().String(),
-		Success:      true,
-		ErrorMessage: "",
+	if err = r.UpdateDevice(&dp); err != nil {
+		return ctx.JSON(http.StatusOK,
+			&response{RequestId: uuid.NewV4().String(), Success: false, Message: err.Error()})
 	}
-	err = r.UpdateDevice(&dp)
-	if err != nil {
-		rcp.Success = false
-		rcp.ErrorMessage = err.Error()
-		return c.JSON(http.StatusOK, rcp)
-	}
-	rsp := &updateDeviceResponse{
-		ResponseCommonParameter: rcp,
-		DeviceId:                dp.Id,
-		DeviceName:              dp.Name,
-		ProductKey:              dp.ProductKey,
-		DeviceSecret:            dp.DeviceSecret,
-		TimeCreated:             dp.TimeCreated,
-		TimeModified:            dp.TimeModified,
-	}
-	return c.JSON(http.StatusOK, rsp)
+	return ctx.JSON(http.StatusOK,
+		&response{Success: true,
+			Result: &updateDeviceResponse{
+				DeviceId:     dp.Id,
+				DeviceName:   dp.Name,
+				ProductKey:   dp.ProductKey,
+				DeviceSecret: dp.DeviceSecret,
+				TimeCreated:  dp.TimeCreated,
+				TimeModified: dp.TimeModified,
+			}})
 }
 
 // Delete all the pending commands for this devices from the IoT hub
-func purgeCommandQueue(c echo.Context) error {
+func purgeCommandQueue(ctx echo.Context) error {
 	return nil
 }
 
-// Query an IoT hub to retrieve information regarding device twis
-// using a SQL-like language
-func queryDevices(c echo.Context) error {
+// Query an IoT hub to retrieve information regarding device twis using a SQL-like language
+func queryDevices(ctx echo.Context) error {
 	return nil
 }
 
 // Get the identifies of multiple devices from The IoT hub
-func getMultipleDevices(c echo.Context) error {
+func getMultipleDevices(ctx echo.Context) error {
 	return nil
 }

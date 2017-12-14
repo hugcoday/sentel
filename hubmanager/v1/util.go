@@ -13,20 +13,21 @@ package v1
 
 import "github.com/labstack/echo"
 
-type RequestCommonParameter struct {
-	Format           string // Response data type, json or xml
-	AccessKeyId      string
-	Signature        string
-	Timestamp        string
-	SignatureVersion string
-	SignatueNonce    string
-	RegionId         string
+type requestBase struct {
+	Format           string `json:"format"`
+	AccessKeyId      string `json:"accessKeyID"`
+	Signature        string `json:"signature"`
+	Timestamp        string `json:"timestamp"`
+	SignatureVersion string `json:"signatureVersion"`
+	SignatueNonce    string `json:"signatureNonce"`
+	RegionId         string `json:"regiionID"`
 }
 
-type ResponseCommonParameter struct {
-	RequestId    string
-	Success      bool
-	ErrorMessage string
+type response struct {
+	RequestId string      `json:"requestID"`
+	Success   bool        `json:"success"`
+	Message   string      `json:"message"`
+	Result    interface{} `json:"result"`
 }
 
 func logInfo(ctx echo.Context, fmt string, args ...interface{}) {

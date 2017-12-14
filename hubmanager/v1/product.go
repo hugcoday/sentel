@@ -34,28 +34,24 @@ type product struct {
 	CategoryId   string `json:"categoryId"`
 }
 type productAddRequest struct {
+	requestBase
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 
-type productAddResponse struct {
-	ResponseCommonParameter
-	product
-}
-
-func registerProduct(c echo.Context) error {
-	logInfo(c, "addProduct called")
+func registerProduct(ctx echo.Context) error {
+	logInfo(ctx, "addProduct called")
 	// Get product
 	req := new(productAddRequest)
-	if err := c.Bind(req); err != nil {
-		return err
+	if err := ctx.Bind(req); err != nil {
+		logError(ctx, "addProduct:%v", err)
+		return ctx.JSON(http.StatusBadRequest, &response{Success: false, Message: err.Error()})
 	}
 	// Connect with registry
-	config := c.(*base.ApiContext).Config
-	r, err := db.NewRegistry(config)
+	r, err := db.NewRegistry(ctx.(*base.ApiContext).Config)
 	if err != nil {
-		logFatal(c, "Registry connection failed")
-		return err
+		logError(ctx, "Registry connection failed")
+		return ctx.JSON(http.StatusBadRequest, &response{Success: false, Message: err.Error()})
 	}
 	defer r.Release()
 
@@ -67,40 +63,28 @@ func registerProduct(c echo.Context) error {
 		Description: req.Description,
 		TimeCreated: time.Now().String(),
 	}
-	rcp := ResponseCommonParameter{
-		RequestId:    uuid.NewV4().String(),
-		Success:      true,
-		ErrorMessage: "",
-	}
-	err = r.RegisterProduct(&dp)
-	if err != nil {
-		rcp.Success = false
-		rcp.ErrorMessage = err.Error()
-		return c.JSON(http.StatusOK, rcp)
+	if err = r.RegisterProduct(&dp); err != nil {
+		return ctx.JSON(http.StatusOK, &response{RequestId: uuid.NewV4().String(), Success: false})
 	}
 
 	// Notify kafka
-	base.AsyncProduceMessage(c, util.TopicNameProduct,
+	base.AsyncProduceMessage(ctx, util.TopicNameProduct,
 		&util.ProductTopic{
 			ProductId:   dp.Id,
 			ProductName: dp.Name,
 			Action:      util.ObjectActionRegister,
 		})
-	// Send Reply to client
-	p := product{
-		Id:          dp.Id,
-		Name:        dp.Name,
-		Description: dp.Description,
-		TimeCreated: dp.TimeCreated,
-	}
-	rsp := &productAddResponse{
-		ResponseCommonParameter: rcp,
-		product:                 p,
-	}
-	return c.JSON(http.StatusOK, rsp)
+	return ctx.JSON(http.StatusOK, &response{RequestId: uuid.NewV4().String(),
+		Result: &product{
+			Id:          dp.Id,
+			Name:        dp.Name,
+			Description: dp.Description,
+			TimeCreated: dp.TimeCreated,
+		}})
 }
 
 type productUpdateRequest struct {
+	requestBase
 	Id          string `json:productId"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
@@ -108,21 +92,20 @@ type productUpdateRequest struct {
 }
 
 // updateProduct update product information in registry
-func updateProduct(c echo.Context) error {
-	logInfo(c, "updateProduct called")
+func updateProduct(ctx echo.Context) error {
+	logInfo(ctx, "updateProduct called")
 
 	// Get product
 	req := new(productUpdateRequest)
-	if err := c.Bind(req); err != nil {
-		return err
+	if err := ctx.Bind(req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, &response{Success: false, Message: err.Error()})
 	}
 	// Connect with registry
-	config := c.(*base.ApiContext).Config
-	registry, err := db.NewRegistry(config)
+	r, err := db.NewRegistry(ctx.(*base.ApiContext).Config)
 	if err != nil {
-		return err
+		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
-	defer registry.Release()
+	defer r.Release()
 
 	// Update product into registry
 	dp := db.Product{
@@ -132,101 +115,85 @@ func updateProduct(c echo.Context) error {
 		CategoryId:   req.CategoryId,
 		TimeModified: time.Now().String(),
 	}
-	rcp := ResponseCommonParameter{
-		RequestId:    uuid.NewV4().String(),
-		Success:      true,
-		ErrorMessage: "",
-	}
-	err = registry.UpdateProduct(&dp)
-	if err != nil {
-		logError(c, "Registry.UpdateProduct(%s) failed", req.Id)
-		rcp.Success = false
-		rcp.ErrorMessage = err.Error()
+	if err = r.UpdateProduct(&dp); err != nil {
+		logError(ctx, "Registry.UpdateProduct(%s) failed", req.Id)
+		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
 	// Notify kafka
-	base.AsyncProduceMessage(c, util.TopicNameProduct,
+	base.AsyncProduceMessage(ctx, util.TopicNameProduct,
 		&util.ProductTopic{
 			ProductId:   req.Id,
 			ProductName: req.Name,
 			Action:      util.ObjectActionUpdate,
 		})
 
-	return c.JSON(http.StatusOK, rcp)
+	return ctx.JSON(http.StatusOK, &response{RequestId: uuid.NewV4().String(), Success: true})
 }
 
 // deleteProduct delete product from registry store
-func deleteProduct(c echo.Context) error {
-	logInfo(c, "deleteProduct:%s", c.Param("id"))
+func deleteProduct(ctx echo.Context) error {
+	logInfo(ctx, "deleteProduct:%s", ctx.Param("id"))
+
+	if ctx.Param("id") == "" {
+		return ctx.JSON(http.StatusBadRequest, &response{Success: false, Message: "Invalid parameter"})
+	}
 
 	// Connect with registry
-	config := c.(*base.ApiContext).Config
-	registry, err := db.NewRegistry(config)
+	r, err := db.NewRegistry(ctx.(*base.ApiContext).Config)
 	if err != nil {
-		logFatal(c, "Registry connection failed")
-		return err
+		logFatal(ctx, "Registry connection failed")
+		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
-	defer registry.Release()
+	defer r.Release()
 
-	// Update product into registry
-	rcp := ResponseCommonParameter{
-		RequestId:    uuid.NewV4().String(),
-		Success:      true,
-		ErrorMessage: "",
-	}
-	err = registry.DeleteProduct(c.Param("id"))
-	if err != nil {
-		rcp.Success = false
-		rcp.ErrorMessage = err.Error()
+	if err = r.DeleteProduct(ctx.Param("id")); err != nil {
+		return ctx.JSON(http.StatusOK, &response{Success: false, Message: err.Error()})
 	}
 	// Notify kafka
-	base.AsyncProduceMessage(c, util.TopicNameProduct,
+	base.AsyncProduceMessage(ctx, util.TopicNameProduct,
 		&util.ProductTopic{
-			ProductId: c.Param("id"),
+			ProductId: ctx.Param("id"),
 			Action:    util.ObjectActionDelete,
 		})
 
-	return c.JSON(http.StatusOK, rcp)
-}
-
-type getProductResponse struct {
-	ResponseCommonParameter
-	product
+	return ctx.JSON(http.StatusOK,
+		&response{
+			RequestId: uuid.NewV4().String(),
+			Success:   true,
+		})
 }
 
 // getProduct retrieve production information from registry store
-func getProduct(c echo.Context) error {
-	logInfo(c, "getProduct:%s", c.Param("id"))
-	// Connect with registry
-	config := c.(*base.ApiContext).Config
-	registry, err := db.NewRegistry(config)
-	if err != nil {
-		logFatal(c, "Registry connection failed")
-		return err
-	}
-	defer registry.Release()
+func getProduct(ctx echo.Context) error {
+	logInfo(ctx, "getProduct:%s", ctx.Param("id"))
 
-	// Update product into registry
-	rcp := ResponseCommonParameter{
-		RequestId:    uuid.NewV4().String(),
-		Success:      true,
-		ErrorMessage: "",
+	if ctx.Param("id") == "" {
+		return ctx.JSON(http.StatusBadRequest, &response{Success: false, Message: "Invalid parameter"})
 	}
-	p, err := registry.GetProduct(c.Param("id"))
+
+	// Connect with registry
+	r, err := db.NewRegistry(ctx.(*base.ApiContext).Config)
 	if err != nil {
-		rcp.Success = false
-		rcp.ErrorMessage = err.Error()
-		return c.JSON(http.StatusOK, rcp)
+		logFatal(ctx, "Registry connection failed")
+		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
-	rsp := getProductResponse{
-		ResponseCommonParameter: rcp,
-		product: product{
-			Id:           p.Id,
-			Name:         p.Name,
-			TimeCreated:  p.TimeCreated,
-			TimeModified: p.TimeModified,
-			Description:  p.Description,
-		}}
-	return c.JSON(http.StatusOK, rsp)
+	defer r.Release()
+
+	p, err := r.GetProduct(ctx.Param("id"))
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, &response{Message: err.Error()})
+	}
+	return ctx.JSON(http.StatusOK,
+		&response{
+			RequestId: uuid.NewV4().String(),
+			Success:   true,
+			Result: &product{
+				Id:           p.Id,
+				Name:         p.Name,
+				TimeCreated:  p.TimeCreated,
+				TimeModified: p.TimeModified,
+				Description:  p.Description,
+			}})
 }
 
 type device struct {
@@ -234,45 +201,32 @@ type device struct {
 	Status string `json:"status"`
 }
 
-type getProductDevicesResponse struct {
-	ResponseCommonParameter
-	devices []device `json:"devices"`
-}
-
 // getProductDevices retrieve product devices list from registry store
-func getProductDevices(c echo.Context) error {
-	logInfo(c, "getProductDevices:%s", c.Param("id"))
+func getProductDevices(ctx echo.Context) error {
+	logInfo(ctx, "getProductDevices:%s", ctx.Param("id"))
 
 	// Connect with registry
-	config := c.(*base.ApiContext).Config
-	registry, err := db.NewRegistry(config)
+	r, err := db.NewRegistry(ctx.(*base.ApiContext).Config)
 	if err != nil {
-		logFatal(c, "Registry connection failed")
-		return err
+		logFatal(ctx, "Registry connection failed")
+		return ctx.JSON(http.StatusInternalServerError, &response{Success: false, Message: err.Error()})
 	}
-	defer registry.Release()
+	defer r.Release()
 
-	// Update product into registry
-	rcp := ResponseCommonParameter{
-		RequestId:    uuid.NewV4().String(),
-		Success:      true,
-		ErrorMessage: "",
-	}
-	devices, err := registry.GetProductDevices(c.Param("id"))
+	pdevices, err := r.GetProductDevices(ctx.Param("id"))
 	if err != nil {
-		logDebug(c, "Registry.getProductDevices(%s) failed:%v", c.Param("id"), err)
-		rcp.Success = false
-		rcp.ErrorMessage = err.Error()
-		return c.JSON(http.StatusOK, rcp)
+		logDebug(ctx, "Registry.getProductDevices(%s) failed:%v", ctx.Param("id"), err)
+		return ctx.JSON(http.StatusOK, &response{Success: false, Message: err.Error()})
 	}
-	rsp := getProductDevicesResponse{
-		ResponseCommonParameter: rcp, devices: []device{}}
-	for _, dev := range devices {
-		rsp.devices = append(rsp.devices,
-			device{Id: dev.Id,
-				Status: dev.DeviceStatus,
-			})
+	rdevices := []device{}
+	for _, dev := range pdevices {
+		rdevices = append(rdevices, device{Id: dev.Id, Status: dev.DeviceStatus})
 	}
-	return c.JSON(http.StatusOK, rsp)
+	return ctx.JSON(http.StatusOK,
+		&response{
+			RequestId: uuid.NewV4().String(),
+			Success:   true,
+			Result:    rdevices,
+		})
 
 }

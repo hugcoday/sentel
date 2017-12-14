@@ -17,16 +17,16 @@ import "github.com/labstack/echo"
 // Twin Api
 
 // Get a device twin
-func getDeviceTwin(c echo.Context) error {
+func getDeviceTwin(ctx echo.Context) error {
 	return nil
 }
 
 // Invoce a direct method on device
-func invokeDeviceMethod(c echo.Context) error {
+func invokeDeviceMethod(ctx echo.Context) error {
 	return nil
 }
 
 // Updates tags and desired properties of a device twin
-func updateDeviceTwin(c echo.Context) error {
+func updateDeviceTwin(ctx echo.Context) error {
 	return nil
 }

@@ -22,23 +22,23 @@ import (
 )
 
 // addTenant add a new tenant
-func addTenant(c echo.Context) error {
+func addTenant(ctx echo.Context) error {
 	// Make security check, for add content, no security policy
 
 	// Get registry store instance by context
-	config := c.(*base.ApiContext).Config
+	config := ctx.(*base.ApiContext).Config
 	r, _ := db.NewRegistry(config)
 	defer r.Release()
 
 	//id := c.Param("id")
 	//	r.DeleteDevice(id)
-	return c.NoContent(http.StatusNoContent)
+	return ctx.NoContent(http.StatusNoContent)
 }
 
-func deleteTenant(c echo.Context) error {
+func deleteTenant(ctx echo.Context) error {
 	return nil
 }
 
-func getTenant(c echo.Context) error {
+func getTenant(ctx echo.Context) error {
 	return nil
 }
