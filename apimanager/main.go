@@ -10,23 +10,23 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package hubmanager
+package apimanager
 
 import (
 	"flag"
 
 	"github.com/cloustone/sentel/libs"
 
-	"github.com/cloustone/sentel/hubmanager/v1"
+	"github.com/cloustone/sentel/apimanager/v1"
 
-	"github.com/cloustone/sentel/hubmanager/base"
-	"github.com/cloustone/sentel/hubmanager/db"
+	"github.com/cloustone/sentel/apimanager/base"
+	"github.com/cloustone/sentel/apimanager/db"
 
 	"github.com/golang/glog"
 )
 
 var (
-	configFileFullPath = flag.String("c", "hubmanager.conf", "config file")
+	configFileFullPath = flag.String("c", "apimanager.conf", "config file")
 )
 
 func main() {
