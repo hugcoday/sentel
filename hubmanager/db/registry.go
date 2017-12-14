@@ -13,15 +13,25 @@
 package db
 
 import (
+	"fmt"
+
 	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/cloustone/sentel/libs"
 	"github.com/golang/glog"
 )
 
+const (
+	dbNameDevices  = "devices"
+	dbNameProducts = "products"
+	dbNameTenants  = "tenants"
+)
+
 type Registry struct {
 	config  libs.Config
 	session *mgo.Session
+	db      *mgo.Database
 }
 
 func InitializeRegistry(c libs.Config) error {
@@ -42,7 +52,7 @@ func NewRegistry(c libs.Config) (*Registry, error) {
 		glog.Errorf("Failed to initialize registry:%v", err)
 		return nil, err
 	}
-	return &Registry{session: session, config: c}, nil
+	return &Registry{session: session, db: session.DB("registry"), config: c}, nil
 }
 
 func (r *Registry) Release() {
@@ -50,86 +60,141 @@ func (r *Registry) Release() {
 }
 
 // Tenant
+
+// CheckTenantNamveAvailable return true if name is available
 func (r *Registry) CheckTenantNameAvailable(t *Tenant) bool {
-	return false
+	c := r.db.C(dbNameTenants)
+	err := c.Find(bson.M{"Id": t.Id}).One(nil)
+	return err != nil
 }
 
-func (r *Registry) AddTenant(t *Tenant) error {
-	return nil
+// AddTenant insert a tenant into registry
+func (r *Registry) RegisterTenant(t *Tenant) error {
+	c := r.db.C(dbNameTenants)
+	if err := c.Find(bson.M{"Id": t.Id}).One(nil); err == nil {
+		return fmt.Errorf("Tenant %s already exist", t.Id)
+	}
+	return c.Insert(t, nil)
 }
 
 func (r *Registry) DeleteTenant(t *Tenant) error {
-	return nil
+	c := r.db.C(dbNameTenants)
+	return c.Remove(bson.M{"Id": t.Id})
 }
 
 func (r *Registry) GetTenant(t *Tenant) error {
-	return nil
+	c := r.db.C(dbNameTenants)
+	return c.Remove(bson.M{"Id": t.Id})
 }
 
 // Product
 // CheckProductNameAvailable check wethere product name is available
 func (r *Registry) CheckProductNameAvailable(p *Product) bool {
-	return false
+	c := r.db.C(dbNameProducts)
+	err := c.Find(bson.M{"Id": p.Id}).One(nil)
+	return err != nil
 }
 
 // RegisterProduct register a product into registry
 func (r *Registry) RegisterProduct(p *Product) error {
-	return nil
+	c := r.db.C(dbNameProducts)
+	if err := c.Find(bson.M{"Name": p.Name}).One(nil); err == nil {
+		return fmt.Errorf("product %s already exist", p.Name)
+	}
+	return c.Insert(p, nil)
+
 }
 
 // DeleteProduct delete a product from registry
 func (r *Registry) DeleteProduct(id string) error {
-	return nil
+	c := r.db.C(dbNameProducts)
+	return c.Remove(bson.M{"Id": id})
 }
 
 // GetProduct retrieve product detail information from registry
 func (r *Registry) GetProduct(id string) (*Product, error) {
-	return nil, nil
+	c := r.db.C(dbNameProducts)
+	product := &Product{}
+	err := c.Find(bson.M{"Id": id}).One(product)
+	return product, err
 }
 
 // GetProductDevices get product's device list
 func (r *Registry) GetProductDevices(id string) ([]Device, error) {
-	return nil, nil
+	c := r.db.C(dbNameDevices)
+	iter := c.Find(bson.M{"ProductId": id}).Limit(1000).Iter()
+	devices := []Device{}
+	var device Device
+
+	for iter.Next(&device) {
+		devices = append(devices, device)
+	}
+	return devices, nil
 }
 
 // UpdateProduct update product detail information in registry
 func (r *Registry) UpdateProduct(p *Product) error {
-	return nil
+	c := r.db.C(dbNameProducts)
+	return c.Update(bson.M{"Id": p.Id}, p)
 }
 
 // Device
 
 // Registerevice add a new device into registry
 func (r *Registry) RegisterDevice(dev *Device) error {
-	return nil
+	c := r.db.C(dbNameDevices)
+	if err := c.Find(bson.M{"Id": dev.Id}); err == nil { // found existed device
+		return fmt.Errorf("device %s already exist", dev.Id)
+	}
+	return c.Insert(dev)
 }
 
 // GetDevice retrieve a device information from registry/
 func (r *Registry) GetDevice(id string) (*Device, error) {
-	return nil, nil
+	c := r.db.C(dbNameDevices)
+	device := &Device{}
+	err := c.Find(bson.M{"Id": id}).One(device)
+	return device, err
 }
 
 // BulkRegisterDevice add a lot of devices into registry
 func (r *Registry) BulkRegisterDevice(devices []Device) error {
+	for _, device := range devices {
+		if err := r.RegisterDevice(&device); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
 // DeleteDevice delete a device from registry
 func (r *Registry) DeleteDevice(id string) error {
-	return nil
+	c := r.db.C(dbNameDevices)
+	return c.Remove(bson.M{"Id": id})
 }
 
 // BulkDeleteDevice delete a lot of devices from registry
 func (r *Registry) BulkDeleteDevice(devices []string) error {
+	for _, id := range devices {
+		if err := r.DeleteDevice(id); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
 // UpdateDevice update device information in registry
 func (r *Registry) UpdateDevice(dev *Device) error {
-	return nil
+	c := r.db.C(dbNameDevices)
+	return c.Update(bson.M{"Id": dev.Id}, dev)
 }
 
 // BulkUpdateDevice update a lot of devices in registry
 func (r *Registry) BulkUpdateDevice(devices []Device) error {
+	for _, device := range devices {
+		if err := r.UpdateDevice(&device); err != nil {
+			return err
+		}
+	}
 	return nil
 }

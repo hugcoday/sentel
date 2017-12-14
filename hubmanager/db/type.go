@@ -31,6 +31,7 @@ type Product struct {
 type Device struct {
 	Id           string
 	Name         string
+	ProductId    string
 	ProductKey   string
 	DeviceStatus string
 	DeviceSecret string
