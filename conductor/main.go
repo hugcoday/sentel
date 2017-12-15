@@ -15,6 +15,8 @@ package main
 import (
 	"flag"
 
+	"github.com/cloustone/sentel/conductor/executor"
+	"github.com/cloustone/sentel/conductor/indicator"
 	"github.com/cloustone/sentel/libs/sentel"
 	"github.com/golang/glog"
 )
@@ -51,9 +53,6 @@ func main() {
 }
 
 func init() {
-	for group, values := range allDefaultConfigs {
-		sentel.RegisterConfig(group, values)
-	}
-	//	sentel.RegisterService("api", api.Configs, &api.ApiServiceFactory{})
-	//	sentel.RegisterService("collector", collector.Configs, &collector.CollectorServiceFactory{})
+	sentel.RegisterService("indicator", indicator.Configs, &indicator.IndicatorServiceFactory{})
+	sentel.RegisterService("executor", executor.Configs, &executor.ExecutorServiceFactory{})
 }
