@@ -9,15 +9,13 @@
 //  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 //  License for the specific language governing permissions and limitations
 
-package base
+package sentel
 
 import (
 	"errors"
 	"fmt"
 	"strings"
 	"sync"
-
-	"github.com/cloustone/sentel/libs"
 
 	"github.com/golang/glog"
 )
@@ -31,7 +29,7 @@ const (
 
 type ServiceManager struct {
 	sync.Once
-	config   libs.Config                    // Global config
+	config   Config                         // Global config
 	services map[string]Service             // All service created by config.Protocols
 	chs      map[string]chan ServiceCommand // Notification channel for each service
 }
@@ -47,7 +45,7 @@ var (
 func GetServiceManager() *ServiceManager { return _serviceManager }
 
 // NewServiceManager create ServiceManager only in main context
-func NewServiceManager(name string, c libs.Config) (*ServiceManager, error) {
+func NewServiceManager(name string, c Config) (*ServiceManager, error) {
 	if _serviceManager != nil {
 		return _serviceManager, errors.New("NewServiceManager had been called many times")
 	}

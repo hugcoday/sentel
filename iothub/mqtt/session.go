@@ -20,9 +20,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cloustone/sentel/libs"
-
 	"github.com/cloustone/sentel/iothub/base"
+	"github.com/cloustone/sentel/libs/sentel"
 
 	auth "github.com/cloustone/sentel/iothub/auth"
 	uuid "github.com/satori/go.uuid"
@@ -54,7 +53,7 @@ const (
 
 type mqttSession struct {
 	mgr               *mqtt
-	config            libs.Config
+	config            sentel.Config
 	storage           Storage
 	authapi           auth.IAuthAPI
 	conn              net.Conn
@@ -84,8 +83,8 @@ type mqttSession struct {
 	metrics           *base.Metrics
 
 	// resume field
-	msgs              []*mqttMessage
-	storedMsgs        []*mqttMessage
+	msgs       []*mqttMessage
+	storedMsgs []*mqttMessage
 }
 
 // newMqttSession create new session  for each client connection
@@ -332,14 +331,13 @@ func (s *mqttSession) handleConnect() error {
 				s.sendConnAck(0, CONNACK_REFUSED_IDENTIFIER_REJECTED)
 				return errors.New("Invalid mqtt packet with client id")
 			}
-			
+
 			clientid = s.generateId()
 		}
 	}
 
 	// TODO: clientid_prefixes check
 
-	
 	// Deal with topc
 	var willTopic string
 	var willMsg *mqttMessage
@@ -632,7 +630,6 @@ func (s *mqttSession) handlePublish() error {
 	var mid uint16
 	var err error
 	var payload []uint8
-
 
 	dup := (s.inpacket.command & 0x08) >> 3
 	qos := (s.inpacket.command & 0x06) >> 1

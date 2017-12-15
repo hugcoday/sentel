@@ -16,8 +16,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cloustone/sentel/libs"
-
+	"github.com/cloustone/sentel/libs/sentel"
 	"github.com/golang/glog"
 )
 
@@ -113,7 +112,7 @@ type Storage interface {
 }
 
 type storageFactory interface {
-	New(c libs.Config) (Storage, error)
+	New(c sentel.Config) (Storage, error)
 }
 
 var _allStorage = make(map[string]storageFactory)
@@ -127,7 +126,7 @@ func registerStorage(name string, s storageFactory) {
 }
 
 // NewStorage lookup registered storage list, create a new storage instance
-func NewStorage(name string, c libs.Config) (Storage, error) {
+func NewStorage(name string, c sentel.Config) (Storage, error) {
 	if _allStorage[name] == nil {
 		return nil, fmt.Errorf("Storage %s is not registered", name)
 	}

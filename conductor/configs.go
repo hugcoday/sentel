@@ -10,4 +10,19 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package base
+package main
+
+var allDefaultConfigs = map[string]map[string]string{
+	"condutor": {
+		"host":     "localhost:4145",
+		"loglevel": "debug",
+		"kafka":    "",
+		"services": "api,kafka",
+	},
+	"api": {
+		"listen": "localhost:8080",
+	},
+	"kafka": {
+		"listen": "localhost:",
+	},
+}

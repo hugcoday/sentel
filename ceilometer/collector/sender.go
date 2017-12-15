@@ -16,13 +16,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloustone/sentel/libs"
-
 	"github.com/Shopify/sarama"
+	"github.com/cloustone/sentel/libs/sentel"
 	"github.com/golang/glog"
 )
 
-func SyncReport(c libs.Config, topic string, value sarama.Encoder) error {
+func SyncReport(c sentel.Config, topic string, value sarama.Encoder) error {
 	//	sarama.Logger = c.Logger()
 	hosts := "localhost:9092"
 	if h, err := c.String("kafka", "hosts"); err != nil {
@@ -55,7 +54,7 @@ func SyncReport(c libs.Config, topic string, value sarama.Encoder) error {
 	return err
 }
 
-func AsyncReport(c libs.Config, topic string, value sarama.Encoder) error {
+func AsyncReport(c sentel.Config, topic string, value sarama.Encoder) error {
 	hosts := "localhost:9092"
 	if h, err := c.String("kafka", "hosts"); err != nil {
 		glog.Warningf("kafka is not configured, using localhost:9092")

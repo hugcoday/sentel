@@ -31,7 +31,7 @@ type acl struct {
 }
 
 type localAuthPlugin struct {
-	config      libs.Config
+	config      sentel.Config
 	pwdFile     string
 	aclFile     string
 	pskFile     string
@@ -44,7 +44,7 @@ type localAuthPlugin struct {
 // AuthPluginFactory
 type localAuthPluginFactory struct{}
 
-func (l localAuthPluginFactory) New(c libs.Config) (AuthPlugin, error) {
+func (l localAuthPluginFactory) New(c sentel.Config) (AuthPlugin, error) {
 	plugin := &localAuthPlugin{
 		opts:        opts,
 		aclUsers:    make(map[string][]*acl),
@@ -63,7 +63,7 @@ func (l *localAuthPlugin) GetVersion() int {
 }
 
 // Initialize initialize plugin, for example, load local psk file...
-func (l *localAuthPlugin) initialize(c libs.Config) error {
+func (l *localAuthPlugin) initialize(c sentel.Config) error {
 	if cafile, ok := opts["cafile"]; ok && cafile != "" {
 		l.caFile = cafile
 	}

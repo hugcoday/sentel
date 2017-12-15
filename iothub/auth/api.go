@@ -17,8 +17,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/cloustone/sentel/libs"
-
+	"github.com/cloustone/sentel/libs/sentel"
 	"github.com/golang/glog"
 
 	"google.golang.org/grpc"
@@ -42,7 +41,7 @@ type IAuthAPI interface {
 
 // AuthPlugin interface for security
 type AuthApi struct {
-	config libs.Config
+	config sentel.Config
 	client AuthServiceClient
 	conn   *grpc.ClientConn
 }
@@ -92,7 +91,7 @@ func (auth *AuthApi) Close() {
 	auth.conn.Close()
 }
 
-func NewAuthApi(c libs.Config) (IAuthAPI, error) {
+func NewAuthApi(c sentel.Config) (IAuthAPI, error) {
 	address := ""
 	if address, err := c.String("auth", "address"); err != nil || address == "" {
 		return nil, fmt.Errorf("Invalid autlet address:'%s'", address)

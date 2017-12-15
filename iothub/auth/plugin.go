@@ -16,8 +16,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/cloustone/sentel/libs"
-
+	"github.com/cloustone/sentel/libs/sentel"
 	"github.com/golang/glog"
 )
 
@@ -40,7 +39,7 @@ type AuthPlugin interface {
 
 // AuthPluginFactory
 type AuthPluginFactory interface {
-	New(c libs.Config) (AuthPlugin, error)
+	New(c sentel.Config) (AuthPlugin, error)
 }
 
 // RegisterAuthPlugin register a auth plugin
@@ -53,7 +52,7 @@ func RegisterAuthPlugin(name string, factory AuthPluginFactory) {
 }
 
 // LoadAuthPlugin load a authPlugin
-func LoadAuthPlugin(name string, c libs.Config) (AuthPlugin, error) {
+func LoadAuthPlugin(name string, c sentel.Config) (AuthPlugin, error) {
 	// Default authentication is 'none'
 	if name == "" {
 		glog.Warning("No authentication method is specified, using none authentication")

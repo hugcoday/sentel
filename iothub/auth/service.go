@@ -16,9 +16,8 @@ import (
 	"net"
 	"sync"
 
-	"github.com/cloustone/sentel/libs"
-
 	"github.com/cloustone/sentel/iothub/base"
+	"github.com/cloustone/sentel/libs/sentel"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -27,14 +26,14 @@ import (
 )
 
 type AuthService struct {
-	config   libs.Config
+	config   sentel.Config
 	wg       sync.WaitGroup
 	listener net.Listener
 	srv      *grpc.Server
 }
 
 // NewAuthService create authentication server
-func NewAuthService(c libs.Config) (*AuthService, error) {
+func NewAuthService(c sentel.Config) (*AuthService, error) {
 	address := ":50051"
 	server := &AuthService{config: c, wg: sync.WaitGroup{}}
 

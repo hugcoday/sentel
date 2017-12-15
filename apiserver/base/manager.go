@@ -15,9 +15,8 @@ package base
 import (
 	"fmt"
 
-	"github.com/cloustone/sentel/libs"
-
 	"github.com/cloustone/sentel/apiserver/middleware"
+	"github.com/cloustone/sentel/libs/sentel"
 
 	echo "github.com/labstack/echo"
 )
@@ -30,9 +29,14 @@ type apiDescriptor struct {
 
 type ApiManager struct {
 	Version  string
-	config   libs.Config
+	config   sentel.Config
 	handlers []apiDescriptor
 	ech      *echo.Echo
+}
+
+type ApiContext struct {
+	echo.Context
+	Config sentel.Config
 }
 
 const (
@@ -47,7 +51,7 @@ var (
 	apiManagers map[string]*ApiManager = make(map[string]*ApiManager)
 )
 
-func NewApiManager(version string, c libs.Config) *ApiManager {
+func NewApiManager(version string, c sentel.Config) *ApiManager {
 	m := &ApiManager{
 		Version:  version,
 		config:   c,
@@ -87,7 +91,7 @@ func RegisterApiManager(api *ApiManager) {
 	apiManagers[api.Version] = api
 }
 
-func CreateApiManager(c libs.Config) (*ApiManager, error) {
+func CreateApiManager(c sentel.Config) (*ApiManager, error) {
 	version, err := c.String("apiserver", "version")
 	if err != nil {
 		return nil, err

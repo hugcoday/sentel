@@ -17,8 +17,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/cloustone/sentel/libs"
-
+	"github.com/cloustone/sentel/libs/sentel"
 	"github.com/golang/glog"
 )
 
@@ -38,7 +37,7 @@ const (
 type ServiceManager struct {
 	sync.Once
 	nodeName string                         // Node name
-	config   libs.Config                    // Global config
+	config   sentel.Config                  // Global config
 	services map[string]Service             // All service created by config.Protocols
 	chs      map[string]chan ServiceCommand // Notification channel for each service
 }
@@ -54,7 +53,7 @@ var (
 func GetServiceManager() *ServiceManager { return _serviceManager }
 
 // NewServiceManager create ServiceManager only in main context
-func NewServiceManager(c libs.Config) (*ServiceManager, error) {
+func NewServiceManager(c sentel.Config) (*ServiceManager, error) {
 	if _serviceManager != nil {
 		return _serviceManager, errors.New("NewServiceManager had been called many times")
 	}

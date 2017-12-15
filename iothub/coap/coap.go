@@ -18,8 +18,8 @@ import (
 	"sync"
 
 	"github.com/cloustone/sentel/iothub/base"
+	"github.com/cloustone/sentel/libs/sentel"
 
-	"github.com/cloustone/sentel/libs"
 	uuid "src/github.com/satori/go.uuid"
 
 	"github.com/golang/glog"
@@ -30,7 +30,7 @@ const (
 )
 
 type coap struct {
-	config     libs.Config
+	config     sentel.Config
 	chn        chan base.ServiceCommand
 	index      int64
 	sessions   map[string]base.Session
@@ -44,7 +44,7 @@ type coap struct {
 type CoapFactory struct{}
 
 // New create coap service factory
-func (m *CoapFactory) New(protocol string, c libs.Config, ch chan base.ServiceCommand) (base.Service, error) {
+func (m *CoapFactory) New(protocol string, c sentel.Config, ch chan base.ServiceCommand) (base.Service, error) {
 	var localAddrs []string = []string{}
 	// Get all local ip address
 	addrs, err := net.InterfaceAddrs()

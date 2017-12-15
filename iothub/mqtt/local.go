@@ -16,8 +16,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/cloustone/sentel/libs"
-
+	"github.com/cloustone/sentel/libs/sentel"
 	"github.com/golang/glog"
 )
 
@@ -26,14 +25,14 @@ type subLeaf struct {
 }
 
 type subNode struct {
-	level      string
-	children   map[string]*subNode
-	subs       map[string]*subLeaf
+	level     string
+	children  map[string]*subNode
+	subs      map[string]*subLeaf
 	retainMsg *StorageMessage
 }
 
 type localStorage struct {
-	config   libs.Config
+	config   sentel.Config
 	sessions map[string]*mqttSession
 	root     subNode
 }
@@ -97,7 +96,7 @@ func (l *localStorage) UpdateSession(s *mqttSession) error {
 func (l *localStorage) RegisterSession(s *mqttSession) error {
 	if _, ok := l.sessions[s.id]; ok {
 		return errors.New("Session id already exists")
-	} 
+	}
 
 	glog.Infof("RegisterSession: id is %s", s.id)
 	l.sessions[s.id] = s
@@ -212,7 +211,7 @@ func (l *localStorage) RemoveSubscription(sessionid string, topic string) error 
 	for _, level := range s {
 		node = l.findNode(node, level)
 		if node == nil {
-			return nil;
+			return nil
 		}
 	}
 
@@ -283,7 +282,7 @@ func (l *localStorage) subSearch(clientid string, msg *StorageMessage, node *sub
 func (l *localStorage) QueueMessage(clientid string, msg StorageMessage) error {
 	glog.Infof("QueueMessage: Message Topic is %s", msg.Topic)
 	s := strings.Split(msg.Topic, "/")
-	
+
 	if msg.Retain {
 		/* We have a message that needs to be retained, so ensure that the subscription
 		 * tree for its topic exists.
@@ -316,11 +315,11 @@ func (l *localStorage) UpdateMessage(clientid string, mid uint16, direction Mess
 // localStorageFactory
 type localStorageFactory struct{}
 
-func (l *localStorageFactory) New(c libs.Config) (Storage, error) {
+func (l *localStorageFactory) New(c sentel.Config) (Storage, error) {
 	d := &localStorage{
 		config:   c,
 		sessions: make(map[string]*mqttSession),
-		root:     subNode {
+		root: subNode{
 			level:    "root",
 			children: make(map[string]*subNode),
 			subs:     make(map[string]*subLeaf),

@@ -17,11 +17,11 @@ import (
 
 	"github.com/cloustone/sentel/ceilometer/collector"
 	"github.com/cloustone/sentel/iothub/base"
-	"github.com/cloustone/sentel/libs"
+	"github.com/cloustone/sentel/libs/sentel"
 )
 
 type ReportService struct {
-	config    libs.Config
+	config    sentel.Config
 	chn       chan base.ServiceCommand
 	keepalive *time.Ticker
 	stat      *time.Ticker
@@ -34,7 +34,7 @@ type ReportService struct {
 type ReportServiceFactory struct{}
 
 // New create apiService service factory
-func (m *ReportServiceFactory) New(protocol string, c libs.Config, ch chan base.ServiceCommand) (base.Service, error) {
+func (m *ReportServiceFactory) New(protocol string, c sentel.Config, ch chan base.ServiceCommand) (base.Service, error) {
 	// Get node ip, name and created time
 	return &ReportService{
 		config: c,

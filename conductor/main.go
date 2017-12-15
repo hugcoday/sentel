@@ -15,29 +15,24 @@ package main
 import (
 	"flag"
 
-	"github.com/cloustone/sentel/iothub/api"
-	"github.com/cloustone/sentel/iothub/base"
-	"github.com/cloustone/sentel/iothub/mqtt"
-	"github.com/cloustone/sentel/iothub/report"
 	"github.com/cloustone/sentel/libs/sentel"
-
 	"github.com/golang/glog"
 )
 
 var (
-	configFileFullPath = flag.String("c", "iothub.conf", "config file")
+	configFileFullPath = flag.String("c", "../conductor/conductor.conf", "config file")
 )
 
 func main() {
-	var mgr *base.ServiceManager
+	var mgr *sentel.ServiceManager
 	var config sentel.Config
 	var err error
 
 	flag.Parse()
-	glog.Info("Starting iothub server...")
+	glog.Info("Starting condutor server...")
 
 	// Check all registered service
-	if err := base.CheckAllRegisteredServices(); err != nil {
+	if err := sentel.CheckAllRegisteredServices(); err != nil {
 		glog.Fatal(err)
 		return
 	}
@@ -48,20 +43,17 @@ func main() {
 		return
 	}
 	// Create service manager according to the configuration
-	if mgr, err = base.NewServiceManager(config); err != nil {
-		glog.Fatal("Failed to launch ServiceManager")
+	if mgr, err = sentel.NewServiceManager("conductor", config); err != nil {
+		glog.Fatal("Failed to launch conductor ServiceManager")
 		return
 	}
-	glog.Error(mgr.Run())
+	glog.Error(mgr.Start())
 }
 
 func init() {
 	for group, values := range allDefaultConfigs {
 		sentel.RegisterConfig(group, values)
 	}
-	base.RegisterService("mqtt:tcp", mqtt.Configs, &mqtt.MqttFactory{})
-	base.RegisterService("mqtt:ssl", mqtt.Configs, &mqtt.MqttFactory{})
-	base.RegisterService("mqtt:ws", mqtt.Configs, &mqtt.MqttFactory{})
-	base.RegisterService("api", api.Configs, &api.ApiServiceFactory{})
-	base.RegisterService("report", report.Configs, &report.ReportServiceFactory{})
+	//	sentel.RegisterService("api", api.Configs, &api.ApiServiceFactory{})
+	//	sentel.RegisterService("collector", collector.Configs, &collector.CollectorServiceFactory{})
 }

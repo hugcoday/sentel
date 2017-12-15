@@ -20,15 +20,14 @@ import (
 	"sync"
 
 	"github.com/Shopify/sarama"
-	"github.com/cloustone/sentel/ceilometer/base"
-	"github.com/cloustone/sentel/libs"
+	"github.com/cloustone/sentel/libs/sentel"
 	"github.com/golang/glog"
 	"gopkg.in/mgo.v2"
 )
 
 type CollectorService struct {
-	config     libs.Config
-	chn        chan base.ServiceCommand
+	config     sentel.Config
+	chn        chan sentel.ServiceCommand
 	wg         sync.WaitGroup
 	consumer   sarama.Consumer
 	mongoHosts string // mongo hosts
@@ -38,7 +37,7 @@ type CollectorService struct {
 type CollectorServiceFactory struct{}
 
 // New create apiService service factory
-func (m *CollectorServiceFactory) New(name string, c libs.Config, ch chan base.ServiceCommand) (base.Service, error) {
+func (m *CollectorServiceFactory) New(name string, c sentel.Config, ch chan sentel.ServiceCommand) (sentel.Service, error) {
 	// check mongo db configuration
 	hosts, err := c.String("ceilometer", "mongo")
 	if err != nil || hosts == "" {

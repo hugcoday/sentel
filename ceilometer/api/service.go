@@ -18,14 +18,13 @@ import (
 
 	mgo "gopkg.in/mgo.v2"
 
-	"github.com/cloustone/sentel/ceilometer/base"
-	"github.com/cloustone/sentel/libs"
+	"github.com/cloustone/sentel/libs/sentel"
 	"github.com/labstack/echo"
 )
 
 type ApiService struct {
-	config  libs.Config
-	chn     chan base.ServiceCommand
+	config  sentel.Config
+	chn     chan sentel.ServiceCommand
 	wg      sync.WaitGroup
 	address string
 	echo    *echo.Echo
@@ -33,7 +32,7 @@ type ApiService struct {
 
 type apiContext struct {
 	echo.Context
-	config libs.Config
+	config sentel.Config
 }
 
 type response struct {
@@ -48,7 +47,7 @@ type ApiServiceFactory struct{}
 const APIHEAD = "api/v1/"
 
 // New create apiService service factory
-func (m *ApiServiceFactory) New(protocol string, c libs.Config, ch chan base.ServiceCommand) (base.Service, error) {
+func (m *ApiServiceFactory) New(protocol string, c sentel.Config, ch chan sentel.ServiceCommand) (sentel.Service, error) {
 	// check mongo db configuration
 	hosts, err := c.String("ceilometer", "mongo")
 	if err != nil || hosts == "" {
