@@ -99,8 +99,7 @@ func (s *CollectorService) Start() error {
 			}
 		}(pc)
 	}
-	s.wg.Add(1)
-	s.consumer.Close()
+	s.wg.Wait()
 	return nil
 }
 

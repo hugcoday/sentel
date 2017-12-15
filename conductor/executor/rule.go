@@ -10,4 +10,20 @@
 //  License for the specific language governing permissions and limitations
 //  under the License.
 
-package ruleengine
+package executor
+
+const (
+	RuleActionNew     = "new"
+	RuleActionDelete  = "delete"
+	RuleActionUpdated = "updated"
+	RuleActionStart   = "start"
+	RuleActionStop    = "stop"
+)
+
+type Rule struct {
+	RuleName  string `json:"ruleName"`
+	RuleId    string `json:"ruleId"`
+	ProductId string `json:"productId"`
+	Sal       string `json:"sql"`
+	Target    string `json:"target"`
+}

@@ -14,28 +14,24 @@ package executor
 
 import (
 	"errors"
-	"fmt"
-	"strings"
 	"sync"
 
-	"github.com/Shopify/sarama"
 	"github.com/cloustone/sentel/libs/sentel"
-	"github.com/golang/glog"
 	"gopkg.in/mgo.v2"
 )
 
 type ExecutorService struct {
-	config     sentel.Config
-	chn        chan sentel.ServiceCommand
-	wg         sync.WaitGroup
-	consumer   sarama.Consumer
-	mongoHosts string // mongo hosts
+	config   sentel.Config
+	chn      chan sentel.ServiceCommand
+	wg       sync.WaitGroup
+	ruleChan chan *Rule
 }
 
-// ExecutorServiceFactory
 type ExecutorServiceFactory struct{}
 
-// New create apiService service factory
+var executorService *ExecutorService
+
+// New create executor service factory
 func (m *ExecutorServiceFactory) New(name string, c sentel.Config, ch chan sentel.ServiceCommand) (sentel.Service, error) {
 	// check mongo db configuration
 	hosts, err := c.String("conductor", "mongo")
@@ -43,86 +39,51 @@ func (m *ExecutorServiceFactory) New(name string, c sentel.Config, ch chan sente
 		return nil, errors.New("Invalid mongo configuration")
 	}
 	// try connect with mongo db
-	session, err := mgo.Dial(hosts)
-	if err != nil {
+	if session, err := mgo.Dial(hosts); err != nil {
 		return nil, err
+	} else {
+		session.Close()
 	}
-	session.Close()
-
-	// kafka
-	khosts, err := c.String(name, "hosts")
-	if err != nil || khosts == "" {
-		return nil, errors.New("Invalid kafka configuration")
+	executorService = &ExecutorService{
+		config:   c,
+		wg:       sync.WaitGroup{},
+		chn:      ch,
+		ruleChan: make(chan *Rule),
 	}
-	consumer, err := sarama.NewConsumer(strings.Split(khosts, ","), nil)
-	if err != nil {
-		return nil, fmt.Errorf("Connecting with kafka:%s failed", hosts)
-	}
-
-	return &ExecutorService{
-		config:     c,
-		wg:         sync.WaitGroup{},
-		chn:        ch,
-		consumer:   consumer,
-		mongoHosts: hosts,
-	}, nil
-
+	return executorService, nil
 }
 
 // Name
 func (s *ExecutorService) Name() string {
-	return "collector"
+	return "executor"
 }
 
 // Start
 func (s *ExecutorService) Start() error {
-	partitionList, err := s.consumer.Partitions("ceilometer")
-	if err != nil {
-		return fmt.Errorf("Failed to get list of partions:%v", err)
-		return err
-	}
-
-	for partition := range partitionList {
-		pc, err := s.consumer.ConsumePartition("ceilometer", int32(partition), sarama.OffsetNewest)
-		if err != nil {
-			glog.Errorf("Failed  to start consumer for partion %d:%s", partition, err)
-			continue
-		}
-		defer pc.AsyncClose()
+	// start rule channel
+	go func(s *ExecutorService) {
 		s.wg.Add(1)
-
-		go func(sarama.PartitionConsumer) {
-			defer s.wg.Done()
-			for msg := range pc.Messages() {
-				s.handleNotifications(string(msg.Topic), msg.Value)
-			}
-		}(pc)
-	}
-	s.wg.Add(1)
-	s.consumer.Close()
+		select {
+		case r := <-s.ruleChan:
+			s.handleRule(r)
+		case <-s.chn:
+			break
+		}
+	}(s)
+	s.wg.Wait()
 	return nil
 }
 
 // Stop
 func (s *ExecutorService) Stop() {
-	s.consumer.Close()
+	s.chn <- 1
 }
 
-// handleNotifications handle notification from kafka
-func (s *ExecutorService) handleNotifications(topic string, value []byte) error {
-	//	if err := handleTopicObject(s, context.Background(), topic, value); err != nil {
-	//		glog.Error(err)
-	//		return err
-	//	}
-	return nil
+// executeRule push a new rule to executor service
+func pushRule(r *Rule) {
+	executorService.ruleChan <- r
 }
 
-func (s *ExecutorService) getDatabase() (*mgo.Database, error) {
-	session, err := mgo.Dial(s.mongoHosts)
-	if err != nil {
-		glog.Fatalf("Failed to connect with mongo:%s", s.mongoHosts)
-		return nil, err
-	}
-	session.SetMode(mgo.Monotonic, true)
-	return session.DB("iothub"), nil
+func (s *ExecutorService) handleRule(r *Rule) {
+
 }

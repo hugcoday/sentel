@@ -13,13 +13,16 @@
 package indicator
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 	"sync"
 
-	"github.com/Shopify/sarama"
+	"github.com/cloustone/sentel/conductor/executor"
 	"github.com/cloustone/sentel/libs/sentel"
+
+	"github.com/Shopify/sarama"
 	"github.com/golang/glog"
 	"gopkg.in/mgo.v2"
 )
@@ -43,11 +46,11 @@ func (m *IndicatorServiceFactory) New(name string, c sentel.Config, ch chan sent
 		return nil, errors.New("Invalid mongo configuration")
 	}
 	// try connect with mongo db
-	session, err := mgo.Dial(hosts)
-	if err != nil {
+	if session, err := mgo.Dial(hosts); err != nil {
 		return nil, err
+	} else {
+		session.Close()
 	}
-	session.Close()
 
 	// kafka
 	khosts, err := c.String(name, "hosts")
@@ -71,19 +74,18 @@ func (m *IndicatorServiceFactory) New(name string, c sentel.Config, ch chan sent
 
 // Name
 func (s *IndicatorService) Name() string {
-	return "collector"
+	return "indicator"
 }
 
 // Start
 func (s *IndicatorService) Start() error {
-	partitionList, err := s.consumer.Partitions("ceilometer")
+	partitionList, err := s.consumer.Partitions("conductor")
 	if err != nil {
 		return fmt.Errorf("Failed to get list of partions:%v", err)
-		return err
 	}
 
 	for partition := range partitionList {
-		pc, err := s.consumer.ConsumePartition("ceilometer", int32(partition), sarama.OffsetNewest)
+		pc, err := s.consumer.ConsumePartition("rule", int32(partition), sarama.OffsetNewest)
 		if err != nil {
 			glog.Errorf("Failed  to start consumer for partion %d:%s", partition, err)
 			continue
@@ -98,8 +100,7 @@ func (s *IndicatorService) Start() error {
 			}
 		}(pc)
 	}
-	s.wg.Add(1)
-	s.consumer.Close()
+	s.wg.Wait()
 	return nil
 }
 
@@ -108,21 +109,23 @@ func (s *IndicatorService) Stop() {
 	s.consumer.Close()
 }
 
-// handleNotifications handle notification from kafka
-func (s *IndicatorService) handleNotifications(topic string, value []byte) error {
-	//	if err := handleTopicObject(s, context.Background(), topic, value); err != nil {
-	//		glog.Error(err)
-	//		return err
-	//	}
-	return nil
+type ruleTopic struct {
+	RuleName  string `json:"ruleName"`
+	RuleId    string `json:"ruleId"`
+	ProductId string `json:"productId"`
+	Action    string `json:"action"`
 }
 
-func (s *IndicatorService) getDatabase() (*mgo.Database, error) {
-	session, err := mgo.Dial(s.mongoHosts)
-	if err != nil {
-		glog.Fatalf("Failed to connect with mongo:%s", s.mongoHosts)
-		return nil, err
+// handleNotifications handle notification from kafka
+func (s *IndicatorService) handleNotifications(topic string, value []byte) error {
+	rule := ruleTopic{}
+	if err := json.Unmarshal(value, &topic); err != nil {
+		return err
 	}
-	session.SetMode(mgo.Monotonic, true)
-	return session.DB("iothub"), nil
+	r := &executor.Rule{
+		RuleName:  rule.RuleName,
+		RuleId:    rule.RuleId,
+		ProductId: rule.ProductId,
+	}
+	return executor.HandleRuleNotification(s.config, r, rule.Action)
 }
